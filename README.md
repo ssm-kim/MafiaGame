@@ -97,6 +97,48 @@
 3. 의사는 본인을 연속으로 2번 치료 불가
 
 # 4. 프로젝트 진행
+<h2>기술 스택</h2>
+
+<div align="center">
+  <table>
+    <thead>
+      <tr>
+        <th>FrontEnd</th>
+        <th>BackEnd</th>
+        <th>Infra</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
+            <li><img src="https://img.icons8.com/color/48/000000/html-5.png" alt="HTML" width="20"/> HTML</li>
+            <li><img src="https://img.icons8.com/color/48/000000/css3.png" alt="CSS" width="20"/> CSS(SCSS)</li>
+            <li><img src="https://img.icons8.com/color/48/000000/javascript.png" alt="JavaScript" width="20"/> JavaScript</li>
+            <li><img src="https://img.icons8.com/officel/48/000000/react.png" alt="React.js" width="20"/> React.js</li>
+            <li><img src="https://img.icons8.com/color/48/000000/python.png" alt="Python" width="20"/> Python</li>
+          </ul>
+        </td>
+        <td>
+          <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
+            <li><img src="https://img.icons8.com/color/48/000000/java-coffee-cup-logo.png" alt="Java" width="20"/> Java</li>
+            <li><img src="icons/springboot.png" alt="SpringBoot" width="20"/> SpringBoot</li>
+            <li><img src="icons/mysql.png" alt="MySQL" width="20"/> MySQL</li>
+            <li><img src="icons/jpa.png" alt="JPA" width="20"/> JPA</li>
+            <li><img src="icons/hibernate.png" alt="Hibernate" width="20"/> Hibernate</li>
+            <li><img src="icons/openvidu.png" alt="OpenVidu" width="20"/> OpenVidu</li>
+          </ul>
+        </td>
+        <td>
+          <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
+            <li><img src="icons/aws.png" alt="AWS" width="20"/> AWS</li>
+            <li><img src="icons/docker.jpg" alt="Docker" width="20"/> Docker</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
 ## 1. Jira
 
