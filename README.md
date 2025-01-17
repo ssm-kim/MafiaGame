@@ -106,6 +106,8 @@
         <th>FrontEnd</th>
         <th>BackEnd</th>
         <th>Infra</th>
+        <th>Tools</th>
+        <th>Collaboration</th>
       </tr>
     </thead>
     <tbody>
@@ -133,6 +135,22 @@
           <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
             <li><img src="icons/aws.png" alt="AWS" width="20"/> AWS</li>
             <li><img src="icons/docker.jpg" alt="Docker" width="20"/> Docker</li>
+          </ul>
+        </td>
+        <td>
+          <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
+            <li><img src="icons/intellij.png" alt="AWS" width="20"/> IntelliJ</li>
+            <li><img src="icons/vscode.png" alt="Docker" width="20"/> VS Code</li>
+            <li><img src="icons/figma.png" alt="Docker" width="20"/> Figma</li>
+            <li><img src="icons/git.png" alt="Docker" width="20"/> Git</li>
+          </ul>
+        </td>
+        <td>
+          <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
+            <li><img src="icons/github.png" alt="AWS" width="20"/> Github</li>
+            <li><img src="icons/notion.png" alt="Docker" width="20"/> Notion</li>
+            <li><img src="icons/discord.png" alt="Docker" width="20"/> Discord</li>
+            <li><img src="icons/jira.png" alt="Docker" width="20"/> JIRA</li>
           </ul>
         </td>
       </tr>
