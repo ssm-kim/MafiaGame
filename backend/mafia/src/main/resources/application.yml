@@ -1,8 +1,19 @@
 spring:
   application:
     name: mafia
+  profiles:
+    active: secret
   devtools:
     restart:
       enabled: true  # 서버 코드 변경 시 재시작
     livereload:
       enabled: true  # 프론트엔드 수정 시 새로고침
+
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+
