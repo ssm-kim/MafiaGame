@@ -1,3 +1,8 @@
 spring:
   application:
     name: mafia
+  devtools:
+    restart:
+      enabled: true  # 서버 코드 변경 시 재시작
+    livereload:
+      enabled: true  # 프론트엔드 수정 시 새로고침
