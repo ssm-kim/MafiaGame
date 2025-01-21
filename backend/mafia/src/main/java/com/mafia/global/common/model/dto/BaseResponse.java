@@ -21,8 +21,16 @@ public class BaseResponse<T> {//BaseResponse 객체를 사용할때 성공, 실�
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private T result;
 
-    // 요청에 성공한 경우
+    // 기본 성공 응답 (결과값 포함)
     public BaseResponse(T result) {
+        this.isSuccess = SUCCESS.isSuccess();
+        this.message = SUCCESS.getMessage();
+        this.code = SUCCESS.getCode();
+        this.result = result;
+    }
+
+    // 특정 성공 상태의 응답 (결과값 포함)
+    public BaseResponse(T result, BaseResponseStatus status) {
         this.isSuccess = SUCCESS.isSuccess();
         this.message = SUCCESS.getMessage();
         this.code = SUCCESS.getCode();
@@ -36,6 +44,7 @@ public class BaseResponse<T> {//BaseResponse 객체를 사용할때 성공, 실�
         this.code = status.getCode();
     }
 
+    // 빈 목록 반환
     public BaseResponse() {
         this.isSuccess = SUCCESS.isSuccess();
         this.message = SUCCESS.getMessage();

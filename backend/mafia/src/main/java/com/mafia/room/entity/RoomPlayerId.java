@@ -13,8 +13,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class RoomPlayerId implements Serializable {
-    private Long memberId;  // bigint(20)
-    private Long roomId;    // int(10)
+    private Long memberId;  // bigint(10)
+    private Long roomId;    // bigint(10)
 
     public RoomPlayerId(Long memberId, Long roomId) {
         this.memberId = memberId;
