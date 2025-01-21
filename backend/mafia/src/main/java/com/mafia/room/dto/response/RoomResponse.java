@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
-// dto/response/RoomResponseDto.java
 @Getter
 @NoArgsConstructor
 public class RoomResponse {

@@ -33,6 +33,11 @@ public class RoomServiceImpl implements RoomService {
 
     private final RoomRepository roomRepository;
 
+    /**
+     * 새로운 게임방을 생성합니다.
+     * 생성 시 방 상태(roomStatus)는 false(시작 전)로 설정됩니다.
+     * @throws BusinessException 방 제목이 중복된 경우
+     */
     @Override
     public RoomResponse createRoom(RoomRequest requestDto) {
         Room room = requestDto.toEntity();
@@ -40,6 +45,7 @@ public class RoomServiceImpl implements RoomService {
         return RoomResponse.from(savedRoom);
     }
 
+    /** 모든 게임방 목록을 반환합니다. */
     @Override
     public List<RoomResponse> getAllRooms() {
         return roomRepository.findAll().stream()
@@ -47,6 +53,10 @@ public class RoomServiceImpl implements RoomService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 특정 게임방을 조회합니다.
+     * @throws BusinessException 방을 찾을 수 없는 경우
+     */
     @Override
     public RoomResponse getRoom(Long roomId) {
         Room room = roomRepository.findById(roomId)
@@ -54,28 +64,34 @@ public class RoomServiceImpl implements RoomService {
         return RoomResponse.from(room);
     }
 
+    /**
+     * 게임방 정보를 수정합니다.
+     * @throws BusinessException 방을 찾을 수 없거나 플레이어 수가 유효하지 않은 경우(4~15명)
+     */
     @Override
     @Transactional
     public RoomResponse updateRoom(Long roomId, RoomRequest requestDto) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new BusinessException(BaseResponseStatus.ROOM_NOT_FOUND));
 
-        // 플레이어 수 유효성 검증
         if (requestDto.getMaxPlayers() != null &&
                 (requestDto.getMaxPlayers() < 4 || requestDto.getMaxPlayers() > 15)) {
             throw new BusinessException(BaseResponseStatus.ROOM_INVALID_PLAYER_COUNT);
         }
 
-        // 직접 값 설정
         room.setRoomTitle(requestDto.getRoomTitle());
         room.setRoomPassword(requestDto.getRoomPassword());
         room.setRoomOption(requestDto.getRoomOption());
         room.setMaxPlayers(requestDto.getMaxPlayers());
         room.setIsVoice(requestDto.getIsVoice());
 
-        return RoomResponse.from(room);  // DTO로 변환해서 반환
+        return RoomResponse.from(room);
     }
 
+    /**
+     * 게임방을 삭제합니다.
+     * @throws BusinessException 방을 찾을 수 없는 경우
+     */
     @Override
     @Transactional
     public void deleteRoom(Long roomId) {

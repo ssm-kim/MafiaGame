@@ -1,15 +1,12 @@
 package com.mafia.room.controller;
 
 import com.mafia.global.common.model.dto.BaseResponse;
-import com.mafia.global.common.model.dto.BaseResponseStatus;
 import com.mafia.room.dto.request.RoomRequest;
 import com.mafia.room.dto.response.RoomResponse;
-import com.mafia.room.entity.Room;
 import com.mafia.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
 
 @RestController
