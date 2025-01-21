@@ -25,4 +25,20 @@ public class Room {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+
+    @Override
+    public String toString() {
+        return "Room{" +
+                "roomId=" + roomId +
+                ", memberId=" + memberId +
+                ", roomTitle='" + roomTitle + '\'' +
+                ", roomStatus=" + roomStatus +
+                ", roomPassword='" + roomPassword + '\'' +
+                ", roomOption='" + roomOption + '\'' +
+                ", maxPlayers=" + maxPlayers +
+                ", isVoice=" + isVoice +
+                ", createdAt=" + createdAt +
+                '}';
+    }
 }

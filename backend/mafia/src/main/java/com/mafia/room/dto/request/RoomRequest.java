@@ -27,4 +27,16 @@ public class RoomRequest {
         room.setRoomStatus(false);
         return room;
     }
+
+    @Override
+    public String toString() {
+        return "RoomRequest{" +
+                "memberId=" + memberId +
+                ", roomTitle='" + roomTitle + '\'' +
+                ", roomPassword='" + roomPassword + '\'' +
+                ", roomOption='" + roomOption + '\'' +
+                ", maxPlayers=" + maxPlayers +
+                ", isVoice=" + isVoice +
+                '}';
+    }
 }

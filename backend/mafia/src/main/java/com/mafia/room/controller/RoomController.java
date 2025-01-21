@@ -9,6 +9,7 @@ import com.mafia.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -20,8 +21,8 @@ public class RoomController {
     /** 새로운 게임방을 생성합니다. */
     @PostMapping
     public BaseResponse<RoomResponse> createRoom(@RequestBody RoomRequest requestDto) {
-        Room room = roomService.createRoom(requestDto.toEntity());
-        return new BaseResponse<>(RoomResponse.from(room), BaseResponseStatus.SUCCESS);
+        RoomResponse response = roomService.createRoom(requestDto);
+        return new BaseResponse<>(response);
     }
 
     /** 모든 게임방 목록을 조회합니다. */
@@ -33,17 +34,15 @@ public class RoomController {
     /** 특정 게임방의 상세 정보를 조회합니다. */
     @GetMapping("/{roomId}")
     public BaseResponse<RoomResponse> getRoom(@PathVariable Long roomId) {
-        Room room = roomService.getRoom(roomId);
-        return new BaseResponse<>(RoomResponse.from(room));
+        return new BaseResponse<>(roomService.getRoom(roomId));
     }
 
-    /** 게임방 정보를 수정합니다. ->  추후 사용 예정 */
+    /** 게임방 정보를 수정합니다. */
     @PutMapping("/{roomId}")
     public BaseResponse<RoomResponse> updateRoom(
             @PathVariable Long roomId,
             @RequestBody RoomRequest requestDto) {
-        Room room = roomService.updateRoom(roomId, requestDto.toEntity());
-        return new BaseResponse<>(RoomResponse.from(room));
+        return new BaseResponse<>(roomService.updateRoom(roomId, requestDto));
     }
 
     /** 게임방을 삭제합니다. */
