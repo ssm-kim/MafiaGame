@@ -2,9 +2,9 @@ package com.mafia.room.service;
 
 import com.mafia.global.common.exception.exception.BusinessException;
 import com.mafia.global.common.model.dto.BaseResponseStatus;
-import com.mafia.room.dto.request.RoomRequest;
-import com.mafia.room.dto.response.RoomResponse;
-import com.mafia.room.entity.Room;
+import com.mafia.room.model.dto.request.RoomRequest;
+import com.mafia.room.model.dto.response.RoomResponse;
+import com.mafia.room.model.entity.Room;
 import com.mafia.room.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,17 +39,17 @@ public class RoomServiceImpl implements RoomService {
      * @throws BusinessException 방 제목이 중복된 경우
      */
     @Override
-    public RoomResponse createRoom(RoomRequest requestDto) {
-        Room room = requestDto.toEntity();
+    public RoomResponse createRoom(RoomRequest roomRequest) {
+        Room room = roomRequest.toEntity();
         Room savedRoom = roomRepository.save(room);
-        return RoomResponse.from(savedRoom);
+        return new RoomResponse(savedRoom);
     }
 
     /** 모든 게임방 목록을 반환합니다. */
     @Override
     public List<RoomResponse> getAllRooms() {
         return roomRepository.findAll().stream()
-                .map(RoomResponse::from)
+                .map(room -> new RoomResponse(room))
                 .collect(Collectors.toList());
     }
 
@@ -61,7 +61,7 @@ public class RoomServiceImpl implements RoomService {
     public RoomResponse getRoom(Long roomId) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new BusinessException(BaseResponseStatus.ROOM_NOT_FOUND));
-        return RoomResponse.from(room);
+        return new RoomResponse(room);
     }
 
     /**
@@ -70,22 +70,22 @@ public class RoomServiceImpl implements RoomService {
      */
     @Override
     @Transactional
-    public RoomResponse updateRoom(Long roomId, RoomRequest requestDto) {
+    public RoomResponse updateRoom(Long roomId, RoomRequest roomRequest) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new BusinessException(BaseResponseStatus.ROOM_NOT_FOUND));
 
-        if (requestDto.getMaxPlayers() != null &&
-                (requestDto.getMaxPlayers() < 4 || requestDto.getMaxPlayers() > 15)) {
+        if (roomRequest.getMaxPlayers() != null &&
+                (roomRequest.getMaxPlayers() < 4 || roomRequest.getMaxPlayers() > 15)) {
             throw new BusinessException(BaseResponseStatus.ROOM_INVALID_PLAYER_COUNT);
         }
 
-        room.setRoomTitle(requestDto.getRoomTitle());
-        room.setRoomPassword(requestDto.getRoomPassword());
-        room.setRoomOption(requestDto.getRoomOption());
-        room.setMaxPlayers(requestDto.getMaxPlayers());
-        room.setIsVoice(requestDto.getIsVoice());
+        room.setRoomTitle(roomRequest.getRoomTitle());
+        room.setRoomPassword(roomRequest.getRoomPassword());
+        room.setRoomOption(roomRequest.getRoomOption());
+        room.setMaxPlayers(roomRequest.getMaxPlayers());
+        room.setIsVoice(roomRequest.getIsVoice());
 
-        return RoomResponse.from(room);
+        return new RoomResponse(room);
     }
 
     /**

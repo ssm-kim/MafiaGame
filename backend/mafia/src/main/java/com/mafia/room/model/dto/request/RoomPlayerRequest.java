@@ -1,7 +1,7 @@
-package com.mafia.room.dto.request;
+package com.mafia.room.model.dto.request;
 
-import com.mafia.room.entity.RoomPlayer;
-import com.mafia.room.entity.RoomPlayerId;
+import com.mafia.room.model.entity.RoomPlayer;
+import com.mafia.room.model.entity.RoomPlayerId;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

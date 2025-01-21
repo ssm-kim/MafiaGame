@@ -1,6 +1,6 @@
-package com.mafia.room.dto.response;
+package com.mafia.room.model.dto.response;
 
-import com.mafia.room.entity.RoomPlayer;
+import com.mafia.room.model.entity.RoomPlayer;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 

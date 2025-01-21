@@ -1,4 +1,4 @@
-package com.mafia.room.entity;
+package com.mafia.room.model.entity;
 
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;

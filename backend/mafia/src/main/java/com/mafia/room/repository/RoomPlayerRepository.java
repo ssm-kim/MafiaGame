@@ -1,7 +1,7 @@
 package com.mafia.room.repository;
 
-import com.mafia.room.entity.RoomPlayer;
-import com.mafia.room.entity.RoomPlayerId;
+import com.mafia.room.model.entity.RoomPlayer;
+import com.mafia.room.model.entity.RoomPlayerId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
