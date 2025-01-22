@@ -1,0 +1,38 @@
+package com.mafia.domain.game.repository;
+
+import com.mafia.domain.game.model.game.Game;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Repository;
+
+@Repository
+@RequiredArgsConstructor
+public class GameRepository {
+
+    private final RedisTemplate<String, Game> redisTemplate;
+
+
+    private String getRoomKey(long roomId) {
+        return "game:room:" + roomId;
+    }
+
+    // 게임 저장
+    public void save(Game game) {
+        redisTemplate.opsForValue().set(getRoomKey(game.getRoom_id()), game);
+    }
+
+    // 게임 조회
+    public Game findById(long roomId) {
+        return redisTemplate.opsForValue().get(getRoomKey(roomId));
+    }
+
+    // 게임 삭제
+    public void delete(long roomId) {
+        redisTemplate.delete(getRoomKey(roomId));
+    }
+
+    // 방 존재 여부 확인
+    public boolean exists(long roomId) {
+        return redisTemplate.hasKey(getRoomKey(roomId));
+    }
+}
