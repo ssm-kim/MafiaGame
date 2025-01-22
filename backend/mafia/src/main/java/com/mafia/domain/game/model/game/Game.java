@@ -14,7 +14,7 @@ public class Game {
 
     private static final long serialVersionUID = 1L;
 
-    private long room_id;
+    private long roomId;
     private Map<Long, Player> players;
     private Map<Long, Long> votes;
     private Set<Long> ready;
@@ -25,6 +25,8 @@ public class Game {
     private int citizen;
     private int zombie;
     private int mutant;
+    private int doctorCount;
+    private Long healTarget;
     private GameOption option;
 
     public Game(){
@@ -38,6 +40,7 @@ public class Game {
         zombie = 0;
         mutant = 0;
         this.option = new GameOption();
+        doctorCount = this.option.getDoctorCount();
     }
 
     public void init(){
@@ -57,7 +60,7 @@ public class Game {
     * */
     public void addPlayer(User user){
         if(players.containsKey(user.getId())){
-            log.info("[Game{}] User {} is already in the game", room_id, user.getId());
+            log.info("[Game{}] User {} is already in the game", roomId, user.getId());
             return;
         }
         Player p = new Player(user);
@@ -66,7 +69,7 @@ public class Game {
 
     public int ready(Long user_id){
         if(ready.contains(user_id)){
-            log.info("[Game{}] User {} is already ready", room_id, user_id);
+            log.info("[Game{}] User {} is already ready", roomId, user_id);
             return -1;
         }
         ready.add(user_id);
@@ -97,8 +100,9 @@ public class Game {
             }
             rcnt++;
         }
-        log.info("[Game{}] Role distribution is completed", room_id);
+        log.info("[Game{}] Role distribution is completed", roomId);
     }
+
     public void init_role(List<Role> role){
         this.zombie = option.getZombie();
         this.mutant = option.getMutant();
@@ -119,21 +123,6 @@ public class Game {
     }
 
     public void vote(Long user_id, Long target_id){
-        if(target_id == -1){
-            log.info("[Game{}] User {} is abstention", room_id, user_id);
-            return;
-        }
-        if(players.get(user_id).isDead()){
-            log.info("[Game{}] User {} is dead", room_id, user_id);
-            return;
-        }
-        if(players.get(target_id).isDead()){
-            log.info("[Game{}] Target {} is dead", room_id, target_id);
-            return;
-        }
-        if(!players.get(user_id).isEnableVote()){
-            log.info("[Game{}] User's {} Job can't vote", room_id, user_id);
-        }
         votes.put(user_id, target_id);
     }
 
@@ -148,23 +137,17 @@ public class Game {
         Long target = result.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
-                .orElse(-1L);;
+                .orElse(-1L);
 
-        if(target == -1){
-            log.info("[Game{}] No one is selected", room_id);
-            return -1L;
-        }
-        else{
-            log.info("[Game{}] Target is {}", room_id, target);
-            return target;
-        }
+        return target;
     }
 
-    public void kill(Long user_id){
+    public boolean kill(Long user_id){
         Player p = players.get(user_id);
-        if(p.isDead()){
-            log.info("[Game{}] User {} is already dead", room_id, user_id);
-            return;
+        if(user_id.equals(healTarget)){
+            healTarget = -1L;
+            log.info("[Game{}] Doctor prevented the death of user {}.", roomId, user_id);
+            return false;
         }
         p.setDead(true);
         alive--;
@@ -174,6 +157,22 @@ public class Game {
             case MUTANT -> mutant--;
             default -> citizen--;
         }
+        return true;
+    }
+
+    public void heal(Long target_id){
+        healTarget = target_id;
+        if(doctorCount > 0) doctorCount--;
+    }
+
+    public Role findRole(Long user_id, Long target_id){
+        Role find = players.get(target_id).getRole();
+        if (find == Role.ZOMBIE) {
+            players.get(target_id).setEnableVote(false);
+            return Role.ZOMBIE;
+        }
+        else return Role.CITIZEN;
+
     }
 
     public int isGameOver(){
@@ -190,7 +189,7 @@ public class Game {
             return 3; // 돌연변이 승리
         }
         else{
-            log.info("[Game{}] Game is still in progress", room_id);
+            log.info("[Game{}] Game is still in progress", roomId);
             return 0; // 게임 진행중
         }
     }

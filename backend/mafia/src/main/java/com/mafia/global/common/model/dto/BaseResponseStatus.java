@@ -19,6 +19,36 @@ public enum BaseResponseStatus {
     PLAYER_NOT_FOUND(false, HttpStatus.BAD_REQUEST, 1004, "해당 플레이어를 찾을 수 없습니다."),
     ALREADY_IN_OTHER_ROOM(false, HttpStatus.BAD_REQUEST, 1005, "사용자가 이미 다른방에 참가중입니다."),
 
+
+
+
+
+    // Game Error Codes (4001~4100)
+
+    // Game Start Error Codes (4001~4009)
+    GAME_ALREADY_START(false, HttpStatus.BAD_REQUEST, 4001, "해당 게임 코드가 이미 존재합니다."),
+    PLAYER_NOT_FOUND(false, HttpStatus.NOT_FOUND, 4002, "플레이어를 찾을 수 없습니다."),
+    OPTION_NOT_FOUND(false, HttpStatus.NOT_FOUND, 4003, "옵션을 찾을 수 없습니다."),
+    GAME_START_FAIL(false, HttpStatus.BAD_REQUEST, 4004, "게임 시작에 실패했습니다."),
+    PLAYER_NOT_ENOUGH(false, HttpStatus.BAD_REQUEST, 4005, "게임 참가자가 충분하지 않습니다."),
+    // Game Found Error Codes (4010)
+    GAME_NOT_FOUND(false, HttpStatus.NOT_FOUND, 4010, "해당 방의 게임을 찾을 수 없습니다."),
+    // Game Delete Error Codes (4020)
+    GAME_DELETE_FAIL(false, HttpStatus.BAD_REQUEST, 4020, "게임 삭제에 실패했습니다."),
+    //Game Vote Error Codes (4030~4039)
+    USER_IS_DEAD(false, HttpStatus.BAD_REQUEST, 4030, "사망한 플레이어는 투표할 수 없습니다."),
+    TARGET_IS_DEAD(false, HttpStatus.BAD_REQUEST, 4031, "사망한 플레이어에게 투표할 수 없습니다."),
+    MUTANT_CANNOT_VOTE(false, HttpStatus.BAD_REQUEST, 4032, "중립은 투표할 수 없습니다."),
+    POLICE_CANNOT_VOTE(false, HttpStatus.BAD_REQUEST, 4033, "경찰은 좀비를 알아내어 이제 투표할 수 없습니다."),
+    // Kill Error Codes (4040~4049)
+    USER_ALREADY_DEAD(false, HttpStatus.BAD_REQUEST, 4034, "죽은 플레이어는 살릴 수 없습니다."),
+    MEDICAL_COUNT_ZERO(false, HttpStatus.BAD_REQUEST, 4035, "모든 의사 기회를 소진했습니다."),
+
+    // Job Error Codes (4050~4059)
+    NOT_POLICE_FINDROLE(false, HttpStatus.BAD_REQUEST, 4050, "경찰이 아니면 조사를 할 수 없습니다."),
+    NOT_DOCTOR_HEAL(false, HttpStatus.BAD_REQUEST, 4051, "의사가 아니면 치료를 할 수 없습니다."),
+
+
     // Chat Error Codes (5000~)
     NOT_FOUND_CHAT(false, HttpStatus.NOT_FOUND, 5001, "채팅방을 찾을 수 없습니다.");
 
