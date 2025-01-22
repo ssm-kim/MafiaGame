@@ -24,6 +24,7 @@ public class RoomRequest {
         room.setRoomOption(this.roomOption);
         room.setCurPlayers(this.curPlayers);
         room.setIsVoice(this.isVoice);
+        room.setCurPlayers(1);  // 방 생성 시 1명(방장)으로 시작
         room.setRoomStatus(false);
         return room;
     }

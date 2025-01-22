@@ -13,7 +13,7 @@ public class RoomPlayer {
     @EmbeddedId
     private RoomPlayerId id;    // 복합키 사용
 
-    private String role = "citizen";  // 기본값 설정
+    private String role;
     private Boolean isVote = true;
     private Boolean isReady = false;
     private Boolean isAlive = true;

@@ -1,9 +1,10 @@
 package com.mafia.domain.room.controller;
 
-import com.mafia.global.common.model.dto.BaseResponse;
 import com.mafia.domain.room.model.dto.request.RoomRequest;
+import com.mafia.domain.room.model.dto.response.RoomPlayerResponse;
 import com.mafia.domain.room.model.dto.response.RoomResponse;
 import com.mafia.domain.room.service.RoomService;
+import com.mafia.global.common.model.dto.BaseResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/rooms")
+@RequestMapping("/api/room")
 @RequiredArgsConstructor
 public class RoomController {
     private final RoomService roomService;
@@ -59,17 +60,29 @@ public class RoomController {
         return ResponseEntity.ok(new BaseResponse<>("Successfully left room"));
     }
 
-//    /** 특정 게임방의 상세 정보를 조회합니다. */
-//    @GetMapping("/{roomId}")
-//    public ResponseEntity<BaseResponse<RoomResponse>> getRoom(@PathVariable Long roomId) {
-//        return ResponseEntity.ok(new BaseResponse<>(roomService.getRoom(roomId)));
-//    }
+    /** 게임방의 플레이어 목록을 조회합니다. */
+    @GetMapping("/{roomId}/players")
+    public ResponseEntity<BaseResponse<List<RoomPlayerResponse>>> getRoomPlayers(
+            @PathVariable Long roomId) {
+        return ResponseEntity.ok(new BaseResponse<>(roomService.getRoomPlayers(roomId)));
+    }
 
-//    /** 게임방 정보를 수정합니다. */
-//    @PutMapping("/{roomId}")
-//    public ResponseEntity<BaseResponse<RoomResponse>> updateRoom(
-//            @PathVariable Long roomId,
-//            @RequestBody RoomRequest roomRequest) {
-//        return ResponseEntity.ok(new BaseResponse<>(roomService.updateRoom(roomId, roomRequest)));
-//    }
+    /** 준비 상태를 토글합니다. */
+    @PostMapping("/{roomId}/ready")
+    public ResponseEntity<BaseResponse<String>> toggleReady(
+            @PathVariable Long roomId,
+            @RequestParam Long memberId) {
+        roomService.toggleReady(roomId, memberId);
+        return ResponseEntity.ok(new BaseResponse<>("Successfully ready state toggle"));
+    }
+
+    /** 게임을 시작합니다. */
+    @PostMapping("/{roomId}/start")
+    public ResponseEntity<BaseResponse<String>> startGame(
+            @PathVariable Long roomId,
+            @RequestParam Long memberId) {
+        roomService.startGame(roomId, memberId);
+        return ResponseEntity.ok(new BaseResponse<>("Successfully Game start"));
+    }
+
 }
