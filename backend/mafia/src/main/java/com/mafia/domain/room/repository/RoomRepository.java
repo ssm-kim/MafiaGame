@@ -1,6 +1,6 @@
-package com.mafia.room.repository;
+package com.mafia.domain.room.repository;
 
-import com.mafia.room.model.entity.Room;
+import com.mafia.domain.room.model.entity.Room;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

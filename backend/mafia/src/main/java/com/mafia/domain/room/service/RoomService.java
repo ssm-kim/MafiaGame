@@ -1,7 +1,7 @@
-package com.mafia.room.service;
+package com.mafia.domain.room.service;
 
-import com.mafia.room.model.dto.request.RoomRequest;
-import com.mafia.room.model.dto.response.RoomResponse;
+import com.mafia.domain.room.model.dto.request.RoomRequest;
+import com.mafia.domain.room.model.dto.response.RoomResponse;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;

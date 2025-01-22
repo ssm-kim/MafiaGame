@@ -1,44 +1,42 @@
-package com.mafia.room.model.entity;
+package com.mafia.domain.room.model.dto.request;
 
-import jakarta.persistence.*;
+import com.mafia.domain.room.model.entity.Room;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
-
-@Entity
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
-public class Room {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long roomId;
-
+public class RoomRequest {
     private Long memberId;
     private String roomTitle;
-    private Boolean roomStatus;
     private String roomPassword;
     private String roomOption;
     private Integer maxPlayers;
     private Boolean isVoice;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
+    public Room toEntity() {
+        Room room = new Room();
+        room.setMemberId(this.memberId);
+        room.setRoomTitle(this.roomTitle);
+        room.setRoomPassword(this.roomPassword);
+        room.setRoomOption(this.roomOption);
+        room.setMaxPlayers(this.maxPlayers);
+        room.setIsVoice(this.isVoice);
+        room.setRoomStatus(false);
+        return room;
+    }
 
     @Override
     public String toString() {
-        return "Room{" +
-                "roomId=" + roomId +
-                ", memberId=" + memberId +
+        return "RoomRequest{" +
+                "memberId=" + memberId +
                 ", roomTitle='" + roomTitle + '\'' +
-                ", roomStatus=" + roomStatus +
                 ", roomPassword='" + roomPassword + '\'' +
                 ", roomOption='" + roomOption + '\'' +
                 ", maxPlayers=" + maxPlayers +
                 ", isVoice=" + isVoice +
-                ", createdAt=" + createdAt +
                 '}';
     }
 }

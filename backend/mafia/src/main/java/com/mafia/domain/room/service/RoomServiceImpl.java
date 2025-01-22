@@ -1,11 +1,11 @@
-package com.mafia.room.service;
+package com.mafia.domain.room.service;
 
 import com.mafia.global.common.exception.exception.BusinessException;
 import com.mafia.global.common.model.dto.BaseResponseStatus;
-import com.mafia.room.model.dto.request.RoomRequest;
-import com.mafia.room.model.dto.response.RoomResponse;
-import com.mafia.room.model.entity.Room;
-import com.mafia.room.repository.RoomRepository;
+import com.mafia.domain.room.model.dto.request.RoomRequest;
+import com.mafia.domain.room.model.dto.response.RoomResponse;
+import com.mafia.domain.room.model.entity.Room;
+import com.mafia.domain.room.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

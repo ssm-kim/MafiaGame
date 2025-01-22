@@ -1,4 +1,4 @@
-package com.mafia.room.model.entity;
+package com.mafia.domain.room.model.entity;
 
 import jakarta.persistence.Embeddable;
 import lombok.EqualsAndHashCode;
