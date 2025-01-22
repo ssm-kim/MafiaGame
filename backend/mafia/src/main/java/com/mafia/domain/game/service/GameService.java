@@ -132,7 +132,7 @@ public class GameService {
     }
 
     // 플레이어 사망 처리
-    public void killPlayer(long roomId, Long userId) {
+    public boolean killPlayer(long roomId, Long userId) {
         Game game = findById(roomId);
         if(game.getPlayers().get(userId).isDead()){
             throw new BusinessException(USER_ALREADY_DEAD);
@@ -141,6 +141,7 @@ public class GameService {
         gameRepository.save(game);
         if(isKill) log.info("User {} killed in Room {}.", userId, roomId);
         else log.info("[Game{}] Doctor prevented the death of user {}.", roomId, userId);
+        return isKill;
     }
 
     // 플레이어 살리기(의사 전용, 2번 가능)
@@ -150,14 +151,17 @@ public class GameService {
         if(game.getDoctorCount() == 0) throw new BusinessException(MEDICAL_COUNT_ZERO);
         if(game.getPlayers().get(targetId).isDead()) throw new BusinessException(USER_ALREADY_DEAD);
         game.heal(targetId);
+        gameRepository.save(game);
     }
 
     // 플레이어 직업 찾기(경찰 전용)
-    public void findRole(long roomId, Long userId, Long targetId) {
+    public Role findRole(long roomId, Long userId, Long targetId) {
         Game game = findById(roomId);
         if(game.getPlayers().get(userId).getRole() != Role.POLICE) throw new BusinessException(NOT_POLICE_FINDROLE);
         Role role = game.findRole(userId, targetId);
         log.info("[Game{}] User {} found the role of User {} as {}", roomId, userId, targetId, role);
+        gameRepository.save(game);
+        return role;
     }
 
     // 게임 종료 여부 확인

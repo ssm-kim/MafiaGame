@@ -1,5 +1,6 @@
 package com.mafia.domain.game.model.game;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mafia.domain.game.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +15,7 @@ public class Game {
 
     private static final long serialVersionUID = 1L;
 
+    @JsonProperty("room_id")
     private long roomId;
     private Map<Long, Player> players;
     private Map<Long, Long> votes;
@@ -39,6 +41,7 @@ public class Game {
         citizen = 0;
         zombie = 0;
         mutant = 0;
+        healTarget = 0L;
         this.option = new GameOption();
         doctorCount = this.option.getDoctorCount();
     }
@@ -119,6 +122,7 @@ public class Game {
         for(int i = 0; i < this.citizen; i++){
             role.add(Role.CITIZEN);
         }
+        this.citizen = this.alive - this.zombie - this.mutant;
         Collections.shuffle(role);
     }
 
@@ -146,7 +150,6 @@ public class Game {
         Player p = players.get(user_id);
         if(user_id.equals(healTarget)){
             healTarget = -1L;
-            log.info("[Game{}] Doctor prevented the death of user {}.", roomId, user_id);
             return false;
         }
         p.setDead(true);
@@ -168,7 +171,7 @@ public class Game {
     public Role findRole(Long user_id, Long target_id){
         Role find = players.get(target_id).getRole();
         if (find == Role.ZOMBIE) {
-            players.get(target_id).setEnableVote(false);
+            players.get(user_id).setEnableVote(false);
             return Role.ZOMBIE;
         }
         else return Role.CITIZEN;
