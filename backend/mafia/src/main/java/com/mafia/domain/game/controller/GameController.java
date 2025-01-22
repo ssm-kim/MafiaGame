@@ -20,7 +20,6 @@ public class GameController {
     @GetMapping("/{roomId}/start")
     @Operation(summary = "Start game", description = "Starts the game for the given room ID.")
     public ResponseEntity<String> startGame(@PathVariable Long roomId) {
-        System.out.println(roomId);
         boolean started = gameService.startGame(roomId);
         if (started) {
             return ResponseEntity.ok("Game started in Room " + roomId + ".");
