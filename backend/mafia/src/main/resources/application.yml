@@ -18,3 +18,8 @@ spring:
       hibernate:
         format_sql: true # SQL 쿼리 포맷팅
 
+  redis:
+    host: localhost
+    port: 6379
+    password: "" # 비밀번호가 없으면 빈 문자열
+    database: 0
