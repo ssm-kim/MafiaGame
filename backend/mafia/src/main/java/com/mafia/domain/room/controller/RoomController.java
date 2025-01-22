@@ -1,9 +1,9 @@
-package com.mafia.room.controller;
+package com.mafia.domain.room.controller;
 
 import com.mafia.global.common.model.dto.BaseResponse;
-import com.mafia.room.model.dto.request.RoomRequest;
-import com.mafia.room.model.dto.response.RoomResponse;
-import com.mafia.room.service.RoomService;
+import com.mafia.domain.room.model.dto.request.RoomRequest;
+import com.mafia.domain.room.model.dto.response.RoomResponse;
+import com.mafia.domain.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

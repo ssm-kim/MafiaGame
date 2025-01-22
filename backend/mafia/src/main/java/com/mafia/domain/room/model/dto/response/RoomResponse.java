@@ -1,6 +1,6 @@
-package com.mafia.room.model.dto.response;
+package com.mafia.domain.room.model.dto.response;
 
-import com.mafia.room.model.entity.Room;
+import com.mafia.domain.room.model.entity.Room;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
