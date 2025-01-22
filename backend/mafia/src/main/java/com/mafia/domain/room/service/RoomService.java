@@ -10,13 +10,12 @@ import java.util.List;
 public interface RoomService {
 
     RoomResponse createRoom(RoomRequest roomRequest);
-
     List<RoomResponse> getAllRooms();
-
     RoomResponse getRoom(Long roomId);
-
     RoomResponse updateRoom(Long roomId, RoomRequest roomRequest);
-
     void deleteRoom(Long roomId);
 
+    // 인원 증감 메서드
+    void increasePlayerCount(Long roomId, Long memberId);
+    void decreasePlayerCount(Long roomId, Long memberId);
 }

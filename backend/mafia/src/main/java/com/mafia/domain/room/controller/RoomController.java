@@ -29,24 +29,47 @@ public class RoomController {
         return ResponseEntity.ok(new BaseResponse<>(roomService.getAllRooms()));
     }
 
-    /** 특정 게임방의 상세 정보를 조회합니다. */
-    @GetMapping("/{roomId}")
-    public ResponseEntity<BaseResponse<RoomResponse>> getRoom(@PathVariable Long roomId) {
-        return ResponseEntity.ok(new BaseResponse<>(roomService.getRoom(roomId)));
-    }
-
-    /** 게임방 정보를 수정합니다. */
-    @PutMapping("/{roomId}")
-    public ResponseEntity<BaseResponse<RoomResponse>> updateRoom(
-            @PathVariable Long roomId,
-            @RequestBody RoomRequest roomRequest) {
-        return ResponseEntity.ok(new BaseResponse<>(roomService.updateRoom(roomId, roomRequest)));
-    }
-
     /** 게임방을 삭제합니다. */
     @DeleteMapping("/{roomId}")
     public ResponseEntity<BaseResponse<String>> deleteRoom(@PathVariable Long roomId) {
         roomService.deleteRoom(roomId);
         return ResponseEntity.ok(new BaseResponse<>("Successfully deleted room"));
     }
+
+    /** 게임방 입장 (인원수 증가) */
+    @PostMapping("/{roomId}/enter")
+    public ResponseEntity<BaseResponse<String>> enterRoom(
+            @PathVariable Long roomId,
+            @RequestParam Long memberId
+            ) {
+
+        roomService.increasePlayerCount(roomId, memberId);
+
+        return ResponseEntity.ok(new BaseResponse<>("Successfully entered room"));
+    }
+
+    /** 게임방 퇴장 (인원수 감소) */
+    @PostMapping("/{roomId}/leave")
+    public ResponseEntity<BaseResponse<String>> leaveRoom(
+            @PathVariable Long roomId,
+            @RequestParam Long memberId) {
+
+        roomService.decreasePlayerCount(roomId, memberId);
+
+        return ResponseEntity.ok(new BaseResponse<>("Successfully left room"));
+    }
+
+//    /** 특정 게임방의 상세 정보를 조회합니다. */
+//    @GetMapping("/{roomId}")
+//    public ResponseEntity<BaseResponse<RoomResponse>> getRoom(@PathVariable Long roomId) {
+//        return ResponseEntity.ok(new BaseResponse<>(roomService.getRoom(roomId)));
+//    }
+
+//    /** 게임방 정보를 수정합니다. */
+//    @PutMapping("/{roomId}")
+//    public ResponseEntity<BaseResponse<RoomResponse>> updateRoom(
+//            @PathVariable Long roomId,
+//            @RequestBody RoomRequest roomRequest) {
+//        return ResponseEntity.ok(new BaseResponse<>(roomService.updateRoom(roomId, roomRequest)));
+//    }
 }

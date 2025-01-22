@@ -13,7 +13,7 @@ public class RoomRequest {
     private String roomTitle;
     private String roomPassword;
     private String roomOption;
-    private Integer maxPlayers;
+    private Integer curPlayers;
     private Boolean isVoice;
 
     public Room toEntity() {
@@ -22,21 +22,9 @@ public class RoomRequest {
         room.setRoomTitle(this.roomTitle);
         room.setRoomPassword(this.roomPassword);
         room.setRoomOption(this.roomOption);
-        room.setMaxPlayers(this.maxPlayers);
+        room.setCurPlayers(this.curPlayers);
         room.setIsVoice(this.isVoice);
         room.setRoomStatus(false);
         return room;
-    }
-
-    @Override
-    public String toString() {
-        return "RoomRequest{" +
-                "memberId=" + memberId +
-                ", roomTitle='" + roomTitle + '\'' +
-                ", roomPassword='" + roomPassword + '\'' +
-                ", roomOption='" + roomOption + '\'' +
-                ", maxPlayers=" + maxPlayers +
-                ", isVoice=" + isVoice +
-                '}';
     }
 }

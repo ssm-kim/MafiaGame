@@ -20,25 +20,9 @@ public class Room {
     private Boolean roomStatus;
     private String roomPassword;
     private String roomOption;
-    private Integer maxPlayers;
+    private Integer curPlayers;
     private Boolean isVoice;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
-
-
-    @Override
-    public String toString() {
-        return "Room{" +
-                "roomId=" + roomId +
-                ", memberId=" + memberId +
-                ", roomTitle='" + roomTitle + '\'' +
-                ", roomStatus=" + roomStatus +
-                ", roomPassword='" + roomPassword + '\'' +
-                ", roomOption='" + roomOption + '\'' +
-                ", maxPlayers=" + maxPlayers +
-                ", isVoice=" + isVoice +
-                ", createdAt=" + createdAt +
-                '}';
-    }
 }

@@ -16,9 +16,15 @@ import java.util.Optional;
 @Repository
 public interface RoomPlayerRepository extends JpaRepository<RoomPlayer, RoomPlayerId> {
 
-    /** 특정 방의 모든 참가자를 조회합니다. */
+    /** 방의 모든 참가자를 조회합니다. */
     List<RoomPlayer> findByIdRoomId(Long roomId);
 
-    /** 특정 방의 특정 참가자를 조회합니다. */
+    /** 방의 특정 참가자를 조회합니다. */
     Optional<RoomPlayer> findByIdMemberIdAndIdRoomId(Long memberId, Long roomId);
+
+    /** 체 방에 대한 참가 여부 확인 */
+    Optional<RoomPlayer> findByIdMemberId(Long memberId);
+
+    /** 특정 사용자가 현재 참여중인 방이 있는지 확인 */
+    boolean existsByIdMemberId(Long memberId);
 }
