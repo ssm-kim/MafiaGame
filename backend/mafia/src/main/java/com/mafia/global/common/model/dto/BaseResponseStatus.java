@@ -35,12 +35,12 @@ public enum BaseResponseStatus {
     GAME_DELETE_FAIL(false, HttpStatus.BAD_REQUEST, 4020, "게임 삭제에 실패했습니다."),
     //Game Vote Error Codes (4030~4039)
     USER_IS_DEAD(false, HttpStatus.BAD_REQUEST, 4030, "사망한 플레이어는 투표할 수 없습니다."),
-    TARGET_IS_DEAD(false, HttpStatus.BAD_REQUEST, 4031, "사망한 플레이어에게 투표할 수 없습니다."),
+    TARGET_IS_DEAD(false, HttpStatus.BAD_REQUEST, 4031, "타켓은 이미 싸늘한 주검입니다..."),
     MUTANT_CANNOT_VOTE(false, HttpStatus.BAD_REQUEST, 4032, "중립은 투표할 수 없습니다."),
     POLICE_CANNOT_VOTE(false, HttpStatus.BAD_REQUEST, 4033, "경찰은 좀비를 알아내어 이제 투표할 수 없습니다."),
     // Kill Error Codes (4040~4049)
-    USER_ALREADY_DEAD(false, HttpStatus.BAD_REQUEST, 4034, "죽은 플레이어는 살릴 수 없습니다."),
-    MEDICAL_COUNT_ZERO(false, HttpStatus.BAD_REQUEST, 4035, "모든 의사 기회를 소진했습니다."),
+    USER_ALREADY_DEAD(false, HttpStatus.BAD_REQUEST, 4040, "죽은 플레이어는 살릴 수 없습니다."),
+    MEDICAL_COUNT_ZERO(false, HttpStatus.BAD_REQUEST, 4041, "모든 의사 기회를 소진했습니다."),
 
     // Job Error Codes (4050~4059)
     NOT_POLICE_FINDROLE(false, HttpStatus.BAD_REQUEST, 4050, "경찰이 아니면 조사를 할 수 없습니다."),

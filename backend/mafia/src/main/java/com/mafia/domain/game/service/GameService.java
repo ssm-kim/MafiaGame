@@ -135,7 +135,7 @@ public class GameService {
     public boolean killPlayer(long roomId, Long userId) {
         Game game = findById(roomId);
         if(game.getPlayers().get(userId).isDead()){
-            throw new BusinessException(USER_ALREADY_DEAD);
+            throw new BusinessException(TARGET_IS_DEAD);
         }
         boolean isKill = game.kill(userId);
         gameRepository.save(game);
@@ -158,6 +158,7 @@ public class GameService {
     public Role findRole(long roomId, Long userId, Long targetId) {
         Game game = findById(roomId);
         if(game.getPlayers().get(userId).getRole() != Role.POLICE) throw new BusinessException(NOT_POLICE_FINDROLE);
+        if(game.getPlayers().get(targetId).isDead()) throw new BusinessException(TARGET_IS_DEAD);
         Role role = game.findRole(userId, targetId);
         log.info("[Game{}] User {} found the role of User {} as {}", roomId, userId, targetId, role);
         gameRepository.save(game);
