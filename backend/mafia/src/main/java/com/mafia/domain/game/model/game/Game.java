@@ -19,8 +19,7 @@ public class Game {
     private long roomId;
     private Map<Long, Player> players;
     private Map<Long, Long> votes;
-    private Set<Long> ready;
-    private Set<Long> deadplayers;
+    private Set<Long> deadPlayers;
     private STATUS status;
     private int alive;
     private int dead;
@@ -29,32 +28,37 @@ public class Game {
     private int mutant;
     private int doctorCount;
     private Long healTarget;
+    private Long mutantTarget;
+    private Long zombieTarget;
     private GameOption option;
 
     public Game(){
         players = new HashMap<>();
         votes = new HashMap<>();
-        ready = new HashSet<>();
-        deadplayers = new HashSet<>();
+        deadPlayers = new HashSet<>();
         alive = 0;
         dead = 0;
         citizen = 0;
         zombie = 0;
         mutant = 0;
         healTarget = 0L;
+        mutantTarget = 0L;
+        zombieTarget = 0L;
         this.option = new GameOption();
         doctorCount = this.option.getDoctorCount();
     }
 
     public void init(){
         players.clear();
-        ready.clear();
         votes.clear();
-        deadplayers.clear();
+        deadPlayers.clear();
         alive = 0;
         dead = 0;
         zombie = 0;
         mutant = 0;
+        healTarget = 0L;
+        mutantTarget = 0L;
+        zombieTarget = 0L;
     }
 
     /*
@@ -69,7 +73,7 @@ public class Game {
         Player p = new Player(user);
         players.put(user.getId(), p);
     }
-
+/*
     public int ready(Long user_id){
         if(ready.contains(user_id)){
             log.info("[Game{}] User {} is already ready", roomId, user_id);
@@ -88,7 +92,7 @@ public class Game {
         ready.clear();
         return 0;
     }
-
+*/
     public void start_game(){
         this.status = STATUS.PLAYING;
         // 1. 직업 분배
@@ -146,13 +150,10 @@ public class Game {
         return target;
     }
 
-    public boolean kill(Long user_id){
-        Player p = players.get(user_id);
-        if(user_id.equals(healTarget)){
-            healTarget = -1L;
-            return false;
-        }
+    public void voteKill(Long target_id){
+        Player p = players.get(target_id);
         p.setDead(true);
+        deadPlayers.add(target_id);
         alive--;
         dead++;
         switch (p.getRole()) {
@@ -160,12 +161,45 @@ public class Game {
             case MUTANT -> mutant--;
             default -> citizen--;
         }
+        isGameOver();
+    }
+
+    public boolean kill(){
+        List<Long> result = new ArrayList<>();
+        if(zombieTarget != healTarget) result.add(zombieTarget);
+        if (mutantTarget != healTarget) result.add(mutantTarget);
+
+        if(result.size() == 0){
+            log.info("[Game{}] No one is killed", roomId);
+            return false;
+        }
+        for(Long target_id : result){
+            Player p = players.get(target_id);
+            p.setDead(true);
+            deadPlayers.add(target_id);
+            alive--;
+            dead++;
+            switch (p.getRole()) {
+                case ZOMBIE -> zombie--;
+                case MUTANT -> mutant--;
+                default -> citizen--;
+            }
+        }
+        isGameOver();
         return true;
     }
 
     public void heal(Long target_id){
         healTarget = target_id;
         if(doctorCount > 0) doctorCount--;
+    }
+
+    public void zombieTarget(Long target_id){
+        zombieTarget = target_id;
+    }
+
+    public void mutantTarget(Long target_id){
+        mutantTarget = target_id;
     }
 
     public Role findRole(Long user_id, Long target_id){
@@ -175,25 +209,20 @@ public class Game {
             return Role.ZOMBIE;
         }
         else return Role.CITIZEN;
-
     }
 
-    public int isGameOver(){
+    private void isGameOver(){
         if(zombie == 0 && mutant == 0){
             this.status = STATUS.CITIZEN_WIN;
-            return 1; // 시민 승리
         }
         else if(mutant == 0 && zombie >= citizen){
             this.status = STATUS.ZOMBIE_WIN;
-            return 2; // 좀비 승리
         }
         else if(mutant == 1 && citizen + zombie <= mutant){
             this.status = STATUS.MUTANT_WIN;
-            return 3; // 돌연변이 승리
         }
         else{
             log.info("[Game{}] Game is still in progress", roomId);
-            return 0; // 게임 진행중
         }
     }
 

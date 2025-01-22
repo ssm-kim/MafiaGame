@@ -41,14 +41,18 @@ public enum BaseResponseStatus {
     // Kill Error Codes (4040~4049)
     USER_ALREADY_DEAD(false, HttpStatus.BAD_REQUEST, 4040, "죽은 플레이어는 살릴 수 없습니다."),
     MEDICAL_COUNT_ZERO(false, HttpStatus.BAD_REQUEST, 4041, "모든 의사 기회를 소진했습니다."),
-
+    NOT_KILL_USER(false, HttpStatus.BAD_REQUEST, 4042, "사용자를 죽일 수 없는 직업입니다."),
     // Job Error Codes (4050~4059)
     NOT_POLICE_FINDROLE(false, HttpStatus.BAD_REQUEST, 4050, "경찰이 아니면 조사를 할 수 없습니다."),
     NOT_DOCTOR_HEAL(false, HttpStatus.BAD_REQUEST, 4051, "의사가 아니면 치료를 할 수 없습니다."),
-
+    // Phase Error Codes (4060~4069)
+    PHASE_NOT_FOUND(false, HttpStatus.NOT_FOUND, 4060, "페이즈를 찾을 수 없습니다."),
+    UNKNOWN_PHASE(false, HttpStatus.BAD_REQUEST, 4061, "알 수 없는 페이즈입니다."),
+    INVALID_PHASE(false, HttpStatus.BAD_REQUEST, 4062, "유효하지 않은 페이즈입니다."),
 
     // Chat Error Codes (5000~)
     NOT_FOUND_CHAT(false, HttpStatus.NOT_FOUND, 5001, "채팅방을 찾을 수 없습니다.");
+
 
     private final boolean isSuccess;
     @JsonIgnore
