@@ -18,7 +18,7 @@ public class GameRepository {
 
     // 게임 저장
     public void save(Game game) {
-        redisTemplate.opsForValue().set(getRoomKey(game.getRoom_id()), game);
+        redisTemplate.opsForValue().set(getRoomKey(game.getRoomId()), game);
     }
 
     // 게임 조회
@@ -31,8 +31,5 @@ public class GameRepository {
         redisTemplate.delete(getRoomKey(roomId));
     }
 
-    // 방 존재 여부 확인
-    public boolean exists(long roomId) {
-        return redisTemplate.hasKey(getRoomKey(roomId));
-    }
+
 }
