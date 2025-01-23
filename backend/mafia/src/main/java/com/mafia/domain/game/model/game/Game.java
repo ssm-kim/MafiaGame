@@ -1,5 +1,6 @@
 package com.mafia.domain.game.model.game;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mafia.domain.game.model.User;
 import lombok.AllArgsConstructor;
@@ -11,6 +12,7 @@ import java.util.*;
 @Data
 @AllArgsConstructor
 @Slf4j
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Game {
 
     private static final long serialVersionUID = 1L;
@@ -142,12 +144,10 @@ public class Game {
         Map<Long, Integer> result = new HashMap<>();
         votes.forEach((user, target) -> result.merge(target, 1, Integer::sum));
 
-        Long target = result.entrySet().stream()
+        return result.entrySet().stream()
                 .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
                 .orElse(-1L);
-
-        return target;
     }
 
     public void voteKill(Long target_id){
@@ -166,10 +166,10 @@ public class Game {
 
     public boolean kill(){
         List<Long> result = new ArrayList<>();
-        if(zombieTarget != healTarget) result.add(zombieTarget);
-        if (mutantTarget != healTarget) result.add(mutantTarget);
+        if(zombieTarget.equals(healTarget)) result.add(zombieTarget);
+        if (mutantTarget.equals(healTarget)) result.add(mutantTarget);
 
-        if(result.size() == 0){
+        if(result.isEmpty()){
             log.info("[Game{}] No one is killed", roomId);
             return false;
         }
@@ -185,6 +185,7 @@ public class Game {
                 default -> citizen--;
             }
         }
+        healTarget = -1L;
         isGameOver();
         return true;
     }
@@ -225,6 +226,4 @@ public class Game {
             log.info("[Game{}] Game is still in progress", roomId);
         }
     }
-
-    //public boolean findRole(){}
 }

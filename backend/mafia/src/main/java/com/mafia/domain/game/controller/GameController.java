@@ -38,21 +38,21 @@ public class GameController {
      */
 
     @GetMapping("/{roomId}/start")
-    @Operation(summary = "Start game", description = "Starts the game for the given room ID.")
+    @Operation(summary = "Start game", description = "방 ID를 받아 게임을 시작한다.")
     public ResponseEntity<BaseResponse<String>> startGame(@PathVariable Long roomId) {
         boolean started = gameService.startGame(roomId);
         return ResponseEntity.ok(new BaseResponse<>("Game started in Room " + roomId + "."));
     }
 
     @GetMapping("/{roomId}")
-    @Operation(summary = "Get game", description = "Retrieves the game details for the given room ID.")
+    @Operation(summary = "Get game", description = "방 ID로 게임 정보를 가져온다.")
     public ResponseEntity<BaseResponse<Game>> getGame(@PathVariable Long roomId) {
         Game game = gameService.findById(roomId);
         return ResponseEntity.ok(new BaseResponse<>(game));
     }
 
     @DeleteMapping("/{roomId}")
-    @Operation(summary = "Delete game", description = "Deletes the game for the given room ID.")
+    @Operation(summary = "Delete game", description = "방 ID로 게임을 삭제한다.")
     public ResponseEntity<BaseResponse<String>> deleteGame(@PathVariable Long roomId) {
         gameService.deleteGame(roomId);
         return ResponseEntity.ok(new BaseResponse<>("Room " + roomId + " deleted."));
@@ -72,7 +72,7 @@ public class GameController {
     }*/
 
     @PostMapping("/{roomId}/vote")
-    @Operation(summary = "Vote", description = "Records a vote from a user for a target in the given room.")
+    @Operation(summary = "Vote", description = "유저 ID와 타겟 ID를 받아 투표한다.")
     public ResponseEntity<BaseResponse<String>> vote(@PathVariable Long roomId, @RequestParam Long userId, @RequestParam Long targetId) {
         gameService.validatePhase(roomId, GamePhase.DAY_VOTE);
         gameService.vote(roomId, userId, targetId);
@@ -80,7 +80,7 @@ public class GameController {
     }
 
     @GetMapping("/{roomId}/voteresult")
-    @Operation(summary = "Get vote result", description = "Returns the result of the vote in the given room.")
+    @Operation(summary = "Get vote result", description = "투표 집계 결과를 가져온다")
     public ResponseEntity<BaseResponse<Long>> getVoteResult(@PathVariable Long roomId) {
         Long result = gameService.getVoteResult(roomId);
         return ResponseEntity.ok(new BaseResponse<>(result));
@@ -93,7 +93,15 @@ public class GameController {
         return ResponseEntity.ok(new BaseResponse<>(result));
     }
 
-    @PostMapping("/{roomId}/vote/kill/{userId}")
+    @GetMapping("/{roomId}/skip")
+    @Operation(summary = "Skip vote", description = "Skip the vote in the given room.")
+    public ResponseEntity<BaseResponse<String>> skipVote(@PathVariable Long roomId) {
+        gameService.validatePhase(roomId, GamePhase.DAY_DISCUSSION);
+        gameService.skipDiscussion(roomId, 20);
+        return ResponseEntity.ok(new BaseResponse<>("Vote skipped in Room " + roomId + "."));
+    }
+
+    @GetMapping("/{roomId}/vote/kill/{userId}")
     @Operation(summary = "Kill player", description = "Marks the specified user as killed in the given room.")
     public ResponseEntity<BaseResponse<String>> killVote(@PathVariable Long roomId, @PathVariable Long userId) {
         boolean life = gameService.killPlayer(roomId, userId, true);
@@ -101,7 +109,7 @@ public class GameController {
         else return ResponseEntity.ok(new BaseResponse<>("saved in Room " + roomId + "."));
     }
 
-    @PostMapping("/{roomId}/target/kill/{userId}")
+    @GetMapping("/{roomId}/target/kill/{userId}")
     @Operation(summary = "Kill player", description = "Marks the specified user as killed in the given room.")
     public ResponseEntity<BaseResponse<String>> killTarget(@PathVariable Long roomId, @PathVariable Long userId) {
         boolean life = gameService.killPlayer(roomId, userId, false);
@@ -110,7 +118,7 @@ public class GameController {
     }
 
     @PostMapping("/{roomId}/target/set")
-    @Operation(summary = "Kill player", description = "Marks the specified user as killed in the given room.")
+    @Operation(summary = "Target player", description = "Marks the specified user as killed in the given room.")
     public ResponseEntity<BaseResponse<String>> setTarget(@PathVariable Long roomId, @RequestParam Long userId, @RequestParam Long targetId) {
         gameService.validatePhase(roomId, GamePhase.NIGHT_ACTION);
         gameService.setKillTarget(roomId, userId, targetId);

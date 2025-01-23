@@ -18,7 +18,7 @@ public class GameScheduler {
         Set<String> activeRooms = gameSeqRepository.getAllRooms(); // Redis에 저장된 모든 방의 키 가져오기
 
         for (String roomKey : activeRooms) {
-            long roomId = Long.parseLong(roomKey.split(":")[1]); // 게임 ID 추출
+            long roomId = Long.parseLong(roomKey.split(":")[2]); // 게임 ID 추출
             Long remainingTime = gameSeqRepository.getTimer(roomId);
 
             if (remainingTime == null || remainingTime <= 0) {

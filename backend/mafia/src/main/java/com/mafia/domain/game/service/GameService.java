@@ -88,12 +88,12 @@ public class GameService {
 
         log.info("Room {} created.", roomId);
         game.start_game();
+        gameSeqRepository.savePhase(roomId, GamePhase.DAY_DISCUSSION); // 낮 토론 시작
+        gameSeqRepository.saveTimer(roomId, game.getOption().getDayDisTimeSec()); // 설정된 시간
+        log.info("Game started in Room {}: Phase set to {}, Timer set to {} seconds",
+                roomId, GamePhase.DAY_DISCUSSION, game.getOption().getDayDisTimeSec());
         gameRepository.save(game);
         log.info("Game started in Room {}.", roomId);
-        gameSeqRepository.savePhase(roomId, GamePhase.DAY_DISCUSSION); // 낮 토론 시작
-        gameSeqRepository.saveTimer(roomId, game.getOption().getDisTimeSec()); // 설정된 시간
-        log.info("Game started in Room {}: Phase set to {}, Timer set to {} seconds",
-                roomId, GamePhase.DAY_DISCUSSION, game.getOption().getDisTimeSec());
         return true;
     }
 
@@ -235,13 +235,21 @@ public class GameService {
                 game.kill();
                 gameRepository.save(game);
                 gameSeqRepository.savePhase(roomId, GamePhase.DAY_DISCUSSION);
-                gameSeqRepository.saveTimer(roomId, game.getOption().getDisTimeSec());
+                gameSeqRepository.saveTimer(roomId, game.getOption().getDayDisTimeSec());
             }
             default -> throw new BusinessException(UNKNOWN_PHASE);
         }
 
         log.info("Game phase advanced in Room {}: New Phase = {}, Timer = {} seconds",
                 roomId, gameSeqRepository.getPhase(roomId), gameSeqRepository.getTimer(roomId));
+    }
+
+    // 토론 시간 스킵
+    public void skipDiscussion(long roomId, int sec) {
+        int now = gameSeqRepository.getTimer(roomId).intValue();
+        if(now - sec < 15) throw new BusinessException(GAME_TIME_OVER);
+
+        gameSeqRepository.decrementTimer(roomId, sec);
     }
 
     // 남은 타이머 확인

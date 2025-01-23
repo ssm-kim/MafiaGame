@@ -17,7 +17,7 @@ public class GameSeqRepository {
     }
 
     public Set<String> getAllRooms() {
-        return redisTemplate.keys("game:room:*:phase"); // 모든 방 키 가져오기
+        return redisTemplate.keys("game:room:*:timer"); // 모든 방 키 가져오기
     }
 
     private String getTimerKey(long roomId) {
@@ -26,7 +26,13 @@ public class GameSeqRepository {
 
     // 게임 상태 조회
     public GamePhase getPhase(long roomId) {
-        return (GamePhase) redisTemplate.opsForValue().get(getPhaseKey(roomId));
+        Object value = redisTemplate.opsForValue().get(getPhaseKey(roomId));
+        System.out.println("Value from Redis: " + value); // 디버깅용 출력
+
+        if (value instanceof String) {
+            return GamePhase.valueOf((String) value); // Enum 변환
+        }
+        return null; // 값이 없거나 예상하지 못한 타입인 경우
     }
 
     // 게임 상태 저장
@@ -36,7 +42,13 @@ public class GameSeqRepository {
 
     // 타이머 조회
     public Long getTimer(long roomId) {
-        return (Long) redisTemplate.opsForValue().get(getTimerKey(roomId));
+        Object value = redisTemplate.opsForValue().get(getTimerKey(roomId));
+        if (value instanceof Integer) {
+            return ((Integer) value).longValue();
+        } else if (value instanceof Long) {
+            return (Long) value;
+        }
+        return null; // 값이 없거나 예상하지 못한 타입인 경우
     }
 
     // 타이머 설정

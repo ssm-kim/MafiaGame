@@ -29,8 +29,9 @@ public enum BaseResponseStatus {
     OPTION_NOT_FOUND(false, HttpStatus.NOT_FOUND, 4003, "옵션을 찾을 수 없습니다."),
     GAME_START_FAIL(false, HttpStatus.BAD_REQUEST, 4004, "게임 시작에 실패했습니다."),
     PLAYER_NOT_ENOUGH(false, HttpStatus.BAD_REQUEST, 4005, "게임 참가자가 충분하지 않습니다."),
-    // Game Found Error Codes (4010)
+    // Game Error Codes (4010)
     GAME_NOT_FOUND(false, HttpStatus.NOT_FOUND, 4010, "해당 방의 게임을 찾을 수 없습니다."),
+    GAME_TIME_OVER(false, HttpStatus.BAD_REQUEST, 4011, "남은 시간이 얼마 없어 스킵이 불가능합니다."),
     // Game Delete Error Codes (4020)
     GAME_DELETE_FAIL(false, HttpStatus.BAD_REQUEST, 4020, "게임 삭제에 실패했습니다."),
     //Game Vote Error Codes (4030~4039)
