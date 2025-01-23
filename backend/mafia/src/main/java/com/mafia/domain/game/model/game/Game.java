@@ -3,6 +3,7 @@ package com.mafia.domain.game.model.game;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mafia.domain.game.model.User;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -13,25 +14,43 @@ import java.util.*;
 @AllArgsConstructor
 @Slf4j
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Schema(description = "게임의 상태와 관련된 정보를 포함하는 클래스")
 public class Game {
 
     private static final long serialVersionUID = 1L;
 
+    @Schema(description = "게임 방 ID", example = "12345")
     @JsonProperty("room_id")
     private long roomId;
+    @Schema(description = "게임에 참여한 플레이어 정보", example =
+            "{101: {\"name\": \"Player1\"}, 102: {\"name\": \"Player2\"}}")
     private Map<Long, Player> players;
+    @Schema(description = "플레이어들의 투표 정보", example = "{101: 102, 103: 104}")
     private Map<Long, Long> votes;
+    @Schema(description = "죽은 플레이어들의 ID 목록", example = "[105, 106]")
     private Set<Long> deadPlayers;
+    @Schema(description = "게임의 현재 상태", example = "STARTED",
+            allowableValues = {"PLAYING", "CITIZEN_WIN", "ZOMBIE_WIN", "MUTANT_WIN"})
     private STATUS status;
+    @Schema(description = "현재 생존한 플레이어 수", example = "8")
     private int alive;
+    @Schema(description = "현재 죽은 플레이어 수", example = "2")
     private int dead;
+    @Schema(description = "생존한 시민의 수", example = "3")
     private int citizen;
+    @Schema(description = "생존한 좀비의 수", example = "1")
     private int zombie;
+    @Schema(description = "생존한 돌연변이의 수", example = "1")
     private int mutant;
+    @Schema(description = "의사 능력 사용 횟수", example = "1")
     private int doctorCount;
+    @Schema(description = "현재 라운드에서 의사가 치료 대상으로 지정한 플레이어의 ID", example = "101")
     private Long healTarget;
+    @Schema(description = "현재 라운드에서 변종이 공격 대상으로 지정한 플레이어의 ID", example = "102")
     private Long mutantTarget;
+    @Schema(description = "현재 라운드에서 좀비들이 공격 대상으로 지정한 플레이어의 ID", example = "103")
     private Long zombieTarget;
+    @Schema(description = "게임 옵션")
     private GameOption option;
 
     public Game(){
