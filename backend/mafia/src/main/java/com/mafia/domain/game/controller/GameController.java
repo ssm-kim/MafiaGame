@@ -38,21 +38,21 @@ public class GameController {
      */
 
     @GetMapping("/{roomId}/start")
-    @Operation(summary = "Start game", description = "방 ID를 받아 게임을 시작한다.")
+    @Operation(summary = "Start game", description = "방 ID를 받아 게임을 시작합니다.")
     public ResponseEntity<BaseResponse<String>> startGame(@PathVariable Long roomId) {
         boolean started = gameService.startGame(roomId);
         return ResponseEntity.ok(new BaseResponse<>("Game started in Room " + roomId + "."));
     }
 
     @GetMapping("/{roomId}")
-    @Operation(summary = "Get game", description = "방 ID로 게임 정보를 가져온다.")
+    @Operation(summary = "Get game", description = "방 ID로 게임 정보를 가져옵니다.")
     public ResponseEntity<BaseResponse<Game>> getGame(@PathVariable Long roomId) {
         Game game = gameService.findById(roomId);
         return ResponseEntity.ok(new BaseResponse<>(game));
     }
 
     @DeleteMapping("/{roomId}")
-    @Operation(summary = "Delete game", description = "방 ID로 게임을 삭제한다.")
+    @Operation(summary = "Delete game", description = "방 ID로 게임을 삭제합니다.")
     public ResponseEntity<BaseResponse<String>> deleteGame(@PathVariable Long roomId) {
         gameService.deleteGame(roomId);
         return ResponseEntity.ok(new BaseResponse<>("Room " + roomId + " deleted."));
