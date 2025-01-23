@@ -66,7 +66,7 @@ public class Game {
         mutantTarget = 0L;
         zombieTarget = 0L;
         this.option = new GameOption();
-        doctorSkillUsage = this.option.getDoctorCount();
+        doctorSkillUsage = this.option.getDoctorSkillUsage();
     }
 
     public void init(){
