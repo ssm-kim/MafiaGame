@@ -42,8 +42,8 @@ public class Game {
     private int zombie;
     @Schema(description = "생존한 돌연변이의 수", example = "1")
     private int mutant;
-    @Schema(description = "의사 능력 사용 횟수", example = "1")
-    private int doctorCount;
+    @Schema(description = "의사 능력 사용 횟수", example = "2")
+    private int doctorSkillUsage;
     @Schema(description = "현재 라운드에서 의사가 치료 대상으로 지정한 플레이어의 ID", example = "101")
     private Long healTarget;
     @Schema(description = "현재 라운드에서 변종이 공격 대상으로 지정한 플레이어의 ID", example = "102")
@@ -66,7 +66,7 @@ public class Game {
         mutantTarget = 0L;
         zombieTarget = 0L;
         this.option = new GameOption();
-        doctorCount = this.option.getDoctorCount();
+        doctorSkillUsage = this.option.getDoctorCount();
     }
 
     public void init(){
@@ -211,7 +211,7 @@ public class Game {
 
     public void heal(Long target_id){
         healTarget = target_id;
-        if(doctorCount > 0) doctorCount--;
+        if(doctorSkillUsage > 0) doctorSkillUsage--;
     }
 
     public void zombieTarget(Long target_id){

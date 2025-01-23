@@ -10,13 +10,4 @@ public enum GamePhase {
     DAY_FINAL_VOTE, // 낮 - 최종 투표
     NIGHT_ACTION;    // 밤 - 행동 선택
 
-    @JsonValue
-    public String toJson() {
-        return name();
-    }
-
-    @JsonCreator
-    public static GamePhase fromJson(String value) {
-        return GamePhase.valueOf(value);
-    }
 }
