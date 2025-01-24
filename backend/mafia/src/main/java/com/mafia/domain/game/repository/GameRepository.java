@@ -8,27 +8,27 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class GameRepository {
-  
-    private final RedisTemplate<String, Game> redisTemplate;
+
+    private final RedisTemplate<String, Object> redisTemplate;
 
 
-    private String getRoomKey(long roomId) {
+    private String getGamekey(long roomId) {
         return "game:room:" + roomId;
     }
 
     // 게임 저장
     public void save(Game game) {
-        redisTemplate.opsForValue().set(getRoomKey(game.getRoomId()), game);
+        redisTemplate.opsForValue().set(getGamekey(game.getRoomId()), game);
     }
 
     // 게임 조회
     public Game findById(long roomId) {
-        return redisTemplate.opsForValue().get(getRoomKey(roomId));
+        return (Game) redisTemplate.opsForValue().get(getGamekey(roomId));
     }
 
     // 게임 삭제
     public void delete(long roomId) {
-        redisTemplate.delete(getRoomKey(roomId));
+        redisTemplate.delete(getGamekey(roomId));
     }
 
 
