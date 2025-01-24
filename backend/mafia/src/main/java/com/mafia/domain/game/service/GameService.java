@@ -1,12 +1,12 @@
 package com.mafia.domain.game.service;
 
-import com.mafia.domain.game.model.User;
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
 import com.mafia.domain.game.model.game.Role;
 import com.mafia.domain.game.model.game.STATUS;
 import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
+import com.mafia.domain.member.model.entity.Member;
 import com.mafia.global.common.exception.exception.BusinessException;
 
 import static com.mafia.global.common.model.dto.BaseResponseStatus.*;
@@ -45,7 +45,7 @@ public class GameService {
         return Optional.ofNullable(gameRepository.findById(roomId))
             .orElseThrow(() -> new BusinessException(GAME_NOT_FOUND));
     }
- 
+
     /**
      * 게임 삭제
      *
@@ -60,20 +60,6 @@ public class GameService {
         gameSeqRepository.delete(roomId);
         log.info("Room {} deleted.", roomId);
     }
-
-    // 플레이어 준비
-    /*    public void readyPlayer(long roomId, Long userId) {
-        Game game = gameRepository.findById(roomId);
-        if (game != null) {
-            game.ready(userId);
-            if(game.isReady()){
-                game.setStatus(STATUS.ALLREADY);
-            }
-            gameRepository.save(game);
-            return;
-        }
-        log.warn("Room {} does not exist.", roomId);
-    }*/
 
     /**
      * 게임 시작
@@ -91,25 +77,13 @@ public class GameService {
 
         // 게임에 참가할 플레이어를 추가한다.
         /*
-        roomRepo.getAllUsersOfRoom(roomSeq).forEach((k, v)->{
-            gmMap.get(roomSeq).addUser(userService.getUserInfo(k));
+        roomRepo.getAllPlayersOfRoom(roomSeq).forEach((k, v)->{
+            gmMap.get(roomSeq).addPlayer(PlayerService.getPlayerInfo(k));
         });
         */
         /*
         Test Code
          */
-        List<User> users = new ArrayList<>();
-        users.add(new User(1L, "user1"));
-        users.add(new User(2L, "user2"));
-        users.add(new User(3L, "user3"));
-        users.add(new User(4L, "user4"));
-        users.add(new User(5L, "user5"));
-        users.add(new User(6L, "user6"));
-        users.add(new User(7L, "user7"));
-        users.add(new User(8L, "user8"));
-        for (User user : users) {
-            game.addPlayer(user);
-        }
 
         if (game.getPlayers().size() < 6) {
             throw new BusinessException(PLAYER_NOT_ENOUGH);
@@ -130,36 +104,36 @@ public class GameService {
      * 투표 처리
      *
      * @param roomId   방 ID
-     * @param userId   투표를 하는 사용자 ID
-     * @param targetId 투표 대상 사용자 ID
+     * @param playerNo 투표를 하는 사용자 ID
+     * @param targetNo 투표 대상 사용자 ID
      * @throws BusinessException 유효하지 않은 투표 조건일 경우 예외 발생
      */
-    public void vote(long roomId, Long userId, Long targetId) {
+    public void vote(long roomId, Integer playerNo, Integer targetNo) {
         synchronized (getLock(roomId)) {
             Game game = findById(roomId);
             if (game != null) {
-                if (targetId == -1) // 기권 처리
+                if (targetNo == -1) // 기권 처리
                 {
-                    log.info("[Game{}] User {} is abstention", roomId, userId);
+                    log.info("[Game{}] Player {} is abstention", roomId, playerNo);
                     return;
                 }
-                if (game.getPlayers().get(userId).isDead()) {
-                    throw new BusinessException(USER_IS_DEAD);
+                if (game.getPlayers().get(playerNo).isDead()) {
+                    throw new BusinessException(PLAYER_IS_DEAD);
                 }
-                if (game.getPlayers().get(targetId).isDead()) {
+                if (game.getPlayers().get(targetNo).isDead()) {
                     throw new BusinessException(TARGET_IS_DEAD);
                 }
-                if (game.getPlayers().get(userId).getRole() == Role.POLICE && !game.getPlayers()
-                    .get(userId).isEnableVote()) {
+                if (game.getPlayers().get(playerNo).getRole() == Role.POLICE && !game.getPlayers()
+                    .get(playerNo).isEnableVote()) {
                     throw new BusinessException(POLICE_CANNOT_VOTE);
                 }
-                if (game.getPlayers().get(userId).getRole() == Role.MUTANT) {
+                if (game.getPlayers().get(playerNo).getRole() == Role.MUTANT) {
                     throw new BusinessException(MUTANT_CANNOT_VOTE);
                 }
 
-                game.vote(userId, targetId);
+                game.vote(playerNo, targetNo);
                 gameRepository.save(game);
-                log.info("User {} voted for Target {} in Room {}.", userId, targetId, roomId);
+                log.info("Player {} voted for Target {} in Room {}.", playerNo, targetNo, roomId);
             } else {
                 log.warn("Room {} does not exist.", roomId);
             }
@@ -183,11 +157,11 @@ public class GameService {
      * @param roomId 방 ID
      * @return 투표 결과 대상 ID
      */
-    public Long getVoteResult(long roomId) {
-        long target = findById(roomId).voteResult();
+    public Integer getVoteResult(long roomId) {
+        int target = findById(roomId).voteResult();
         if (target == -1) {
             log.info("[Game{}] No one is selected", roomId);
-            return -1L;
+            return -1;
         } else {
             log.info("[Game{}] Target is {}", roomId, target);
             return target;
@@ -197,21 +171,21 @@ public class GameService {
     /**
      * 플레이어 사망 처리
      *
-     * @param roomId 방 ID
-     * @param userId 사망 처리할 사용자 ID
-     * @param isVote 투표로 사망 여부 (true: 투표로 사망, false: 밤 페이즈 사망)
+     * @param roomId   방 ID
+     * @param playerNo 사망 처리할 사용자 ID
+     * @param isVote   투표로 사망 여부 (true: 투표로 사망, false: 밤 페이즈 사망)
      * @return 사망 여부
      */
-    public boolean killPlayer(long roomId, Long userId, boolean isVote) {
+    public boolean killPlayer(long roomId, Integer playerNo, boolean isVote) {
         Game game = findById(roomId);
-        if (game.getPlayers().get(userId).isDead()) {
+        if (game.getPlayers().get(playerNo).isDead()) {
             throw new BusinessException(TARGET_IS_DEAD);
         }
         if (isVote) {
-            game.voteKill(userId);
+            game.Kill(playerNo);
             return true;
         } else {
-            boolean isKill = game.kill();
+            boolean isKill = game.processKill();
             gameRepository.save(game);
             return isKill;
         }
@@ -221,22 +195,22 @@ public class GameService {
      * 플레이어 살리기 (의사 전용)
      *
      * @param roomId   방 ID
-     * @param userId   의사 사용자 ID
-     * @param targetId 보호할 대상 사용자 ID
+     * @param playerNo 의사 사용자 ID
+     * @param targetNo 보호할 대상 사용자 ID
      * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
      */
-    public void healPlayer(long roomId, Long userId, Long targetId) {
+    public void healPlayer(long roomId, Integer playerNo, Integer targetNo) {
         Game game = findById(roomId);
-        if (game.getPlayers().get(userId).getRole() != Role.PLAGUE_DOCTOR) {
+        if (game.getPlayers().get(playerNo).getRole() != Role.PLAGUE_DOCTOR) {
             throw new BusinessException(NOT_DOCTOR_HEAL);
         }
         if (game.getDoctorSkillUsage() == 0) {
             throw new BusinessException(MEDICAL_COUNT_ZERO);
         }
-        if (game.getPlayers().get(targetId).isDead()) {
-            throw new BusinessException(USER_ALREADY_DEAD);
+        if (game.getPlayers().get(targetNo).isDead()) {
+            throw new BusinessException(PLAYER_CANNOT_HEAL);
         }
-        game.heal(targetId);
+        game.heal(targetNo);
         gameRepository.save(game);
     }
 
@@ -244,21 +218,21 @@ public class GameService {
      * 플레이어 직업 찾기 (경찰 전용)
      *
      * @param roomId   방 ID
-     * @param userId   경찰 사용자 ID
-     * @param targetId 탐색할 사용자 ID
+     * @param playerNo 경찰 사용자 ID
+     * @param targetNo 탐색할 사용자 ID
      * @return 대상 사용자의 역할
      * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
      */
-    public Role findRole(long roomId, Long userId, Long targetId) {
+    public Role findRole(long roomId, Integer playerNo, Integer targetNo) {
         Game game = findById(roomId);
-        if (game.getPlayers().get(userId).getRole() != Role.POLICE) {
-            throw new BusinessException(NOT_KILL_USER);
+        if (game.getPlayers().get(playerNo).getRole() != Role.POLICE) {
+            throw new BusinessException(CANNOT_KILL_ROLE);
         }
-        if (game.getPlayers().get(targetId).isDead()) {
+        if (game.getPlayers().get(targetNo).isDead()) {
             throw new BusinessException(TARGET_IS_DEAD);
         }
-        Role role = game.findRole(userId, targetId);
-        log.info("[Game{}] User {} found the role of User {} as {}", roomId, userId, targetId,
+        Role role = game.findRole(playerNo, targetNo);
+        log.info("[Game{}] Player {} found the role of Player {} as {}", roomId, playerNo, targetNo,
             role);
         gameRepository.save(game);
         return role;
@@ -268,27 +242,27 @@ public class GameService {
      * 죽일 사람 지정 (좀비, 돌연변이 전용)
      *
      * @param roomId   방 ID
-     * @param userId   사용자 ID
-     * @param targetId 죽일 사용자 ID
+     * @param playerNo 사용자 ID
+     * @param targetNo 죽일 사용자 ID
      * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
      */
-    public void setKillTarget(long roomId, Long userId, Long targetId) {
+    public void setKillTarget(long roomId, Integer playerNo, Integer targetNo) {
         Game game = findById(roomId);
-        Role myrole = game.getPlayers().get(userId).getRole();
+        Role myrole = game.getPlayers().get(playerNo).getRole();
         if (myrole != Role.ZOMBIE && myrole != Role.MUTANT) {
             throw new BusinessException(NOT_DOCTOR_HEAL);
         }
-        if (game.getPlayers().get(targetId).isDead()) {
+        if (game.getPlayers().get(targetNo).isDead()) {
             throw new BusinessException(TARGET_IS_DEAD);
         }
 
         if (myrole == Role.ZOMBIE) {
-            game.zombieTarget(targetId);
+            game.zombieTarget(targetNo);
         } else {
-            game.mutantTarget(targetId);
+            game.mutantTarget(targetNo);
         }
 
-        log.info("[Game{}] User {} set the target of {}", roomId, targetId, myrole);
+        log.info("[Game{}] Player {} set the target of {}", roomId, targetNo, myrole);
         gameRepository.save(game);
     }
 

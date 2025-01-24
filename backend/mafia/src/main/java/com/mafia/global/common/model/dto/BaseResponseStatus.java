@@ -35,16 +35,16 @@ public enum BaseResponseStatus {
     // Game Delete Error Codes (4020)
     GAME_DELETE_FAIL(false, HttpStatus.BAD_REQUEST, 4020, "게임 삭제에 실패했습니다."),
     //Game Vote Error Codes (4030~4039)
-    USER_IS_DEAD(false, HttpStatus.BAD_REQUEST, 4030, "사망한 플레이어는 투표할 수 없습니다."),
+    PLAYER_IS_DEAD(false, HttpStatus.BAD_REQUEST, 4030, "사망한 플레이어는 투표할 수 없습니다."),
     TARGET_IS_DEAD(false, HttpStatus.BAD_REQUEST, 4031, "타켓은 이미 싸늘한 주검입니다..."),
     MUTANT_CANNOT_VOTE(false, HttpStatus.BAD_REQUEST, 4032, "중립은 투표할 수 없습니다."),
     POLICE_CANNOT_VOTE(false, HttpStatus.BAD_REQUEST, 4033, "경찰은 좀비를 알아내어 이제 투표할 수 없습니다."),
     // Kill Error Codes (4040~4049)
-    USER_ALREADY_DEAD(false, HttpStatus.BAD_REQUEST, 4040, "죽은 플레이어는 살릴 수 없습니다."),
+    PLAYER_CANNOT_HEAL(false, HttpStatus.BAD_REQUEST, 4040, "죽은 플레이어는 살릴 수 없습니다."),
     MEDICAL_COUNT_ZERO(false, HttpStatus.BAD_REQUEST, 4041, "모든 의사 기회를 소진했습니다."),
-    NOT_KILL_USER(false, HttpStatus.BAD_REQUEST, 4042, "사용자를 죽일 수 없는 직업입니다."),
+    CANNOT_KILL_ROLE(false, HttpStatus.BAD_REQUEST, 4042, "사용자를 죽일 수 없는 직업입니다."),
     // Job Error Codes (4050~4059)
-    NOT_POLICE_FINDROLE(false, HttpStatus.BAD_REQUEST, 4050, "경찰이 아니면 조사를 할 수 없습니다."),
+    NOT_POLICE_FIND_ROLE(false, HttpStatus.BAD_REQUEST, 4050, "경찰이 아니면 조사를 할 수 없습니다."),
     NOT_DOCTOR_HEAL(false, HttpStatus.BAD_REQUEST, 4051, "의사가 아니면 치료를 할 수 없습니다."),
     // Phase Error Codes (4060~4069)
     PHASE_NOT_FOUND(false, HttpStatus.NOT_FOUND, 4060, "페이즈를 찾을 수 없습니다."),
