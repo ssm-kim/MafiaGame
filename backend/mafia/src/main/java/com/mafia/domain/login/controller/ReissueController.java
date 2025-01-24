@@ -21,7 +21,8 @@ public class ReissueController {
 
     @PostMapping("/reissue")
     public ResponseEntity<BaseResponse<Void>> reissue(
-            @CookieValue(value = "REFRESH", required = false) String refresh, HttpServletResponse response) {
+        @CookieValue(value = "REFRESH", required = false) String refresh,
+        HttpServletResponse response) {
 
         ReissueDto reissueDto = jwtService.reissueTokens(refresh);
 

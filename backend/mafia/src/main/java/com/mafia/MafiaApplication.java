@@ -10,8 +10,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling // 스케줄러 활성화
 public class MafiaApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MafiaApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(MafiaApplication.class, args);
+    }
 
 }

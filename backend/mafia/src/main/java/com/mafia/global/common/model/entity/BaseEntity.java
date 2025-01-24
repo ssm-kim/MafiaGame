@@ -17,19 +17,20 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 
 public abstract class BaseEntity {
-  @CreatedDate
-  @Column(nullable = false, updatable = false)
-  private LocalDateTime createdAt;
 
-  @LastModifiedDate
-  @Column(nullable = false)
-  private LocalDateTime updatedAt;
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false)
-  private Status status = Status.ACTIVE;
+    @LastModifiedDate
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 
-  public void changeStatusToInActive() {
-    this.status = Status.INACTIVE;
-  }
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Status status = Status.ACTIVE;
+
+    public void changeStatusToInActive() {
+        this.status = Status.INACTIVE;
+    }
 }

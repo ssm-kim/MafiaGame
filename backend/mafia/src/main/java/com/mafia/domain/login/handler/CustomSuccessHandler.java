@@ -33,13 +33,14 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     @Override
     @Transactional
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+        Authentication authentication) throws IOException {
 
         String providerId = authenticationUtil.getProviderId();
         Long memberId = authenticationUtil.getMemberId();
 
         // 토큰 생성
-        String access = jwtUtil.createAccessToken(providerId,memberId);
+        String access = jwtUtil.createAccessToken(providerId, memberId);
         String refresh = jwtUtil.createRefreshToken(providerId, memberId);
 
         // Refresh 토큰 저장

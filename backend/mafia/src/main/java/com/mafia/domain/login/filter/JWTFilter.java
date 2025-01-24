@@ -20,11 +20,13 @@ import java.io.IOException;
 @Slf4j
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
+
     private final JWTUtil jwtUtil;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+        FilterChain filterChain)
+        throws ServletException, IOException {
 
         // 쿠키에서 토큰 추출
         String authorization = extractTokenFromCookies(request.getCookies());
@@ -41,16 +43,16 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // 사용자 정보로 MemberDTO 생성
         MemberDTO memberDTO = MemberDTO.builder()
-                .providerId(providerId)
-                .memberId(memberId)
-                .build();
+            .providerId(providerId)
+            .memberId(memberId)
+            .build();
 
         // Spring Security 인증 객체 생성 및 설정
         CustomOAuth2User customOAuth2User = new CustomOAuth2User(memberDTO);
         Authentication authToken = new UsernamePasswordAuthenticationToken(
-                customOAuth2User,
-                null,
-                customOAuth2User.getAuthorities()
+            customOAuth2User,
+            null,
+            customOAuth2User.getAuthorities()
         );
 
         SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -59,11 +61,14 @@ public class JWTFilter extends OncePerRequestFilter {
 
     /**
      * 쿠키 배열에서 Authorization 토큰을 추출
+     *
      * @param cookies 쿠키 배열
      * @return Authorization 토큰 값 또는 null
      */
     private String extractTokenFromCookies(Cookie[] cookies) {
-        if (cookies == null) return null;
+        if (cookies == null) {
+            return null;
+        }
 
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals("Authorization")) {

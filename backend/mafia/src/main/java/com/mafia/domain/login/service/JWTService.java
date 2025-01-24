@@ -21,6 +21,7 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.*;
 @Transactional
 @RequiredArgsConstructor
 public class JWTService {
+
     private final JWTUtil jwtUtil;
     private final RedisService redisService;
     private final MemberRepository memberRepository;
@@ -29,15 +30,16 @@ public class JWTService {
         Member member = validateRefreshToken(oldRefresh);
 
         String newAccess = jwtUtil.createAccessToken(member.getProviderId(), member.getMemberId());
-        String newRefresh = jwtUtil.createRefreshToken(member.getProviderId(), member.getMemberId());
+        String newRefresh = jwtUtil.createRefreshToken(member.getProviderId(),
+            member.getMemberId());
 
         redisService.saveWithExpiry(member.getProviderId(), newRefresh, 14, TimeUnit.DAYS);
 
         return ReissueDto.builder()
-                .newAccessToken(newAccess)
-                .newRefreshToken(newRefresh)
-                .providerId(member.getProviderId())
-                .build();
+            .newAccessToken(newAccess)
+            .newRefreshToken(newRefresh)
+            .providerId(member.getProviderId())
+            .build();
     }
 
     private Member validateRefreshToken(String oldRefresh) {
@@ -57,6 +59,6 @@ public class JWTService {
         }
 
         return memberRepository.findByProviderId(providerId)
-                .orElseThrow(() -> new BusinessException(MEMBER_NOT_FOUND));
+            .orElseThrow(() -> new BusinessException(MEMBER_NOT_FOUND));
     }
 }

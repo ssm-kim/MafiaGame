@@ -8,19 +8,20 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class AuthenticationUtil {
+
     public String getProviderId() {
         CustomOAuth2User oAuth2User = (CustomOAuth2User) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
+            .getContext()
+            .getAuthentication()
+            .getPrincipal();
         return oAuth2User.getProviderId();
     }
 
     public Long getMemberId() {
         CustomOAuth2User oAuth2User = (CustomOAuth2User) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
+            .getContext()
+            .getAuthentication()
+            .getPrincipal();
         return oAuth2User.getMemberId();
     }
 }
