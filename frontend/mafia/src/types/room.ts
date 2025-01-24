@@ -17,16 +17,13 @@
 
 
 export interface Room {
-    id: string;
-    name: string;
-    currentPlayers: number;
-    maxPlayers: number;
-    gameStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
-    password?: string;
-    mafia?: number;
-    police?: number;
-    doctor?: number;
-    dayTime?: number;
-    nightTime?: number;
-    voteTime?: number;
-  }
+  roomId: number;
+  memberId: number;
+  roomTitle: string;
+  roomStatus: boolean;  // false(대기방), true(게임 진행 중)
+  roomOption: string;
+  maxPlayers: number;
+  isVoice: boolean;
+  createdAt: string;
+  curPlayers: number;
+}

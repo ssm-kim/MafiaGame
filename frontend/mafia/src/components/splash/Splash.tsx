@@ -28,9 +28,9 @@ const Splash: React.FC = () => {
                  style={{ fontFamily: 'BMEuljiro10yearslater' }}>
                     지금 우리 학교는
                 </h1>
-                <div className="animate-pulse">
+                {/* <div className="animate-pulse">
                     <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                </div>
+                </div> */}
             </div>
         </div>
     )

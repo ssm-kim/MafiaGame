@@ -22,3 +22,12 @@ body {
   font-weight: normal;
   font-style: normal;
 }
+
+@font-face {
+  font-family: 'Digital';
+  src: url('/fonts/digital-7.ttf');
+}
+
+.font-digital {
+  font-family: 'Digital', monospace;
+}
