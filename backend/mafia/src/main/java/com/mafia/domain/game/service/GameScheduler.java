@@ -10,9 +10,10 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class GameScheduler {
+
     private final GameService gameService;
     private final GameSeqRepository gameSeqRepository;
-
+ 
     @Scheduled(fixedRate = 1000) // 1초마다 실행
     public void processTimers() {
         Set<String> activeRooms = gameSeqRepository.getAllRooms(); // Redis에 저장된 모든 방의 키 가져오기

@@ -11,13 +11,15 @@ import lombok.Setter;
 @NoArgsConstructor
 @Schema(description = "게임에 참여하는 플레이어 정보를 나타내는 클래스")
 public class Player {
+  
     @Schema(description = "플레이어의 사용자 ID", example = "1001")
     private Long userId;
 
     @Schema(description = "플레이어의 닉네임", example = "Gamer123")
     private String nickname;
 
-    @Schema(description = "플레이어의 역할", example = "CITIZEN", allowableValues = {"CITIZEN", "ZOMBIE", "MUTANT", "POLICE", "PLAGUE_DOCTOR"})
+    @Schema(description = "플레이어의 역할", example = "CITIZEN", allowableValues = {"CITIZEN", "ZOMBIE",
+        "MUTANT", "POLICE", "PLAGUE_DOCTOR"})
     private Role role;
 
     @Schema(description = "플레이어의 사망 여부", example = "false")
@@ -26,7 +28,7 @@ public class Player {
     @Schema(description = "플레이어가 투표 가능 여부", example = "true")
     private boolean enableVote;
 
-    public Player(User user){
+    public Player(User user) {
         this.userId = user.getId();
         this.nickname = user.getNickname();
         this.role = Role.CITIZEN;
