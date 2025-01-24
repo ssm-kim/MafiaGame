@@ -29,7 +29,7 @@ public class Player {
     @Schema(description = "플레이어가 투표 가능 여부", example = "true")
     private boolean enableVote;
 
-    public Player(Member member) {
+    public Player(Participant participant) {
         this.memberId = member.getMemberId();
         this.nickname = member.getNickname();
         this.role = Role.CITIZEN;

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mafia.domain.game.model.User;
 import com.mafia.domain.member.model.entity.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -16,13 +17,13 @@ import java.util.*;
 @Slf4j
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "게임의 상태와 관련된 정보를 포함하는 클래스")
-public class Game {
+public class Game implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "게임 방 ID", example = "12345")
-    @JsonProperty("room_id")
-    private long roomId;
+    @JsonProperty("game_id")
+    private long gameId;
     @Schema(description = "게임에 참여한 플레이어 정보", example =
         "{101: {\"name\": \"Player1\"}, 102: {\"name\": \"Player2\"}}")
     private Map<Integer, Player> players;
@@ -87,37 +88,17 @@ public class Game {
      * 플레이어 추가
      * - 게임에 참가할 플레이어를 추가한다.
      * */
-    public void addPlayer(Member member) {
+    public void addPlayer(Participant participant) {
         for (Player p : players.values()) {
-            if (p.getMemberId().equals(member.getMemberId())) {
-                log.info("[Game{}] User {} is already in the game", roomId, member.getMemberId());
+            if (p.getMemberId().equals(participant.getMemberId())) {
+                log.info("[Game{}] User {} is already in the game", gameId, participant.getMemberId());
                 return;
             }
         }
-        Player player = new Player(member);
+        Player player = new Player(participant);
         players.put(++alive, player);
     }
 
-    /*
-        public int ready(Long user_id){
-            if(ready.contains(user_id)){
-                log.info("[Game{}] User {} is already ready", roomId, user_id);
-                return -1;
-            }
-            ready.add(user_id);
-  
-            return ready.size();
-        }
-  
-        public boolean isReady(){
-            return ready.size() == players.size();
-        }
-  
-        public int readyClear(){
-            ready.clear();
-            return 0;
-        }
-    */
     public void start_game() {
         this.status = STATUS.PLAYING;
         // 1. 직업 분배
@@ -132,7 +113,7 @@ public class Game {
             }
             rcnt++;
         }
-        log.info("[Game{}] Role distribution is completed", roomId);
+        log.info("[Game{}] Role distribution is completed", gameId);
     }
 
     public void init_role(List<Role> role) {
@@ -199,7 +180,7 @@ public class Game {
         }
 
         if (result.isEmpty()) {
-            log.info("[Game{}] No one is killed", roomId);
+            log.info("[Game{}] No one is killed", gameId);
             return false;
         }
         for (Integer targetNo : result) {
@@ -242,7 +223,7 @@ public class Game {
         } else if (mutant == 1 && citizen + zombie <= mutant) {
             this.status = STATUS.MUTANT_WIN;
         } else {
-            log.info("[Game{}] Game is still in progress", roomId);
+            log.info("[Game{}] Game is still in progress", gameId);
         }
     }
 }
