@@ -73,22 +73,9 @@ public class GameService {
         if (gameRepository.findById(roomId) != null) {
             throw new BusinessException(GAME_ALREADY_START);
         }
-        Game game = new Game();
-        game.setGameId(roomId);
+        Game game = makeGame(roomId);
 
-        // 게임에 참가할 플레이어를 추가한다.
-        /*
-        List<Long, Participant> participants = roomService.findById(gameId).getParticipant();
-        for (Participant participant : participants) {
-            game.addPlayer(participant);
-        }
-        */
-
-        if (game.getPlayers().size() < 6) {
-            throw new BusinessException(PLAYER_NOT_ENOUGH);
-        }
-
-        log.info("Room {} created.", roomId);
+        log.info("Game {} created.", roomId);
         game.start_game();
         gameSeqRepository.savePhase(roomId, GamePhase.DAY_DISCUSSION); // 낮 토론 시작
         gameSeqRepository.saveTimer(roomId, game.getOption().getDayDisTimeSec()); // 설정된 시간
@@ -97,6 +84,26 @@ public class GameService {
         gameRepository.save(game);
         log.info("Game started in Room {}.", roomId);
         return true;
+    }
+
+    private static Game makeGame(long roomId) {
+        Game game = new Game();
+        game.setGameId(roomId);
+
+        // 게임에 참가할 플레이어를 추가한다.
+        /*
+        RoomInfo roominfo = roomService.findById(roomId);
+        game.setOption(roominfo.getGameoption());
+        List<Long, Participant> participants = roominfo.getParticipant();
+        for (Participant participant : participants) {
+            game.addPlayer(participant);
+        }
+        */
+
+        if (game.getPlayers().size() < 6) {
+            throw new BusinessException(PLAYER_NOT_ENOUGH);
+        }
+        return game;
     }
 
     /**
