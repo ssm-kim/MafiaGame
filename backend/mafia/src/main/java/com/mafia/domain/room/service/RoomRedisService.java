@@ -37,7 +37,7 @@ public class RoomRedisService {
      */
     public void createRoomInfo(Long roomId, Long hostId) {
 
-        findById(roomId);  // 방이 없으면 예외처리
+        // findById(roomId);  // 방이 없으면 예외처리
 
         RoomInfo roomInfo = new RoomInfo(roomId, hostId);
         roomRedisRepository.save(roomId, roomInfo);
