@@ -32,32 +32,32 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors((cors) -> cors.disable()) // 모든 도메인 일시적 허용
-                .csrf((auth) -> auth.disable()) // csrf 일시적 비활성화
-                .formLogin((auth) -> auth.disable()) // 기본 로그인 폼 비활성화
-                .httpBasic((auth) -> auth.disable()); // HTTP 헤더 인증 방식 비활성화
+            .cors((cors) -> cors.disable()) // 모든 도메인 일시적 허용
+            .csrf((auth) -> auth.disable()) // csrf 일시적 비활성화
+            .formLogin((auth) -> auth.disable()) // 기본 로그인 폼 비활성화
+            .httpBasic((auth) -> auth.disable()); // HTTP 헤더 인증 방식 비활성화
 
         //JWTFilter
         http
-                .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
         //oauth2
         http
-                .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo ->
-                                userInfo.userService(customOAuth2UserService)
-                        )
-                        .successHandler(customSuccessHandler));
+            .oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo ->
+                    userInfo.userService(customOAuth2UserService)
+                )
+                .successHandler(customSuccessHandler));
 
         //경로별 인가 작업
         http
-                .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/api/login/**", "/", "/error").permitAll()
-                        .anyRequest().authenticated());
+            .authorizeHttpRequests((auth) -> auth
+                .requestMatchers("/api/login/**", "/", "/error").permitAll()
+                .anyRequest().authenticated());
 
         //세션 설정 : STATELESS
         http
-                .sessionManagement((session) -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+            .sessionManagement((session) -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }
@@ -65,7 +65,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("http://localhost:3000","http://localhost:8080")); // 프론트엔드 주소
+        config.setAllowedOrigins(
+            Arrays.asList("http://localhost:3000", "http://localhost:8080")); // 프론트엔드 주소
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);

@@ -18,9 +18,10 @@ public class GlobalExceptionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<BaseResponse<BaseResponseStatus>> handleBusinessException(BusinessException e) {
+    public ResponseEntity<BaseResponse<BaseResponseStatus>> handleBusinessException(
+        BusinessException e) {
         LOG.error("BusinessException occurred: {}", e.getMessage());
         return ResponseEntity.status(e.getBaseResponseStatus().getHttpStatus())
-                .body(new BaseResponse<>(e.getBaseResponseStatus()));
+            .body(new BaseResponse<>(e.getBaseResponseStatus()));
     }
 }

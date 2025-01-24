@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ReissueDto {
+
     private String newAccessToken;
     private String newRefreshToken;
     private String providerId;

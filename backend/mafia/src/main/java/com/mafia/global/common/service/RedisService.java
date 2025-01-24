@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 public class RedisService {
+
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
 
@@ -19,7 +20,9 @@ public class RedisService {
 
     public <T> Optional<T> get(String key, Class<T> clazz) {
         Object value = redisTemplate.opsForValue().get(key);
-        if (value == null) return Optional.empty();
+        if (value == null) {
+            return Optional.empty();
+        }
         return Optional.ofNullable(objectMapper.convertValue(value, clazz));
     }
 

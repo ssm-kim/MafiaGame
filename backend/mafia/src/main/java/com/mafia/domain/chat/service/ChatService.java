@@ -35,7 +35,7 @@ public class ChatService {
     // 특정 채팅방 조회
     public ChatRoom findRoomById(String chatRoomId) {
         return Optional.ofNullable(chatRooms.get(chatRoomId))
-                .orElseThrow(() -> new BusinessException(BaseResponseStatus.NOT_FOUND_CHAT));
+            .orElseThrow(() -> new BusinessException(BaseResponseStatus.NOT_FOUND_CHAT));
     }
 
     // 전체 채팅방 맵 반환
@@ -46,7 +46,7 @@ public class ChatService {
     // 채팅방 삭제
     public void removeRoom(String chatRoomId) {
         Optional.ofNullable(chatRooms.remove(chatRoomId))
-                .orElseThrow(() -> new BusinessException(BaseResponseStatus.NOT_FOUND_CHAT));
+            .orElseThrow(() -> new BusinessException(BaseResponseStatus.NOT_FOUND_CHAT));
         log.info("채팅방 삭제: roomId={}", chatRoomId);
     }
 

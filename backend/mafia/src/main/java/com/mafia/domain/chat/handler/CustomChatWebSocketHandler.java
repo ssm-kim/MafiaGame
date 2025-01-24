@@ -26,8 +26,8 @@ public class CustomChatWebSocketHandler extends TextWebSocketHandler {
 
     private final ChatService chatService;
     private final ObjectMapper objectMapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        .registerModule(new JavaTimeModule())
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
@@ -36,7 +36,8 @@ public class CustomChatWebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    protected void handleTextMessage(WebSocketSession session, TextMessage message)
+        throws Exception {
         String clientAddress = session.getRemoteAddress().toString();
         try {
             String payload = message.getPayload();
@@ -59,39 +60,41 @@ public class CustomChatWebSocketHandler extends TextWebSocketHandler {
 
         } catch (Exception e) {
             log.error("메시지 처리 중 오류 발생: client={}, message={}",
-                    clientAddress, message.getPayload(), e);
+                clientAddress, message.getPayload(), e);
         }
     }
 
-    private void handleJoin(WebSocketSession session, ChatRoom room, JsonNode jsonNode) throws IOException {
+    private void handleJoin(WebSocketSession session, ChatRoom room, JsonNode jsonNode)
+        throws IOException {
         room.getSessions().add(session);
         log.info("채팅방 입장: roomId={}, session={}", room.getChatRoomId(), session.getId());
 
         ChatMessage joinMessage = ChatMessage.systemMessage(
-                room.getChatRoomId(),
-                jsonNode.get("sender").asText() + "님이 입장하셨습니다."
+            room.getChatRoomId(),
+            jsonNode.get("sender").asText() + "님이 입장하셨습니다."
         );
         sendMessage(room, joinMessage);
     }
 
     private void handleTalk(ChatRoom room, JsonNode jsonNode) throws IOException {
         ChatMessage chatMessage = new ChatMessage(
-                room.getChatRoomId(),
-                MessageType.TALK,
-                jsonNode.get("sender").asText(),
-                jsonNode.get("content").asText(),
-                LocalDateTime.now()
+            room.getChatRoomId(),
+            MessageType.TALK,
+            jsonNode.get("sender").asText(),
+            jsonNode.get("content").asText(),
+            LocalDateTime.now()
         );
         sendMessage(room, chatMessage);
     }
 
-    private void handleLeave(WebSocketSession session, ChatRoom room, JsonNode jsonNode) throws IOException {
+    private void handleLeave(WebSocketSession session, ChatRoom room, JsonNode jsonNode)
+        throws IOException {
         room.getSessions().remove(session);
         log.info("채팅방 퇴장: roomId={}, session={}", room.getChatRoomId(), session.getId());
 
         ChatMessage leaveMessage = ChatMessage.systemMessage(
-                room.getChatRoomId(),
-                jsonNode.get("sender").asText() + "님이 퇴장하셨습니다."
+            room.getChatRoomId(),
+            jsonNode.get("sender").asText() + "님이 퇴장하셨습니다."
         );
         sendMessage(room, leaveMessage);
     }

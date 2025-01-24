@@ -16,7 +16,7 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.AUTHORIZATION
 @RequestMapping("/api/login")
 @RequiredArgsConstructor
 public class LoginController {
-
+ 
     @GetMapping("/success")
     public ResponseEntity<BaseResponse<Void>> loginSuccess() {
         return ResponseEntity.ok(new BaseResponse<>(AUTHORIZATION_SUCCESS));

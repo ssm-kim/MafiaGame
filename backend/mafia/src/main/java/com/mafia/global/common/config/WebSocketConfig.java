@@ -21,8 +21,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(webSocketHandler(), "/mafia")
-                .addInterceptors(new HttpSessionHandshakeInterceptor())
-                .setAllowedOriginPatterns("*");
+            .addInterceptors(new HttpSessionHandshakeInterceptor())
+            .setAllowedOriginPatterns("*");
     }
 
     @Bean
