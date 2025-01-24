@@ -1,10 +1,13 @@
 package com.mafia.domain.member.model.dto.response;
 
 import com.mafia.domain.member.model.entity.Member;
+import lombok.Getter;
 import lombok.Setter;
 
 @Setter
+@Getter
 public class MemberResponse {
+
     private String email;
     private String nickname;
 

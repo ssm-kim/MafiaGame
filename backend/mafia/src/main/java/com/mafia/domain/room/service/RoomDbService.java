@@ -22,10 +22,10 @@ public class RoomDbService {
     /**
      * 새로운 게임방을 생성합니다.
      */
-    public boolean createRoom(RoomRequest roomRequest) {
+    public boolean createRoom(RoomRequest roomRequest, Long memberId) {
         // 1. RDB에 방 생성
         Room room = new Room();
-        room.setHostId(roomRequest.getHostId());
+        room.setHostId(memberId);
         room.setRoomTitle(roomRequest.getRoomTitle());
 
         Room savedRoom = DbRoomRepository.save(room);

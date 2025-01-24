@@ -12,20 +12,20 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class RoomRedisRepository {
 
-    private final RedisTemplate<String, RoomInfo> roomRedisTemplate;
+    private final RedisTemplate<String, RoomInfo> redisTemplate;
 
     private String getRoomKey(long roomId) {
         return "room:" + roomId;
     }
 
     public Set<String> getAllRooms() {
-        return roomRedisTemplate.keys("room:*"); // 모든 방 키 가져오기
+        return redisTemplate.keys("room:*"); // 모든 방 키 가져오기
     }
 
 
     // 방 ID, 방 상태
     public void save(Long roomId, RoomInfo roomInfo) {
-        roomRedisTemplate.opsForValue().set(getRoomKey(roomId), roomInfo);
+        redisTemplate.opsForValue().set(getRoomKey(roomId), roomInfo);
     }
 
     // 각 방의 참가자 수를 조회합니다.
@@ -39,7 +39,7 @@ public class RoomRedisRepository {
         Set<String> roomKeys = getAllRooms();
 
         for (String key : roomKeys) {
-            RoomInfo roomInfo = roomRedisTemplate.opsForValue().get(key);
+            RoomInfo roomInfo = redisTemplate.opsForValue().get(key);
             if (roomInfo != null) {
                 result.put(roomInfo.getRoomId(), roomInfo.getParticipant().size());
             }
@@ -48,10 +48,10 @@ public class RoomRedisRepository {
     }
 
     public void delete(Long roomId) {
-        roomRedisTemplate.delete(getRoomKey(roomId));
+        redisTemplate.delete(getRoomKey(roomId));
     }
 
     public RoomInfo findById(Long roomId) {
-        return roomRedisTemplate.opsForValue().get(roomId);
+        return redisTemplate.opsForValue().get(getRoomKey(roomId));
     }
 }

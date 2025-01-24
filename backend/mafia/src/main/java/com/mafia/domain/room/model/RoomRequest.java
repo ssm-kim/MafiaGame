@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RoomRequest {
 
-    private Long hostId;
     private String roomTitle;
     private String roomPassword;
 }
