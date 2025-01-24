@@ -9,13 +9,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 public class ChatRoom {
+
     private String chatRoomId;
 
     @JsonIgnore
     private Set<WebSocketSession> sessions = ConcurrentHashMap.newKeySet();
 
     // private 생성자로 직접 생성 방지
-    private ChatRoom() {}
+    private ChatRoom() {
+    }
 
     public static ChatRoom create() {
         ChatRoom room = new ChatRoom();

@@ -1,7 +1,6 @@
 package com.mafia.global.common.config;
 
 import com.mafia.domain.game.model.game.Game;
-import com.mafia.domain.room.model.RoomInfo;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -13,7 +12,8 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 public class RedisConfig {
 
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    public RedisTemplate<String, Object> redisTemplate(
+        RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
 
@@ -28,7 +28,8 @@ public class RedisConfig {
 
 
     @Bean
-    public RedisTemplate<String, Game> gameRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    public RedisTemplate<String, Game> gameRedisTemplate(
+        RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<String, Game> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
 

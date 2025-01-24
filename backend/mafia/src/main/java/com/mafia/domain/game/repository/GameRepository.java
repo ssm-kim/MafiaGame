@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class GameRepository {
-
+  
     private final RedisTemplate<String, Game> redisTemplate;
 
 
@@ -31,8 +31,5 @@ public class GameRepository {
         redisTemplate.delete(getRoomKey(roomId));
     }
 
-    // 방 존재 여부 확인
-//    public boolean exists(long roomId) {
-//        return redisTemplate.hasKey(getRoomKey(roomId));
-//    }
+
 }
