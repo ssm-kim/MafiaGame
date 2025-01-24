@@ -23,3 +23,5 @@ spring:
     port: 6379
     password: "" # 비밀번호가 없으면 빈 문자열
     database: 0
+  session:
+    store-type=redis: redis

@@ -18,16 +18,15 @@ public enum BaseResponseStatus {
     ROOM_IS_FULL(false, HttpStatus.BAD_REQUEST, 1003, "최대 인원수입니다."),
     PLAYER_NOT_FOUND(false, HttpStatus.BAD_REQUEST, 1004, "해당 플레이어를 찾을 수 없습니다."),
     ALREADY_IN_OTHER_ROOM(false, HttpStatus.BAD_REQUEST, 1005, "사용자가 이미 다른방에 참가중입니다."),
-
-
-
-
+    HOST_CANNOT_READY(false, HttpStatus.BAD_REQUEST, 1006, "방장은 준비 상태를 변경할 수 없습니다."),
+    UNAUTHORIZED_ACCESS(false, HttpStatus.FORBIDDEN, 1007, "권한이 없는 접근입니다."),
+    NOT_ALL_PLAYERS_READY(false, HttpStatus.BAD_REQUEST, 1008, "모든 플레이어가 준비되지 않았습니다."),
 
     // Game Error Codes (4001~4100)
 
     // Game Start Error Codes (4001~4009)
     GAME_ALREADY_START(false, HttpStatus.BAD_REQUEST, 4001, "해당 게임 코드가 이미 존재합니다."),
-    PLAYER_NOT_FOUND(false, HttpStatus.NOT_FOUND, 4002, "플레이어를 찾을 수 없습니다."),
+    // PLAYER_NOT_FOUND(false, HttpStatus.NOT_FOUND, 4002, "플레이어를 찾을 수 없습니다."),
     OPTION_NOT_FOUND(false, HttpStatus.NOT_FOUND, 4003, "옵션을 찾을 수 없습니다."),
     GAME_START_FAIL(false, HttpStatus.BAD_REQUEST, 4004, "게임 시작에 실패했습니다."),
     PLAYER_NOT_ENOUGH(false, HttpStatus.BAD_REQUEST, 4005, "게임 참가자가 충분하지 않습니다."),
