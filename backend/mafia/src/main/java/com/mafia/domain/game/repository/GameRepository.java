@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class GameRepository {
-
+  
     private final RedisTemplate<String, Game> redisTemplate;
 
 

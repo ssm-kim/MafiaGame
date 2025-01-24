@@ -9,5 +9,5 @@ public enum GamePhase {
     DAY_FINAL_STATEMENT, // 낮 - 변론
     DAY_FINAL_VOTE, // 낮 - 최종 투표
     NIGHT_ACTION;    // 밤 - 행동 선택
-
+  
 }

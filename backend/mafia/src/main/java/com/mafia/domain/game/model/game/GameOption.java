@@ -8,6 +8,7 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "게임 옵션을 설정하는 클래스")
 public class GameOption {
+  
     @Schema(description = "좀비의 수", example = "2")
     private int zombie;
     @Schema(description = "변종의 수", example = "1")
@@ -20,7 +21,7 @@ public class GameOption {
     private int dayDisTimeSec;
 
 
-    public GameOption(){
+    public GameOption() {
         this.zombie = 2;
         this.mutant = 1;
         this.doctorSkillUsage = 2;
@@ -28,13 +29,15 @@ public class GameOption {
         this.dayDisTimeSec = 60;
     }
 
-    public GameOption(int preset){
+    public GameOption(int preset) {
         this.zombie = 2;
         this.mutant = 0;
         this.doctorSkillUsage = 2;
         this.nightTimeSec = 30;
         this.dayDisTimeSec = 60;
-        if(preset == 8) this.mutant = 1;
+        if (preset == 8) {
+            this.mutant = 1;
+        }
 
     }
 }

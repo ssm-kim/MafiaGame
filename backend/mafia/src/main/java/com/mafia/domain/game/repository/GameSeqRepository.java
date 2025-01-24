@@ -10,6 +10,7 @@ import java.util.Set;
 @Repository
 @RequiredArgsConstructor
 public class GameSeqRepository {
+ 
     private final RedisTemplate<String, Object> redisTemplate;
 
     private String getPhaseKey(long roomId) {

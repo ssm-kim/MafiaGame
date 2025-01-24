@@ -23,14 +23,14 @@ public class Game {
     @JsonProperty("room_id")
     private long roomId;
     @Schema(description = "게임에 참여한 플레이어 정보", example =
-            "{101: {\"name\": \"Player1\"}, 102: {\"name\": \"Player2\"}}")
+        "{101: {\"name\": \"Player1\"}, 102: {\"name\": \"Player2\"}}")
     private Map<Long, Player> players;
     @Schema(description = "플레이어들의 투표 정보", example = "{101: 102, 103: 104}")
     private Map<Long, Long> votes;
     @Schema(description = "죽은 플레이어들의 ID 목록", example = "[105, 106]")
     private Set<Long> deadPlayers;
     @Schema(description = "게임의 현재 상태", example = "STARTED",
-            allowableValues = {"PLAYING", "CITIZEN_WIN", "ZOMBIE_WIN", "MUTANT_WIN"})
+        allowableValues = {"PLAYING", "CITIZEN_WIN", "ZOMBIE_WIN", "MUTANT_WIN"})
     private STATUS status;
     @Schema(description = "현재 생존한 플레이어 수", example = "8")
     private int alive;
@@ -53,7 +53,7 @@ public class Game {
     @Schema(description = "게임 옵션")
     private GameOption option;
 
-    public Game(){
+    public Game() {
         players = new HashMap<>();
         votes = new HashMap<>();
         deadPlayers = new HashSet<>();
@@ -68,8 +68,8 @@ public class Game {
         this.option = new GameOption();
         doctorSkillUsage = this.option.getDoctorSkillUsage();
     }
-
-    public void init(){
+  
+    public void init() {
         players.clear();
         votes.clear();
         deadPlayers.clear();
@@ -83,47 +83,48 @@ public class Game {
     }
 
     /*
-    * 플레이어 추가
-    * - 게임에 참가할 플레이어를 추가한다.
-    * */
-    public void addPlayer(User user){
-        if(players.containsKey(user.getId())){
+     * 플레이어 추가
+     * - 게임에 참가할 플레이어를 추가한다.
+     * */
+    public void addPlayer(User user) {
+        if (players.containsKey(user.getId())) {
             log.info("[Game{}] User {} is already in the game", roomId, user.getId());
             return;
         }
         Player p = new Player(user);
         players.put(user.getId(), p);
     }
-/*
-    public int ready(Long user_id){
-        if(ready.contains(user_id)){
-            log.info("[Game{}] User {} is already ready", roomId, user_id);
-            return -1;
+
+    /*
+        public int ready(Long user_id){
+            if(ready.contains(user_id)){
+                log.info("[Game{}] User {} is already ready", roomId, user_id);
+                return -1;
+            }
+            ready.add(user_id);
+  
+            return ready.size();
         }
-        ready.add(user_id);
-
-        return ready.size();
-    }
-
-    public boolean isReady(){
-        return ready.size() == players.size();
-    }
-
-    public int readyClear(){
-        ready.clear();
-        return 0;
-    }
-*/
-    public void start_game(){
+  
+        public boolean isReady(){
+            return ready.size() == players.size();
+        }
+  
+        public int readyClear(){
+            ready.clear();
+            return 0;
+        }
+    */
+    public void start_game() {
         this.status = STATUS.PLAYING;
         // 1. 직업 분배
         List<Role> role = new ArrayList<>();
         init_role(role);
         int rcnt = 0;
-        for(Map.Entry<Long, Player> e : players.entrySet()){
+        for (Map.Entry<Long, Player> e : players.entrySet()) {
             Role user_role = role.get(rcnt);
             e.getValue().setRole(user_role);
-            if(user_role == Role.MUTANT){
+            if (user_role == Role.MUTANT) {
                 e.getValue().setEnableVote(false);
             }
             rcnt++;
@@ -131,45 +132,47 @@ public class Game {
         log.info("[Game{}] Role distribution is completed", roomId);
     }
 
-    public void init_role(List<Role> role){
+    public void init_role(List<Role> role) {
         this.zombie = option.getZombie();
         this.mutant = option.getMutant();
         this.alive = players.size();
-        for(int i = 0; i < this.zombie; i++){
+        for (int i = 0; i < this.zombie; i++) {
             role.add(Role.ZOMBIE);
         }
-        if(this.mutant > 0 && Math.random() < 0.5){
+        if (this.mutant > 0 && Math.random() < 0.5) {
             role.add(Role.MUTANT);
-        } else this.mutant = 0;
+        } else {
+            this.mutant = 0;
+        }
         role.add(Role.POLICE);
         role.add(Role.PLAGUE_DOCTOR);
         this.citizen = this.alive - role.size();
-        for(int i = 0; i < this.citizen; i++){
+        for (int i = 0; i < this.citizen; i++) {
             role.add(Role.CITIZEN);
         }
         this.citizen = this.alive - this.zombie - this.mutant;
         Collections.shuffle(role);
     }
 
-    public void vote(Long user_id, Long target_id){
+    public void vote(Long user_id, Long target_id) {
         votes.put(user_id, target_id);
     }
 
-    public void voteClear(){
+    public void voteClear() {
         votes.clear();
     }
 
-    public Long voteResult(){
+    public Long voteResult() {
         Map<Long, Integer> result = new HashMap<>();
         votes.forEach((user, target) -> result.merge(target, 1, Integer::sum));
 
         return result.entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse(-1L);
+            .max(Map.Entry.comparingByValue())
+            .map(Map.Entry::getKey)
+            .orElse(-1L);
     }
 
-    public void voteKill(Long target_id){
+    public void voteKill(Long target_id) {
         Player p = players.get(target_id);
         p.setDead(true);
         deadPlayers.add(target_id);
@@ -183,16 +186,20 @@ public class Game {
         isGameOver();
     }
 
-    public boolean kill(){
+    public boolean kill() {
         List<Long> result = new ArrayList<>();
-        if(zombieTarget.equals(healTarget)) result.add(zombieTarget);
-        if (mutantTarget.equals(healTarget)) result.add(mutantTarget);
+        if (zombieTarget.equals(healTarget)) {
+            result.add(zombieTarget);
+        }
+        if (mutantTarget.equals(healTarget)) {
+            result.add(mutantTarget);
+        }
 
-        if(result.isEmpty()){
+        if (result.isEmpty()) {
             log.info("[Game{}] No one is killed", roomId);
             return false;
         }
-        for(Long target_id : result){
+        for (Long target_id : result) {
             Player p = players.get(target_id);
             p.setDead(true);
             deadPlayers.add(target_id);
@@ -209,39 +216,39 @@ public class Game {
         return true;
     }
 
-    public void heal(Long target_id){
+    public void heal(Long target_id) {
         healTarget = target_id;
-        if(doctorSkillUsage > 0) doctorSkillUsage--;
+        if (doctorSkillUsage > 0) {
+            doctorSkillUsage--;
+        }
     }
 
-    public void zombieTarget(Long target_id){
+    public void zombieTarget(Long target_id) {
         zombieTarget = target_id;
     }
 
-    public void mutantTarget(Long target_id){
+    public void mutantTarget(Long target_id) {
         mutantTarget = target_id;
     }
 
-    public Role findRole(Long user_id, Long target_id){
+    public Role findRole(Long user_id, Long target_id) {
         Role find = players.get(target_id).getRole();
         if (find == Role.ZOMBIE) {
             players.get(user_id).setEnableVote(false);
             return Role.ZOMBIE;
+        } else {
+            return Role.CITIZEN;
         }
-        else return Role.CITIZEN;
     }
 
-    private void isGameOver(){
-        if(zombie == 0 && mutant == 0){
+    private void isGameOver() {
+        if (zombie == 0 && mutant == 0) {
             this.status = STATUS.CITIZEN_WIN;
-        }
-        else if(mutant == 0 && zombie >= citizen){
+        } else if (mutant == 0 && zombie >= citizen) {
             this.status = STATUS.ZOMBIE_WIN;
-        }
-        else if(mutant == 1 && citizen + zombie <= mutant){
+        } else if (mutant == 1 && citizen + zombie <= mutant) {
             this.status = STATUS.MUTANT_WIN;
-        }
-        else{
+        } else {
             log.info("[Game{}] Game is still in progress", roomId);
         }
     }
