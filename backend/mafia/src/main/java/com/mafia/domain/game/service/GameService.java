@@ -218,7 +218,7 @@ public class GameService {
     public void healPlayer(long roomId, Long userId, Long targetId) {
         Game game = findById(roomId);
         if(game.getPlayers().get(userId).getRole() != Role.PLAGUE_DOCTOR) throw new BusinessException(NOT_DOCTOR_HEAL);
-        if(game.getDoctorCount() == 0) throw new BusinessException(MEDICAL_COUNT_ZERO);
+        if(game.getDoctorSkillUsage() == 0) throw new BusinessException(MEDICAL_COUNT_ZERO);
         if(game.getPlayers().get(targetId).isDead()) throw new BusinessException(USER_ALREADY_DEAD);
         game.heal(targetId);
         gameRepository.save(game);
@@ -302,7 +302,6 @@ public class GameService {
                 gameSeqRepository.saveTimer(roomId, game.getOption().getNightTimeSec());
             }
             case NIGHT_ACTION -> {
-                game.kill();
                 gameRepository.save(game);
                 gameSeqRepository.savePhase(roomId, GamePhase.DAY_DISCUSSION);
                 gameSeqRepository.saveTimer(roomId, game.getOption().getDayDisTimeSec());
