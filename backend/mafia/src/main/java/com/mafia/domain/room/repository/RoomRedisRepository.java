@@ -22,6 +22,9 @@ public class RoomRedisRepository {
         return redisTemplate.keys("room:*"); // 모든 방 키 가져오기
     }
 
+    public RoomInfo findById(Long roomId) {
+        return redisTemplate.opsForValue().get(getRoomKey(roomId));
+    }
 
     // 방 ID, 방 상태
     public void save(Long roomId, RoomInfo roomInfo) {
@@ -29,11 +32,6 @@ public class RoomRedisRepository {
     }
 
     // 각 방의 참가자 수를 조회합니다.
-    //    {
-    //        1L: 3,  // 1번 방에 3명
-    //        2L: 5,  // 2번 방에 5명
-    //        3L: 2   // 3번 방에 2명
-    //    }
     public HashMap<Long, Integer> getRoomPlayerCounts() {
         HashMap<Long, Integer> result = new HashMap<>();
         Set<String> roomKeys = getAllRooms();
@@ -49,9 +47,5 @@ public class RoomRedisRepository {
 
     public void delete(Long roomId) {
         redisTemplate.delete(getRoomKey(roomId));
-    }
-
-    public RoomInfo findById(Long roomId) {
-        return redisTemplate.opsForValue().get(getRoomKey(roomId));
     }
 }

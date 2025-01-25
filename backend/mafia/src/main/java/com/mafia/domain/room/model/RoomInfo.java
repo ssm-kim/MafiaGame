@@ -20,7 +20,6 @@ public class RoomInfo {
     private int readyCnt;
     private GameOption gameOption;
 
-
     public RoomInfo(Long roomId, Long hostId) {
         this.hostId = hostId;
         this.roomId = roomId;
