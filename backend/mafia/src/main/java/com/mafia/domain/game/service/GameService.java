@@ -32,9 +32,6 @@ public class GameService {
     private final GameRepository gameRepository; // 게임 데이터를 관리하는 리포지토리
     private final GameSeqRepository gameSeqRepository; // 게임 상태 및 시간 정보를 관리하는 리포지토리
 
-    // 방별 동기화를 위한 객체 맵
-    private final ConcurrentHashMap<Long, Object> roomLocks = new ConcurrentHashMap<>();
-
     /**
      * 게임 조회
      *
@@ -43,7 +40,7 @@ public class GameService {
      * @throws BusinessException 게임이 존재하지 않을 경우 예외 발생
      */
     public Game findById(long gameId) {
-        return Optional.ofNullable(gameRepository.findById(gameId))
+        return gameRepository.findById(gameId)
             .orElseThrow(() -> new BusinessException(GAME_NOT_FOUND));
     }
 
@@ -70,13 +67,13 @@ public class GameService {
      * @throws BusinessException 이미 시작된 게임이거나 플레이어가 부족할 경우 예외 발생
      */
     public boolean startGame(long roomId) {
-        if (gameRepository.findById(roomId) != null) {
-            throw new BusinessException(GAME_ALREADY_START);
-        }
+        gameRepository.findById(roomId).ifPresent(game -> {
+            new BusinessException(GAME_ALREADY_START);
+        });
         Game game = makeGame(roomId);
 
         log.info("Game {} created.", roomId);
-        game.start_game();
+        game.startGame();
         gameSeqRepository.savePhase(roomId, GamePhase.DAY_DISCUSSION); // 낮 토론 시작
         gameSeqRepository.saveTimer(roomId, game.getOption().getDayDisTimeSec()); // 설정된 시간
         log.info("Game started in Room {}: Phase set to {}, Timer set to {} seconds",
@@ -87,13 +84,12 @@ public class GameService {
     }
 
     private static Game makeGame(long roomId) {
-        Game game = new Game();
-        game.setGameId(roomId);
+        //RoomInfo roominfo = roomService.findById(roomId);
+
+        //Game game = new Game(roomId, roominfo.getGameoption());
 
         // 게임에 참가할 플레이어를 추가한다.
         /*
-        RoomInfo roominfo = roomService.findById(roomId);
-        game.setOption(roominfo.getGameoption());
         List<Long, Participant> participants = roominfo.getParticipant();
         for (Participant participant : participants) {
             game.addPlayer(participant);
@@ -114,48 +110,36 @@ public class GameService {
      * @param targetNo 투표 대상 사용자 ID
      * @throws BusinessException 유효하지 않은 투표 조건일 경우 예외 발생
      */
-    public void vote(long gameId, Integer playerNo, Integer targetNo) {
-        synchronized (getLock(gameId)) {
-            Game game = findById(gameId);
-            if (game != null) {
-                if (targetNo == -1) // 기권 처리
-                {
-                    log.info("[Game{}] Player {} is abstention", gameId, playerNo);
-                    return;
-                }
-                if (game.getPlayers().get(playerNo).isDead()) {
-                    throw new BusinessException(PLAYER_IS_DEAD);
-                }
-                if (game.getPlayers().get(targetNo).isDead()) {
-                    throw new BusinessException(TARGET_IS_DEAD);
-                }
-                if (game.getPlayers().get(playerNo).getRole() == Role.POLICE && !game.getPlayers()
-                    .get(playerNo).isEnableVote()) {
-                    throw new BusinessException(POLICE_CANNOT_VOTE);
-                }
-                if (game.getPlayers().get(playerNo).getRole() == Role.MUTANT) {
-                    throw new BusinessException(MUTANT_CANNOT_VOTE);
-                }
-
-                game.vote(playerNo, targetNo);
-                gameRepository.save(game);
-                log.info("Player {} voted for Target {} in Room {}.", playerNo, targetNo, gameId);
-            } else {
-                log.warn("Room {} does not exist.", gameId);
+    public void vote(long gameId, Integer playerNo, Integer targetNo) { // 투표 sync 고려
+        Game game = findById(gameId);
+        if (game != null) {
+            if (targetNo == -1) // 기권 처리
+            {
+                log.info("[Game{}] Player {} is abstention", gameId, playerNo);
+                return;
             }
+            if (game.getPlayers().get(playerNo).isDead()) {
+                throw new BusinessException(PLAYER_IS_DEAD);
+            }
+            if (game.getPlayers().get(targetNo).isDead()) {
+                throw new BusinessException(TARGET_IS_DEAD);
+            }
+            if (game.getPlayers().get(playerNo).getRole() == Role.POLICE && !game.getPlayers()
+                .get(playerNo).isEnableVote()) {
+                throw new BusinessException(POLICE_CANNOT_VOTE);
+            }
+            if (game.getPlayers().get(playerNo).getRole() == Role.MUTANT) {
+                throw new BusinessException(MUTANT_CANNOT_VOTE);
+            }
+
+            game.vote(playerNo, targetNo);
+            gameRepository.save(game);
+            log.info("Player {} voted for Target {} in Room {}.", playerNo, targetNo, gameId);
+        } else {
+            log.warn("Room {} does not exist.", gameId);
         }
     }
 
-    /**
-     * 방별 동기화 객체 반환
-     *
-     * @param gameId 방 ID
-     * @return 동기화 객체
-     */
-    private Object getLock(long gameId) {
-        // ConcurrentHashMap을 이용해 방별로 고유한 동기화 객체 생성
-        return roomLocks.computeIfAbsent(gameId, id -> new Object());
-    }
 
     /**
      * 투표 결과 반환
@@ -210,7 +194,7 @@ public class GameService {
         if (game.getPlayers().get(playerNo).getRole() != Role.PLAGUE_DOCTOR) {
             throw new BusinessException(NOT_DOCTOR_HEAL);
         }
-        if (game.getDoctorSkillUsage() == 0) {
+        if (game.getOption().getDoctorSkillUsage() == 0) {
             throw new BusinessException(MEDICAL_COUNT_ZERO);
         }
         if (game.getPlayers().get(targetNo).isDead()) {

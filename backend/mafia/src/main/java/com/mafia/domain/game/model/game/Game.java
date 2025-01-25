@@ -5,83 +5,86 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mafia.domain.game.model.User;
 import com.mafia.domain.member.model.entity.Member;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.annotation.PostConstruct;
 import java.io.Serializable;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
-@Data
-@AllArgsConstructor
+@Getter @Setter
+@NoArgsConstructor
 @Slf4j
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "게임의 상태와 관련된 정보를 포함하는 클래스")
-public class Game implements Serializable {
+public class Game implements Serializable { // 필드정리
 
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "게임 방 ID", example = "12345")
     @JsonProperty("game_id")
     private long gameId;
+
     @Schema(description = "게임에 참여한 플레이어 정보", example =
         "{101: {\"name\": \"Player1\"}, 102: {\"name\": \"Player2\"}}")
     private Map<Integer, Player> players;
+
     @Schema(description = "플레이어들의 투표 정보", example = "{101: 102, 103: 104}")
     private Map<Integer, Integer> votes;
+
     @Schema(description = "죽은 플레이어들의 ID 목록", example = "[105, 106]")
-    private Set<Integer> deadPlayers;
+    private Set<Integer> deadPlayers; // 메서드로 뺴보기
+
     @Schema(description = "게임의 현재 상태", example = "STARTED",
         allowableValues = {"PLAYING", "CITIZEN_WIN", "ZOMBIE_WIN", "MUTANT_WIN"})
     private STATUS status;
+
     @Schema(description = "현재 생존한 플레이어 수", example = "8")
     private int alive;
+
     @Schema(description = "현재 죽은 플레이어 수", example = "2")
     private int dead;
+
     @Schema(description = "생존한 시민의 수", example = "3")
     private int citizen;
+
     @Schema(description = "생존한 좀비의 수", example = "1")
     private int zombie;
+
     @Schema(description = "생존한 돌연변이의 수", example = "1")
     private int mutant;
-    @Schema(description = "의사 능력 사용 횟수", example = "2")
-    private int doctorSkillUsage;
+
     @Schema(description = "현재 라운드에서 의사가 치료 대상으로 지정한 플레이어의 ID", example = "101")
     private Integer healTarget;
+
     @Schema(description = "현재 라운드에서 변종이 공격 대상으로 지정한 플레이어의 ID", example = "102")
     private Integer mutantTarget;
+
     @Schema(description = "현재 라운드에서 좀비들이 공격 대상으로 지정한 플레이어의 ID", example = "103")
     private Integer zombieTarget;
+
     @Schema(description = "게임 옵션")
     private GameOption option;
-
-    public Game() {
-        players = new HashMap<>();
-        votes = new HashMap<>();
-        deadPlayers = new HashSet<>();
-        alive = 0;
-        dead = 0;
-        citizen = 0;
-        zombie = 0;
-        mutant = 0;
-        healTarget = 0;
-        mutantTarget = 0;
-        zombieTarget = 0;
-        this.option = new GameOption();
-        doctorSkillUsage = this.option.getDoctorSkillUsage();
-    }
-
-    public void init() {
-        players.clear();
-        votes.clear();
-        deadPlayers.clear();
-        alive = 0;
-        dead = 0;
-        zombie = 0;
-        mutant = 0;
-        healTarget = 0;
-        mutantTarget = 0;
-        zombieTarget = 0;
+// @PostConstruct <- 이후 알아봄
+    public Game(long roomId, GameOption option) {
+        this.gameId = roomId;
+        this.players = new HashMap<>();
+        this.votes = new ConcurrentHashMap<>();
+        this.deadPlayers = new HashSet<>();
+        this.alive = 0;
+        this.dead = 0;
+        this.citizen = 0;
+        this.zombie = 0;
+        this.mutant = 0;
+        this.healTarget = 0;
+        this.mutantTarget = 0;
+        this.zombieTarget = 0;
+        this.option = option; // <- POST CONSTRUCT
     }
 
     /*
@@ -99,7 +102,7 @@ public class Game implements Serializable {
         players.put(++alive, player);
     }
 
-    public void start_game() {
+    public void startGame() {
         this.status = STATUS.PLAYING;
         // 1. 직업 분배
         List<Role> role = new ArrayList<>();
@@ -155,7 +158,6 @@ public class Game implements Serializable {
             .orElse(-1);
     }
 
-
     public void Kill(Integer targetNo) {
         Player p = players.get(targetNo);
         p.setDead(true);
@@ -192,8 +194,9 @@ public class Game implements Serializable {
 
     public void heal(Integer targetNo) {
         healTarget = targetNo;
-        if (doctorSkillUsage > 0) {
-            doctorSkillUsage--;
+        int cnt = option.getDoctorSkillUsage();
+        if (cnt > 0) {
+            option.setDoctorSkillUsage(cnt--);
         }
     }
 

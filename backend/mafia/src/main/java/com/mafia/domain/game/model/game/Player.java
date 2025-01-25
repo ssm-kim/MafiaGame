@@ -30,8 +30,8 @@ public class Player {
     private boolean enableVote;
 
     public Player(Participant participant) {
-        this.memberId = member.getMemberId();
-        this.nickname = member.getNickname();
+        this.memberId = participant.getMemberId();
+        this.nickname = participant.getNickname();
         this.role = Role.CITIZEN;
         this.isDead = false;
         this.enableVote = true;
