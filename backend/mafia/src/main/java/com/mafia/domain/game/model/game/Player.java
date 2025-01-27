@@ -1,7 +1,6 @@
 package com.mafia.domain.game.model.game;
 
-import com.mafia.domain.game.model.User;
-import com.mafia.domain.member.model.entity.Member;
+import com.mafia.domain.room.model.Participant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -31,7 +30,7 @@ public class Player {
 
     public Player(Participant participant) {
         this.memberId = participant.getMemberId();
-        this.nickname = participant.getNickname();
+        this.nickname = participant.getNickName();
         this.role = Role.CITIZEN;
         this.isDead = false;
         this.enableVote = true;
