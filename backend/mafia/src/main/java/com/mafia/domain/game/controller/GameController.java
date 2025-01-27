@@ -57,41 +57,27 @@ public class GameController {
         gameService.deleteGame(roomId);
         return ResponseEntity.ok(new BaseResponse<>("Room " + roomId + " deleted."));
     }
-    /*
-    @PostMapping("/{roomId}/join")
-    public ResponseEntity<String> joinGame(@PathVariable int roomId, @RequestBody User user) {
-        gameService.addPlayer(roomId, user);
-        return ResponseEntity.ok("User " + user.getId() + " joined Room " + roomId + ".");
-    }
 
-
-    @PostMapping("/{roomId}/ready/{userId}")
-    public ResponseEntity<String> readyPlayer(@PathVariable int roomId, @PathVariable Long userId) {
-        boolean isReady = gameService.readyPlayer(roomId, userId);
-        return ResponseEntity.ok("User " + userId + " is ready. All ready: " + isReady);
-    }*/
- 
     @PostMapping("/{roomId}/vote")
     @Operation(summary = "Vote", description = "유저 ID와 타겟 ID를 받아 투표합니다.(투표 시간에만 가능합니다.")
     public ResponseEntity<BaseResponse<String>> vote(@PathVariable Long roomId,
-        @RequestParam Long userId, @RequestParam Long targetId) {
+        @RequestParam Integer playerNo, @RequestParam Integer targetNo) {
         gameService.validatePhase(roomId, GamePhase.DAY_VOTE);
-        gameService.vote(roomId, userId, targetId);
+        gameService.vote(roomId, playerNo, targetNo);
         return ResponseEntity.ok(new BaseResponse<>(
-            "User " + userId + " voted for " + targetId + " in Room " + roomId + "."));
+            "Player " + playerNo + " voted for " + targetNo + " in Room " + roomId + "."));
     }
 
     @GetMapping("/{roomId}/voteresult")
     @Operation(summary = "Get vote result", description = "투표 집계 결과를 가져옵니다")
-    public ResponseEntity<BaseResponse<Long>> getVoteResult(@PathVariable Long roomId) {
-        Long result = gameService.getVoteResult(roomId);
-        return ResponseEntity.ok(new BaseResponse<>(result));
+    public ResponseEntity<BaseResponse<Integer>> getVoteResult(@PathVariable Long roomId) {
+        return ResponseEntity.ok(new BaseResponse<>(gameService.getVoteResult(roomId)));
     }
 
     @GetMapping("/{roomId}/clear/vote")
     @Operation(summary = "Vote init", description = "방 투표 내역을 초기화 합니다.")
-    public ResponseEntity<BaseResponse<Long>> resetVote(@PathVariable Long roomId) {
-        Long result = gameService.getVoteResult(roomId);
+    public ResponseEntity<BaseResponse<Integer>> resetVote(@PathVariable Long roomId) {
+        Integer result = gameService.getVoteResult(roomId);
         return ResponseEntity.ok(new BaseResponse<>(result));
     }
 
@@ -103,11 +89,11 @@ public class GameController {
         return ResponseEntity.ok(new BaseResponse<>("Vote skipped in Room " + roomId + "."));
     }
 
-    @GetMapping("/{roomId}/vote/kill/{userId}")
+    @GetMapping("/{roomId}/vote/kill/{playerNo}")
     @Operation(summary = "Vote kill player", description = "투표로 타겟이 된 플레이어를 사망 처리합니다.")
     public ResponseEntity<BaseResponse<String>> killVote(@PathVariable Long roomId,
-        @PathVariable Long userId) {
-        boolean life = gameService.killPlayer(roomId, userId, true);
+        @PathVariable Integer playerNo) {
+        boolean life = gameService.killPlayer(roomId, playerNo, true);
         if (life) {
             return ResponseEntity.ok(new BaseResponse<>("killed in Room " + roomId + "."));
         } else {
@@ -115,48 +101,48 @@ public class GameController {
         }
     }
 
-    @GetMapping("/{roomId}/target/kill/{userId}")
+    @GetMapping("/{roomId}/target/kill/{playerNo}")
     @Operation(summary = "Night kill player", description = "밤 페이즈에 타겟이 된 플레이어를 사망 처리 합니다.")
     public ResponseEntity<BaseResponse<String>> killTarget(@PathVariable Long roomId,
-        @PathVariable Long userId) {
-        boolean life = gameService.killPlayer(roomId, userId, false);
+        @PathVariable Integer playerNo) {
+        boolean life = gameService.killPlayer(roomId, playerNo, false);
         if (life) {
             return ResponseEntity.ok(
-                new BaseResponse<>("User " + userId + " killed in Room " + roomId + "."));
+                new BaseResponse<>("User " + playerNo + " killed in Room " + roomId + "."));
         } else {
             return ResponseEntity.ok(
-                new BaseResponse<>("User " + userId + " saved in Room " + roomId + "."));
+                new BaseResponse<>("User " + playerNo + " saved in Room " + roomId + "."));
         }
     }
 
     @PostMapping("/{roomId}/target/set")
     @Operation(summary = "set target player", description = "타겟을 설정합니다.(밤 페이즈, 좀비, 돌연변이만 가능합니다.)")
     public ResponseEntity<BaseResponse<String>> setTarget(@PathVariable Long roomId,
-        @RequestParam Long userId, @RequestParam Long targetId) {
+        @RequestParam Integer playerNo, @RequestParam Integer targetNo) {
         gameService.validatePhase(roomId, GamePhase.NIGHT_ACTION);
-        gameService.setKillTarget(roomId, userId, targetId);
+        gameService.setKillTarget(roomId, playerNo, targetNo);
         return ResponseEntity.ok(
-            new BaseResponse<>("User " + targetId + " set as target in Room " + roomId + "."));
+            new BaseResponse<>("User " + targetNo + " set as target in Room " + roomId + "."));
     }
 
     @PostMapping("/{roomId}/police")
     @Operation(summary = "Find user's role", description = "지정한 사람의 직업을 밝힙니다.(밤 페이즈, 경찰만 가능합니다.)")
     public ResponseEntity<BaseResponse<String>> findRole(@PathVariable Long roomId,
-        @RequestParam Long userId, @RequestParam Long targetId) {
+        @RequestParam Integer playerNo, @RequestParam Integer targetNo) {
         gameService.validatePhase(roomId, GamePhase.NIGHT_ACTION);
-        Role role = gameService.findRole(roomId, userId, targetId);
+        Role role = gameService.findRole(roomId, playerNo, targetNo);
         return ResponseEntity.ok(
-            new BaseResponse<>("User " + targetId + " is " + role + " in Room " + roomId + "."));
+            new BaseResponse<>("User " + targetNo + " is " + role + " in Room " + roomId + "."));
     }
 
     @PostMapping("/{roomId}/doctor")
     @Operation(summary = "set save player", description = "죽음으로부터 보호할 사람을 지정합니다.(밤 페이즈, 의사만 가능합니다.)")
     public ResponseEntity<BaseResponse<String>> healPlayer(@PathVariable Long roomId,
-        @RequestParam Long userId, @RequestParam Long targetId) {
+        @RequestParam Integer playerNo, @RequestParam Integer targetNo) {
         gameService.validatePhase(roomId, GamePhase.NIGHT_ACTION);
-        gameService.healPlayer(roomId, userId, targetId);
+        gameService.healPlayer(roomId, playerNo, targetNo);
         return ResponseEntity.ok(
-            new BaseResponse<>("User " + targetId + " healed in Room " + roomId + "."));
+            new BaseResponse<>("User " + targetNo + " healed in Room " + roomId + "."));
     }
 
     @GetMapping("/{roomId}/isEnd")

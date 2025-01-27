@@ -10,7 +10,7 @@ import java.util.Set;
 @Repository
 @RequiredArgsConstructor
 public class GameSeqRepository {
- 
+
     private final RedisTemplate<String, Object> redisTemplate;
 
     private String getPhaseKey(long roomId) {
@@ -28,7 +28,6 @@ public class GameSeqRepository {
     // 게임 상태 조회
     public GamePhase getPhase(long roomId) {
         Object value = redisTemplate.opsForValue().get(getPhaseKey(roomId));
-        System.out.println("Value from Redis: " + value); // 디버깅용 출력
 
         if (value instanceof String) {
             return GamePhase.valueOf((String) value); // Enum 변환
