@@ -2,14 +2,12 @@ package com.mafia.domain.game.model.game;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mafia.domain.game.model.User;
-import com.mafia.domain.member.model.entity.Member;
+import com.mafia.domain.room.model.Participant;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.annotation.PostConstruct;
+
 import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -142,10 +140,6 @@ public class Game implements Serializable { // 필드정리
 
     public void vote(Integer playerNo, Integer targetNo) {
         votes.put(playerNo, targetNo);
-    }
-
-    public void voteClear() {
-        votes.clear();
     }
 
     public Integer voteResult() {

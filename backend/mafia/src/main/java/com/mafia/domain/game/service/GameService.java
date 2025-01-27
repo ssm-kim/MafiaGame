@@ -6,7 +6,9 @@ import com.mafia.domain.game.model.game.Role;
 import com.mafia.domain.game.model.game.STATUS;
 import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
-import com.mafia.domain.room.service.RoomService;
+import com.mafia.domain.room.model.Participant;
+import com.mafia.domain.room.model.RoomInfo;
+import com.mafia.domain.room.service.RoomRedisService;
 import com.mafia.global.common.exception.exception.BusinessException;
 
 import static com.mafia.global.common.model.dto.BaseResponseStatus.*;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 public class GameService {
 
-    //private final RoomRedisService roomService;
+    private final RoomRedisService roomService;
     private final GameRepository gameRepository; // 게임 데이터를 관리하는 리포지토리
     private final GameSeqRepository gameSeqRepository; // 게임 상태 및 시간 정보를 관리하는 리포지토리
 
@@ -83,18 +86,16 @@ public class GameService {
         return true;
     }
 
-    private static Game makeGame(long roomId) {
-        //RoomInfo roominfo = roomService.findById(roomId);
+    private Game makeGame(long roomId) {
+        RoomInfo roominfo = roomService.findById(roomId);
 
-        //Game game = new Game(roomId, roominfo.getGameoption());
+        Game game = new Game(roomId, roominfo.getGameOption());
 
         // 게임에 참가할 플레이어를 추가한다.
-        /*
-        List<Long, Participant> participants = roominfo.getParticipant();
-        for (Participant participant : participants) {
-            game.addPlayer(participant);
-        }
-        */
+
+        Map<Long, Participant> participants = roominfo.getParticipant();
+        roominfo.getParticipant().values().forEach(game::addPlayer);
+
 
         if (game.getPlayers().size() < 6) {
             throw new BusinessException(PLAYER_NOT_ENOUGH);

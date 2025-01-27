@@ -15,8 +15,11 @@ public enum BaseResponseStatus {
 
     // Room Error Codes (1001~1100)
     ROOM_NOT_FOUND(false, HttpStatus.NOT_FOUND, 1001, "해당 방을 찾을 수 없습니다."),
-    ROOM_INVALID_PLAYER_COUNT(false, HttpStatus.BAD_REQUEST, 1002, "유효하지 않은 플레이어 수입니다."),
-    ROOM_TITLE_DUPLICATE(false, HttpStatus.BAD_REQUEST, 1003, "이미 존재하는 방 제목입니다."),
+    ROOM_TITLE_LIMIT(false, HttpStatus.BAD_REQUEST, 1002, "방 제목은 30자를 초과할 수 없습니다."),
+    ROOM_TITLE_INVALID(false, HttpStatus.BAD_REQUEST, 1003, "방 제목은 비어있을 수 없습니다."),
+    UNAUTHORIZED_ACCESS(false, HttpStatus.FORBIDDEN, 1004, "방 삭제 권한이 없는 접근입니다."),
+    HOST_CANNOT_READY(false, HttpStatus.BAD_REQUEST, 1005, "방장은 준비 상태를 변경할 수 없습니다."),
+    ALREADY_HAS_ROOM(false, HttpStatus.BAD_REQUEST, 1006, "유저가 이미 다른 방에 참여 중입니다."),
 
     // Member Error Codes (2000~)
     MEMBER_NOT_FOUND(false, HttpStatus.NOT_FOUND, 2001, "존재하지 않는 회원입니다."),
