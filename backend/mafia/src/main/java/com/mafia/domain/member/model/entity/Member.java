@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 @EntityListeners(AuditingEntityListener.class)
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 public class Member extends BaseEntity {
 
@@ -30,12 +30,13 @@ public class Member extends BaseEntity {
     public Member(Long memberId) {
         this.memberId = memberId;
     }
+
     public static Member of(String providerId, String nickname, String email) {
         return Member.builder()
-                .providerId(providerId)
-                .nickname(nickname)
-                .email(email)
-                .build();
+            .providerId(providerId)
+            .nickname(nickname)
+            .email(email)
+            .build();
     }
 
     public void changeNickname(String nickname) {
