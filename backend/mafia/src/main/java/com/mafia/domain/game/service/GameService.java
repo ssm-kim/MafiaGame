@@ -1,27 +1,34 @@
 package com.mafia.domain.game.service;
 
+import static com.mafia.global.common.model.dto.BaseResponseStatus.CANNOT_KILL_ROLE;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_ALREADY_START;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_NOT_FOUND;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_TIME_OVER;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_PHASE;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.MEDICAL_COUNT_ZERO;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.MUTANT_CANNOT_VOTE;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_DOCTOR_HEAL;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.PHASE_NOT_FOUND;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_CANNOT_HEAL;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_IS_DEAD;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_NOT_ENOUGH;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.POLICE_CANNOT_VOTE;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.TARGET_IS_DEAD;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.UNKNOWN_PHASE;
+
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
 import com.mafia.domain.game.model.game.Role;
 import com.mafia.domain.game.model.game.STATUS;
 import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
-import com.mafia.domain.room.model.Participant;
-import com.mafia.domain.room.model.RoomInfo;
+import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.service.RoomRedisService;
 import com.mafia.global.common.exception.exception.BusinessException;
-
-import static com.mafia.global.common.model.dto.BaseResponseStatus.*;
-
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 게임 서비스 클래스 게임 관리와 관련된 비즈니스 로직을 처리합니다. 작성자: YDaewon
@@ -93,9 +100,8 @@ public class GameService {
 
         // 게임에 참가할 플레이어를 추가한다.
 
-        Map<Long, Participant> participants = roominfo.getParticipant();
-        roominfo.getParticipant().values().forEach(game::addPlayer);
-
+        // Map<Long, Participant> participants = roominfo.getParticipant();
+        // roominfo.getParticipant().values().forEach(game::addPlayer);
 
         if (game.getPlayers().size() < 6) {
             throw new BusinessException(PLAYER_NOT_ENOUGH);
