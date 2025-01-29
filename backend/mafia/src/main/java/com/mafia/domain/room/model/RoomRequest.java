@@ -9,4 +9,5 @@ public class RoomRequest {
 
     private String roomTitle;
     private String roomPassword;
+    private int requiredPlayer;
 }

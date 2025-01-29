@@ -1,7 +1,6 @@
 package com.mafia.domain.room.repository;
 
-import com.mafia.domain.room.model.Room;
-import java.util.Optional;
+import com.mafia.domain.room.model.entity.Room;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -10,7 +9,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Long> {
-
     // 기본 CRUD 메서드는 JpaRepository에서 제공
-    Optional<Room> findByRoomIdAndHostId(Long roomId, Long memberId);
 }

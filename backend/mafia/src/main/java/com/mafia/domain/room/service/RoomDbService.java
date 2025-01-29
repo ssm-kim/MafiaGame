@@ -3,11 +3,10 @@ package com.mafia.domain.room.service;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ALREADY_HAS_ROOM;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_TITLE_INVALID;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_TITLE_LIMIT;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.UNAUTHORIZED_ACCESS;
 
-import com.mafia.domain.room.model.Room;
 import com.mafia.domain.room.model.RoomRequest;
 import com.mafia.domain.room.model.RoomResponse;
+import com.mafia.domain.room.model.entity.Room;
 import com.mafia.domain.room.repository.RoomRepository;
 import com.mafia.global.common.exception.exception.BusinessException;
 import java.util.ArrayList;
@@ -35,13 +34,12 @@ public class RoomDbService {
      */
     public boolean createRoom(RoomRequest roomRequest, Long memberId) {
         // 유저가 이미 방을 생성하거나 참여 중인지 확인
-        if (roomRedisService.isMemberInfRoom(memberId)) {
+        if (roomRedisService.isMemberInRoom(memberId)) {
             throw new BusinessException(ALREADY_HAS_ROOM);
         }
 
         // 방 제목 유효성 검증
-        if (roomRequest.getRoomTitle() == null ||
-            roomRequest.getRoomTitle().isEmpty()) {
+        if (roomRequest.getRoomTitle() == null || roomRequest.getRoomTitle().isEmpty()) {
             throw new BusinessException(ROOM_TITLE_INVALID);
         }
 
@@ -54,11 +52,12 @@ public class RoomDbService {
         Room room = new Room();
         room.setHostId(memberId);
         room.setRoomTitle(roomRequest.getRoomTitle().trim());  // 앞뒤 공백 제거
+        room.setRoomPassword(roomRequest.getRoomPassword());   // null이면 공백
         Room savedRoom = DbRoomRepository.save(room);
 
-        // Redis 방 정보 저장
-        roomRedisService.createRoomInfo(savedRoom.getRoomId(), savedRoom.getHostId());
-
+        // Redis 방 정보 저장시 필요 인원 수 설정
+        roomRedisService.createRoomInfo(savedRoom.getRoomId(), savedRoom.getHostId(),
+            roomRequest.getRequiredPlayer());
         return true;
     }
 
@@ -77,26 +76,18 @@ public class RoomDbService {
             RoomResponse roomResponse = new RoomResponse();
             roomResponse.setRoomTitle(room.getRoomTitle());
             roomResponse.setRoomId(room.getRoomId());
-            roomResponse.setPeopleCnt(allRoomInfo.get(room.getRoomId()));
+            roomResponse.setPeopleCnt(allRoomInfo.getOrDefault(room.getRoomId(), 0));
             roomList.add(roomResponse);
         }
         return roomList;
     }
 
     /**
-     * 게임방 삭제 (호스트만 가능)
+     * 게임방 삭제 및 Redis와 RDB에서 방 정보를 모두 삭제
      *
-     * @param roomId   방 ID
-     * @param memberId 삭제 요청한 사용자 ID
-     * @throws BusinessException UNAUTHORIZED_ACCESS
+     * @param roomId 방 ID
      */
-    public void deleteRoom(Long roomId, Long memberId) {
-        // 호스트 검증
-        if (DbRoomRepository.findByRoomIdAndHostId(roomId, memberId).isEmpty()) {
-            throw new BusinessException(UNAUTHORIZED_ACCESS);
-        }
-
-        // 호스트만 방 삭제 가능
+    public void deleteRoom(Long roomId) {
         DbRoomRepository.deleteById(roomId);
         roomRedisService.deleteById(roomId);
     }

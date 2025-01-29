@@ -1,7 +1,7 @@
 package com.mafia.global.common.config;
 
 import com.mafia.domain.game.model.game.Game;
-import com.mafia.domain.room.model.RoomInfo;
+import com.mafia.domain.room.model.redis.RoomInfo;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;

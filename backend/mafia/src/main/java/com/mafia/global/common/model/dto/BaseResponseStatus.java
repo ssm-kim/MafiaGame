@@ -14,12 +14,21 @@ public enum BaseResponseStatus {
     NOT_FOUND(false, HttpStatus.NOT_FOUND, 404, "대상을 찾을 수 없습니다."),
 
     // Room Error Codes (1001~1100)
-    ROOM_NOT_FOUND(false, HttpStatus.NOT_FOUND, 1001, "해당 방을 찾을 수 없습니다."),
-    ROOM_TITLE_LIMIT(false, HttpStatus.BAD_REQUEST, 1002, "방 제목은 30자를 초과할 수 없습니다."),
-    ROOM_TITLE_INVALID(false, HttpStatus.BAD_REQUEST, 1003, "방 제목은 비어있을 수 없습니다."),
-    UNAUTHORIZED_ACCESS(false, HttpStatus.FORBIDDEN, 1004, "방 삭제 권한이 없는 접근입니다."),
-    HOST_CANNOT_READY(false, HttpStatus.BAD_REQUEST, 1005, "방장은 준비 상태를 변경할 수 없습니다."),
-    ALREADY_HAS_ROOM(false, HttpStatus.BAD_REQUEST, 1006, "유저가 이미 다른 방에 참여 중입니다."),
+    // 방 생성/조회 관련
+    ROOM_NOT_FOUND(false, HttpStatus.NOT_FOUND, 1001, "존재하지 않는 방입니다."),
+    ROOM_TITLE_INVALID(false, HttpStatus.BAD_REQUEST, 1002, "방 제목은 비어있을 수 없습니다."),
+    ROOM_TITLE_LIMIT(false, HttpStatus.BAD_REQUEST, 1003, "방 제목은 30자를 초과할 수 없습니다."),
+    INVALID_ROOM_PASSWORD(false, HttpStatus.BAD_REQUEST, 1004, "비밀번호가 일치하지 않습니다."),
+
+    // 방 입장/퇴장 관련
+    ALREADY_HAS_ROOM(false, HttpStatus.BAD_REQUEST, 1005, "이미 다른 방에 참여 중입니다."),
+    ROOM_FULL(false, HttpStatus.BAD_REQUEST, 1006, "더 이상 입장할 수 없습니다."),
+
+    // 게임 시작 관련
+    UNAUTHORIZED_ACCESS(false, HttpStatus.FORBIDDEN, 1007, "권한이 없습니다."),
+    PLAYER_COUNT_INVALID(false, HttpStatus.BAD_REQUEST, 1008, "필요 인원과 현재 인원이 일치하지 않습니다."),
+    NOT_ALL_READY(false, HttpStatus.BAD_REQUEST, 1009, "모든 참가자가 준비를 완료하지 않았습니다."),
+    HOST_CANNOT_READY(false, HttpStatus.BAD_REQUEST, 1010, "방장은 준비 상태를 변경할 수 없습니다."),
 
     // Member Error Codes (2000~)
     MEMBER_NOT_FOUND(false, HttpStatus.NOT_FOUND, 2001, "존재하지 않는 회원입니다."),
