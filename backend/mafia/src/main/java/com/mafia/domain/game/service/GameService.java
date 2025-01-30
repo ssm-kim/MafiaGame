@@ -106,9 +106,6 @@ public class GameService {
         Map<Long, Participant> participants = roominfo.getParticipant();
         roominfo.getParticipant().values().forEach(game::addPlayer);
 
-        if (game.getPlayers().size() < 6) {
-            throw new BusinessException(PLAYER_NOT_ENOUGH);
-        }
         return game;
     }
 

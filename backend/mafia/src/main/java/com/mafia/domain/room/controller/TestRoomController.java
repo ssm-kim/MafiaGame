@@ -58,8 +58,7 @@ public class TestRoomController {
 
     @DeleteMapping("/{roomId}")
     public ResponseEntity<BaseResponse<Boolean>> deleteRoom(
-        @PathVariable Long roomId,
-        @RequestParam Long memberId) {
+        @PathVariable Long roomId) {
         roomDbService.deleteRoom(roomId);
         return ResponseEntity.ok(new BaseResponse<>());
     }
