@@ -57,8 +57,7 @@ public class RoomController {
 
     @DeleteMapping("/{roomId}")
     public ResponseEntity<BaseResponse<Boolean>> deleteRoom(
-        @PathVariable Long roomId,
-        @AuthenticationPrincipal CustomOAuth2User detail) {
+        @PathVariable Long roomId) {
         roomDbService.deleteRoom(roomId);
         return ResponseEntity.ok(new BaseResponse<>());
     }
