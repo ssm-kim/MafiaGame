@@ -1,6 +1,6 @@
 package com.mafia.domain.game.model.game;
 
-import com.mafia.domain.room.model.Participant;
+import com.mafia.domain.room.model.redis.Participant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

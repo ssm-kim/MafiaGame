@@ -22,9 +22,12 @@ import com.mafia.domain.game.model.game.Role;
 import com.mafia.domain.game.model.game.STATUS;
 import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
+import com.mafia.domain.room.model.redis.Participant;
 import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.service.RoomRedisService;
 import com.mafia.global.common.exception.exception.BusinessException;
+
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -100,8 +103,8 @@ public class GameService {
 
         // 게임에 참가할 플레이어를 추가한다.
 
-        // Map<Long, Participant> participants = roominfo.getParticipant();
-        // roominfo.getParticipant().values().forEach(game::addPlayer);
+        Map<Long, Participant> participants = roominfo.getParticipant();
+        roominfo.getParticipant().values().forEach(game::addPlayer);
 
         if (game.getPlayers().size() < 6) {
             throw new BusinessException(PLAYER_NOT_ENOUGH);

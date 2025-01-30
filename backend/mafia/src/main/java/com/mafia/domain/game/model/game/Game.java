@@ -2,7 +2,7 @@ package com.mafia.domain.game.model.game;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mafia.domain.room.model.Participant;
+import com.mafia.domain.room.model.redis.Participant;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.io.Serializable;

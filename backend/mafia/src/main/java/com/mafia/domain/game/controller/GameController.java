@@ -37,13 +37,6 @@ public class GameController {
      8. 경찰은 좀비를 찾게 되면 투표권이 없어진다.
      */
 
-    @GetMapping("/{roomId}/start")
-    @Operation(summary = "Start game", description = "방 ID를 받아 게임을 시작합니다.")
-    public ResponseEntity<BaseResponse<String>> startGame(@PathVariable Long roomId) {
-        boolean started = gameService.startGame(roomId);
-        return ResponseEntity.ok(new BaseResponse<>("Game started in Room " + roomId + "."));
-    }
-
     @GetMapping("/{roomId}")
     @Operation(summary = "Get game", description = "방 ID로 게임 정보를 가져옵니다.")
     public ResponseEntity<BaseResponse<Game>> getGame(@PathVariable Long roomId) {
