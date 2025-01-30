@@ -1,4 +1,4 @@
-package com.mafia.domain.room.model;
+package com.mafia.domain.room.model.entity;
 
 import com.mafia.global.common.model.entity.BaseEntity;
 import jakarta.persistence.Entity;

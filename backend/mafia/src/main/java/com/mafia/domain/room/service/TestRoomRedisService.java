@@ -7,7 +7,6 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_NOT_FO
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_FULL;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_NOT_FOUND;
 
-import com.mafia.domain.member.model.dto.response.MemberResponse;
 import com.mafia.domain.member.service.MemberService;
 import com.mafia.domain.room.model.entity.Room;
 import com.mafia.domain.room.model.redis.Participant;
@@ -26,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class RoomRedisService {
+public class TestRoomRedisService {
 
     private final RoomRedisRepository roomRedisRepository;
     private final RoomRepository roomRepository;
@@ -52,16 +51,17 @@ public class RoomRedisService {
      */
     public void createRoomInfo(Long roomId, Long hostId, int requiredPlayer) {
         RoomInfo roomInfo = new RoomInfo(roomId, hostId);
-        Participant host = new Participant();  // 방장을 첫 참가자로 추가
+        Participant host = new Participant();
 
-        MemberResponse memberInfo = memberService.getMemberInfo(hostId);
+        // 테스트용 닉네임 설정
         host.setMemberId(hostId);
-        host.setNickName(memberInfo.getNickname());
+        host.setNickName("테스트유저" + hostId);
 
         roomInfo.getParticipant().put(hostId, host);
-        roomInfo.getGameOption().setRequiredPlayers(requiredPlayer);  // 방 인원 설정
+        roomInfo.getGameOption().setRequiredPlayers(requiredPlayer);
         roomRedisRepository.save(roomId, roomInfo);
     }
+
 
     /**
      * 현재 방 참가자 수 조회
@@ -85,37 +85,28 @@ public class RoomRedisService {
      * @throws BusinessException ALREADY_HAS_ROOM, ROOM_NOT_FOUND, INVALID_ROOM_PASSWORD, ROOM_FULL
      */
     public void enterRoom(Long roomId, Long memberId, String password) {
-        // 유저가 이미 방을 생성하거나 참여 중인지 확인
         if (isMemberInRoom(memberId)) {
             throw new BusinessException(ALREADY_HAS_ROOM);
         }
 
-        // RDB에서 방 존재 여부
         Room room = roomRepository.findById(roomId)
             .orElseThrow(() -> new BusinessException(ROOM_NOT_FOUND));
 
-        // 비밀번호 확인
         if (room.getRoomPassword() != null && !room.getRoomPassword().equals(password)) {
             throw new BusinessException(INVALID_ROOM_PASSWORD);
         }
 
-        // Redis에서 방 정보 조회
         RoomInfo roomInfo = findById(roomId);
 
-        // 입장 전에 인원 수 체크
         if (roomInfo.getParticipant().size() >= roomInfo.getGameOption().getRequiredPlayers()) {
             throw new BusinessException(ROOM_FULL);
         }
 
-        // 참가자 정보 생성 (회원 ID, 닉네임)
+        // 테스트용 참가자 정보 생성
         Participant participant = new Participant();
         participant.setMemberId(memberId);
+        participant.setNickName("테스트유저" + memberId);
 
-        // 실제 멤버 정보로 닉네임 설정
-        MemberResponse memberInfo = memberService.getMemberInfo(memberId);
-        participant.setNickName(memberInfo.getNickname());
-
-        // 참가자 추가 및 Redis 저장
         roomInfo.getParticipant().put(memberId, participant);
         roomRedisRepository.save(roomId, roomInfo);
     }
@@ -185,12 +176,15 @@ public class RoomRedisService {
         Set<String> allRoomKeys = roomRedisRepository.getAllRooms();
 
         for (String roomKey : allRoomKeys) {
-            RoomInfo roomInfo = roomRedisRepository.findById(Long.valueOf(roomKey.split(":")[2]));
+            // key가 "list:room:1" 형태이므로 마지막 숫자만 추출
+            String roomId = roomKey.substring(roomKey.lastIndexOf(":") + 1);
+            RoomInfo roomInfo = roomRedisRepository.findById(Long.valueOf(roomId));
+
             if (roomInfo != null && roomInfo.getParticipant().containsKey(memberId)) {
                 return true;
-            }  // 유저가 이미 방에 참여 중인 경우
+            }
         }
-        return false;  // 유저가 어떤 방에도 참여하지 않은 경우
+        return false;
     }
 
     /**

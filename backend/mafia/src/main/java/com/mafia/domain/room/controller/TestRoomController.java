@@ -6,33 +6,32 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.UNAUTHORIZED_
 
 import com.mafia.domain.game.model.game.GameOption;
 import com.mafia.domain.game.service.GameService;
-import com.mafia.domain.login.model.dto.CustomOAuth2User;
 import com.mafia.domain.room.model.RoomRequest;
 import com.mafia.domain.room.model.RoomResponse;
 import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.service.RoomDbService;
-import com.mafia.domain.room.service.RoomRedisService;
+import com.mafia.domain.room.service.TestRoomRedisService;
 import com.mafia.global.common.exception.exception.BusinessException;
 import com.mafia.global.common.model.dto.BaseResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/room")
+@RequestMapping("/api/room/test")
 @RequiredArgsConstructor
-public class RoomController {
+public class TestRoomController {
 
     private final RoomDbService roomDbService;
-    private final RoomRedisService roomRedisService;
+    private final TestRoomRedisService roomRedisService;
     private final GameService gameService;
 
     /*
@@ -46,19 +45,21 @@ public class RoomController {
            7. 비밀번호가 설정된 방은 비밀번호 입력 후 입장이 가능하다.
    */
 
+    // 로그인 인증 없이 테스트 코드
+
     @PostMapping
     public ResponseEntity<BaseResponse<Boolean>> createRoom(
         @RequestBody RoomRequest roomRequest,
-        @AuthenticationPrincipal CustomOAuth2User detail
+        @RequestParam Long memberId
     ) {
         return ResponseEntity.ok(
-            new BaseResponse<>(roomDbService.createRoom(roomRequest, detail.getMemberId())));
+            new BaseResponse<>(roomDbService.createRoom(roomRequest, memberId)));
     }
 
     @DeleteMapping("/{roomId}")
     public ResponseEntity<BaseResponse<Boolean>> deleteRoom(
         @PathVariable Long roomId,
-        @AuthenticationPrincipal CustomOAuth2User detail) {
+        @RequestParam Long memberId) {
         roomDbService.deleteRoom(roomId);
         return ResponseEntity.ok(new BaseResponse<>());
     }
@@ -72,12 +73,12 @@ public class RoomController {
     @PostMapping("/{roomId}/enter")
     public ResponseEntity<BaseResponse<String>> enterRoom(
         @PathVariable Long roomId,
-        @AuthenticationPrincipal CustomOAuth2User detail,
+        @RequestParam Long memberId,
         @RequestBody(required = false) RoomRequest roomRequest) {
 
         String password = (roomRequest != null ? roomRequest.getRoomPassword() : null);
 
-        roomRedisService.enterRoom(roomId, detail.getMemberId(), password);
+        roomRedisService.enterRoom(roomId, memberId, password);
 
         return ResponseEntity.ok(new BaseResponse<>("Entered room"));
     }
@@ -85,15 +86,15 @@ public class RoomController {
     @PostMapping("/{roomId}/leave")
     public ResponseEntity<BaseResponse<String>> leaveRoom(
         @PathVariable Long roomId,
-        @AuthenticationPrincipal CustomOAuth2User detail) {
+        @RequestParam Long memberId) {
 
-        // 호스트 여부 체크
-        boolean isHost = roomRedisService.isHost(roomId, detail.getMemberId());
+        // 먼저 호스트 여부 체크
+        boolean isHost = roomRedisService.isHost(roomId, memberId);
 
-        // Redis 참가자 정보 삭제 (호스트 여부 체크 포함)
-        roomRedisService.leaveRoom(roomId, detail.getMemberId());
+        // Redis에서 참가자 정보 삭제 (호스트 여부 체크 포함)
+        roomRedisService.leaveRoom(roomId, memberId);
 
-        // 호스트라면 RDB 삭제
+        // 호스트라면 RDB에서도 삭제
         if (isHost) {
             roomDbService.deleteRoom(roomId);
             return ResponseEntity.ok(new BaseResponse<>("Room deleted"));
@@ -105,24 +106,26 @@ public class RoomController {
     @PostMapping("/{roomId}/ready")
     public ResponseEntity<BaseResponse<String>> toggleReady(
         @PathVariable Long roomId,
-        @AuthenticationPrincipal CustomOAuth2User detail) {
-        roomRedisService.toggleReady(roomId, detail.getMemberId());
+        @RequestParam Long memberId) {
+        roomRedisService.toggleReady(roomId, memberId);
         return ResponseEntity.ok(new BaseResponse<>("Ready toggled"));
     }
 
     @PostMapping("/{roomId}/start")
     public ResponseEntity<BaseResponse<Boolean>> startGame(
         @PathVariable Long roomId,
-        @AuthenticationPrincipal CustomOAuth2User detail) {
+        @RequestParam Long memberId) {
 
-        // 호스트 체크
-        if (!roomRedisService.isHost(roomId, detail.getMemberId())) {
+        // 방장 체크
+        if (!roomRedisService.isHost(roomId, memberId)) {
             throw new BusinessException(UNAUTHORIZED_ACCESS);
         }
 
         RoomInfo roomInfo = roomRedisService.findById(roomId);
         GameOption gameOption = roomInfo.getGameOption();
         int currentPlayers = roomInfo.getParticipant().size();
+
+        System.out.println(currentPlayers + " #### " + gameOption.getRequiredPlayers());
 
         // 참가자 수 체크
         if (currentPlayers != gameOption.getRequiredPlayers()) {
@@ -134,13 +137,9 @@ public class RoomController {
             throw new BusinessException(NOT_ALL_READY);
         }
 
-        System.out.println("게임시작 데이터 :  " + roomInfo.toString());
+        System.out.println(roomInfo.toString() + " ####%%%%%%");
 
-        // Redis에 저장된 RoomInfo에는 모든 참가자 정보(memberId, nickName)가 포함됨
-        // 게임 서비스에서는 roomId로 해당 정보를 조회하여 사용
+        // 방 아이디만 넘겨주면 게임서비스에서 roominfo에서 participant 객체 조회하면 memberId, nickName 얻을 수 있음
         return ResponseEntity.ok(new BaseResponse<>(gameService.startGame(roomId)));
     }
 }
-
-
-

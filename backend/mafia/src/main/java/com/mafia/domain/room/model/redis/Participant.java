@@ -1,4 +1,4 @@
-package com.mafia.domain.room.model;
+package com.mafia.domain.room.model.redis;
 
 import lombok.Data;
 
@@ -6,7 +6,7 @@ import lombok.Data;
 public class Participant {
 
     private Long memberId;
-    private boolean isReady;
     private String nickName;
+    private boolean isReady = false;
 
 }
