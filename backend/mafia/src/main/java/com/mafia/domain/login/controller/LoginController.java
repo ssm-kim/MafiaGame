@@ -3,6 +3,8 @@ package com.mafia.domain.login.controller;
 
 import com.mafia.domain.login.model.dto.CustomOAuth2User;
 import com.mafia.domain.login.utils.CookieUtil;
+import com.mafia.domain.member.model.dto.response.MemberResponse;
+import com.mafia.domain.member.service.MemberService;
 import com.mafia.global.common.model.dto.BaseResponse;
 import com.mafia.global.common.service.RedisService;
 import jakarta.servlet.http.Cookie;
@@ -25,11 +27,14 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.AUTHORIZATION
 public class LoginController {
 
     private final RedisService redisService;
+    private final MemberService memberService;
     private final CookieUtil cookieUtil;
 
     @GetMapping("/login/success")
-    public ResponseEntity<BaseResponse<Void>> loginSuccess() {
-        return ResponseEntity.ok(new BaseResponse<>(AUTHORIZATION_SUCCESS));
+    public ResponseEntity<BaseResponse<MemberResponse>> loginSuccess(@AuthenticationPrincipal CustomOAuth2User detail) {
+        MemberResponse memberResponse = memberService.getMemberInfo(detail.getMemberId());
+
+        return ResponseEntity.ok(new BaseResponse<>(memberResponse));
     }
 
     @PostMapping("/logout")
