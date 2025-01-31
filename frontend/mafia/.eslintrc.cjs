@@ -5,9 +5,10 @@ module.exports = {
     node: true,
   },
   parserOptions: {
-    project: './frontend/mafia/tsconfig.eslint.json',
+    project: './tsconfig.eslint.json',
   },
   ignorePatterns: [
+    'vite.config.ts',
     '.eslintrc.cjs',
   ],
   plugins: [
@@ -44,10 +45,20 @@ module.exports = {
     'arrow-body-style': 'off',
     'prefer-arrow-callback': 'off',
     'prettier/prettier': [
-        'error',
-        {
-            endOfLine: 'auto',
-        },
+      'error',
+      {
+          endOfLine: 'auto',
+      },
+    ],
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
     ],
   }
 }
