@@ -1,10 +1,13 @@
+import React from 'react';
+
 interface SearchBarProps {
-    searchTerm: string;
-    onSearchChange: (value: string) => void;
-    onCreateRoom: () => void;
-  }
-  
-  export const SearchBar = ({ searchTerm, onSearchChange, onCreateRoom }: SearchBarProps) => (
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  onCreateRoom: () => void;
+}
+
+export function SearchBar({ searchTerm, onSearchChange, onCreateRoom }: SearchBarProps) {
+  return (
     <div className="max-w-6xl mx-auto mb-6 flex items-center gap-4">
       <input
         type="text"
@@ -13,7 +16,8 @@ interface SearchBarProps {
         value={searchTerm}
         onChange={(e) => onSearchChange(e.target.value)}
       />
-      <button 
+      <button
+        type="button"
         className="px-6 py-3 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors duration-200 font-medium"
         onClick={onCreateRoom}
       >
@@ -21,3 +25,6 @@ interface SearchBarProps {
       </button>
     </div>
   );
+}
+
+export default SearchBar;

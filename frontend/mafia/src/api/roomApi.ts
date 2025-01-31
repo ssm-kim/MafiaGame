@@ -1,50 +1,44 @@
-// import api from './axios';
-// import { Room } from '../types/room';
-
-// export const roomApi = {
-//   getRooms: () => api.get<Room[]>('/rooms'),
-//   createRoom: (room: Partial<Room>) => api.post<Room>('/rooms', room),
-//   getRoom: (roomId: string) => api.get<Room>(`/rooms/${roomId}`),
-//   joinRoom: (roomId: string) => api.post(`/rooms/${roomId}/join`),
-//   leaveRoom: (roomId: string) => api.post(`/rooms/${roomId}/leave`)
-// };
-
-import api from './axios';
-import { Room } from '../types/room';
+import api from '@/api/axios';
+import { Room } from '@/types/room';
 
 interface ApiResponse<T> {
- isSuccess: boolean;
- code: number;
- message: string;
- result: T;
+  isSuccess: boolean;
+  code: number;
+  message: string;
+  result: T;
 }
 
 interface CreateRoomRequest {
- roomTitle: string;
- maxPlayers: number;
- roomOption: string;
- isVoice: boolean;
+  roomTitle: string;
+  maxPlayers: number;
+  roomOption: string;
+  isVoice: boolean;
 }
 
-interface UpdateRoomRequest {
- roomTitle?: string;
- maxPlayers?: number;
- roomOption?: string;
- isVoice?: boolean;
-}
+const roomApi = {
+  // 게임방 조회
+  getRooms: () => api.get<ApiResponse<Room[]>>('/api/room'),
 
-export const roomApi = {
- getRooms: () => api.get<ApiResponse<Room[]>>('/api/room'),
- 
- createRoom: (roomData: CreateRoomRequest) => 
-   api.post<ApiResponse<Room>>('/api/room', roomData),
- 
- getRoom: (roomId: string) => 
-   api.get<ApiResponse<Room>>(`/api/room/${roomId}`),
- 
- updateRoom: (roomId: string, roomData: UpdateRoomRequest) => 
-   api.put<ApiResponse<Room>>(`/api/room/${roomId}`, roomData),
- 
- deleteRoom: (roomId: string) => 
-   api.delete<ApiResponse<null>>(`/api/room/${roomId}`)
+  // 게임방 생성
+  createRoom: (roomData: CreateRoomRequest) => api.post<ApiResponse<Room>>('/api/room', roomData),
+
+  // 특정 게임방 조회
+  getRoom: (roomId: string) => api.get<ApiResponse<Room>>(`/api/room/${roomId}`),
+
+  // 게임방 삭제
+  deleteRoom: (roomId: string) => api.delete<ApiResponse<null>>(`/api/room/${roomId}`),
+
+  // 입장
+  joinRoom: (roomId: string) => api.post<ApiResponse<null>>(`/api/room/${roomId}/enter`),
+
+  // 퇴장
+  leaveRoom: (roomId: string) => api.post<ApiResponse<null>>(`/api/room/${roomId}/leave`),
+
+  // 준비상태변경 (새로 추가)
+  readyRoom: (roomId: string) => api.post<ApiResponse<null>>(`/api/room/${roomId}/ready`),
+
+  // 게임시작 (새로 추가)
+  startGame: (roomId: string) => api.post<ApiResponse<null>>(`/api/room/${roomId}/start`),
 };
+
+export default roomApi;

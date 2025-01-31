@@ -1,4 +1,3 @@
-
 // export interface Room {
 //     id: string;
 //     name: string;
@@ -15,12 +14,11 @@
 //     voteTime: number;
 //   }
 
-
 export interface Room {
   roomId: number;
   memberId: number;
   roomTitle: string;
-  roomStatus: boolean;  // false(대기방), true(게임 진행 중)
+  roomStatus: boolean; // false(대기방), true(게임 진행 중)
   roomOption: string;
   maxPlayers: number;
   isVoice: boolean;

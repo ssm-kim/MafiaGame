@@ -1,12 +1,14 @@
-import { Room } from "../../types/room";
+import React from 'react';
+import { Room } from '@/types/room';
 
 interface RoomCardProps {
-    room: Room;
-    onJoin: (roomId: string) => void;
-  }
-  
-  export const RoomCard = ({ room, onJoin }: RoomCardProps) => (
-    <div 
+  room: Room;
+  onJoin: (roomId: string) => void;
+}
+
+export function RoomCard({ room, onJoin }: RoomCardProps) {
+  return (
+    <div
       className="p-4 bg-gray-800 bg-opacity-90 rounded-lg text-white hover:bg-gray-700 cursor-pointer border border-gray-700 transform hover:scale-102 transition-all duration-200"
       onClick={() => onJoin(room.id)}
     >
@@ -21,3 +23,6 @@ interface RoomCardProps {
       </div>
     </div>
   );
+}
+
+export default RoomCard;
