@@ -2,6 +2,7 @@ package com.mafia.domain.member.service;
 
 import com.mafia.domain.member.model.dto.MemberDTO;
 import com.mafia.domain.member.model.dto.response.MemberResponse;
+import com.mafia.domain.member.model.dto.response.NicknameResponse;
 import com.mafia.domain.member.model.entity.Member;
 import com.mafia.domain.member.repository.MemberRepository;
 import com.mafia.global.common.exception.exception.BusinessException;
@@ -31,11 +32,12 @@ public class MemberService {
     }
 
     @Transactional
-    public MemberDTO updateNickname(Long memberId, String nickname) {
+    public NicknameResponse updateNickname(Long memberId, String nickname) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(MEMBER_NOT_FOUND));
         member.changeNickname(nickname);
-        return MemberDTO.from(member);
+
+        return new NicknameResponse(nickname);
     }
     // 전체 회원 조회
     public List<MemberDTO> getAllMembers() {
