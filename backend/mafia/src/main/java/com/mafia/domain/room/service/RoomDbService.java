@@ -4,6 +4,7 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.ALREADY_HAS_R
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_TITLE_INVALID;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_TITLE_LIMIT;
 
+import com.mafia.domain.room.model.RoomIdResponse;
 import com.mafia.domain.room.model.RoomRequest;
 import com.mafia.domain.room.model.RoomResponse;
 import com.mafia.domain.room.model.entity.Room;
@@ -32,7 +33,7 @@ public class RoomDbService {
      * @return 방 생성 성공 여부
      * @throws BusinessException INVALID_ROOM_TITLE, ROOM_TITLE_LIMIT
      */
-    public boolean createRoom(RoomRequest roomRequest, Long memberId) {
+    public RoomIdResponse createRoom(RoomRequest roomRequest, Long memberId) {
         // 유저가 이미 방을 생성하거나 참여 중인지 확인
         if (roomRedisService.isMemberInRoom(memberId)) {
             throw new BusinessException(ALREADY_HAS_ROOM);
@@ -58,7 +59,12 @@ public class RoomDbService {
         // Redis 방 정보 저장시 필요 인원 수 설정
         roomRedisService.createRoomInfo(savedRoom.getRoomId(), savedRoom.getHostId(),
             roomRequest.getRequiredPlayer());
-        return true;
+
+        // 방 번호 객체 생성
+        RoomIdResponse response = new RoomIdResponse();
+        response.setRoomId(room.getRoomId());
+
+        return response;
     }
 
     /**
