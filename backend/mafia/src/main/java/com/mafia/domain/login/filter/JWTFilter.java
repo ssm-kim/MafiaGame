@@ -60,10 +60,10 @@ public class JWTFilter extends OncePerRequestFilter {
     }
 
     /**
-     * 쿠키 배열에서 Authorization 토큰을 추출
+     * 쿠키 배열에서 ACCESS 토큰을 추출
      *
      * @param cookies 쿠키 배열
-     * @return Authorization 토큰 값 또는 null
+     * @return ACCESS 토큰 값 또는 null
      */
     private String extractTokenFromCookies(Cookie[] cookies) {
         if (cookies == null) {
@@ -71,7 +71,7 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         for (Cookie cookie : cookies) {
-            if (cookie.getName().equals("Authorization")) {
+            if (cookie.getName().equals("ACCESS")) {
                 return cookie.getValue();
             }
         }
