@@ -3,6 +3,7 @@ package com.mafia.domain.member.controller;
 import com.mafia.domain.login.model.dto.CustomOAuth2User;
 import com.mafia.domain.member.model.dto.request.NicknameRequest;
 import com.mafia.domain.member.model.dto.response.MemberResponse;
+import com.mafia.domain.member.model.dto.response.NicknameResponse;
 import com.mafia.domain.member.service.MemberService;
 import com.mafia.global.common.model.dto.BaseResponse;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +28,11 @@ public class MemberController {
 
     //닉네임 수정
     @PatchMapping("/nickname")
-    public ResponseEntity<BaseResponse<Void>> updateNickname(
+    public ResponseEntity<BaseResponse<NicknameResponse>> updateNickname(
             @AuthenticationPrincipal CustomOAuth2User detail,
             @RequestBody NicknameRequest nicknameRequest) {
-        memberService.updateNickname(detail.getMemberId(), nicknameRequest.getNickname());
-        return ResponseEntity.ok(new BaseResponse<>());
+        NicknameResponse nicknameResponse = memberService.updateNickname(detail.getMemberId(), nicknameRequest.getNickname());
+        return ResponseEntity.ok(new BaseResponse<>(nicknameResponse));
     }
 
     //상태 변경
