@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080',
+  // baseURL: 'http://localhost:8080', cors에러 떠서 일단 지우고 ....
   timeout: 5000,
   withCredentials: true,
 });

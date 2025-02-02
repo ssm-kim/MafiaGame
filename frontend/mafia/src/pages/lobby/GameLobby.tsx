@@ -7,7 +7,8 @@ import { Header } from '@/components/lobby/Header';
 import { SearchBar } from '@/components/lobby/SearchBar';
 import { RoomList } from '@/components/lobby/RoomList';
 import { CreateRoomModal } from '@/components/lobby/CreateRoomModal';
-import { NicknameModal } from '@/components/nickname/NicknameModal';
+import NicknameModal from '@/components/nickname/NicknameModal';
+import roomApi from '@/api/roomApi';
 
 const initialRoomState = {
   name: '',
@@ -64,29 +65,89 @@ function GameLobby() {
     }
   };
 
+  // const handleCreateRoom = async () => {
+  //   try {
+  //     const createRoomData = {
+  //       roomTitle: newRoom.name,
+  //       requiredPlayer: newRoom.maxPlayers,
+  //       roomPassword: newRoom.password || '',
+  //     };
+
+  //     const response = await roomApi.createRoom(createRoomData);
+  //     if (response.data.isSuccess) {
+  //       await roomApi.joinRoom(response.data.result.roomId);
+  //       navigate(`/game/${response.data.result.roomId}`);
+  //     }
+  //   } catch (error) {
+  //     console.error('Failed to create room:', error);
+  //   }
+  // };
+  // const handleCreateRoom = async () => {
+  //   try {
+  //     const createRoomData = {
+  //       roomTitle: newRoom.name, // API 명세에 맞게 변경
+  //       requiredPlayer: 4, // 기본값 설정
+  //       roomPassword: newRoom.password, // 선택적 비밀번호
+  //     };
+
+  //     console.log('Creating room with data:', createRoomData); // 디버깅용
+
+  //     const response = await roomApi.createRoom(createRoomData);
+  //     if (response.data.isSuccess) {
+  //       const { roomId } = response.data.result;
+  //       await roomApi.joinRoom(roomId);
+  //       navigate(`/game/${roomId}`);
+  //     }
+  //   } catch (error) {
+  //     console.error('Failed to create room:', error);
+  //     if (axios.isAxiosError(error) && error.response) {
+  //       alert(error.response.data.message || '방 생성에 실패했습니다.');
+  //     }
+  //   }
+  // };
   const handleCreateRoom = async () => {
     try {
       const createRoomData = {
         roomTitle: newRoom.name,
-        maxPlayers: newRoom.maxPlayers,
-        roomOption: 'BASIC',
-        isVoice: false,
+        requiredPlayer: 4, // 기본값으로 4 설정
+        roomPassword: newRoom.password || '',
       };
 
+      console.log('Creating room with data:', createRoomData);
+
       const response = await roomApi.createRoom(createRoomData);
-      await roomApi.joinRoom(response.data.result.roomId);
-      navigate(`/game/${response.data.result.roomId}`);
+      console.log('Room creation response:', response);
+
+      if (response.data.isSuccess) {
+        const { roomId } = response.data.result;
+        console.log('Created room ID:', roomId);
+
+        // 방 생성 후 바로 입장
+        const joinResponse = await roomApi.joinRoom(roomId);
+        console.log('Join response:', joinResponse);
+
+        if (joinResponse.data.isSuccess) {
+          // 방 입장 성공 시 게임룸으로 이동
+          navigate(`/game/${roomId}`);
+        }
+      }
     } catch (error) {
-      console.error('Failed to create room:', error);
+      console.error('Failed to create/join room:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        alert(error.response.data.message || '방 생성에 실패했습니다.');
+      }
     }
   };
 
-  const handleJoinRoom = async (roomId: string) => {
+  const handleJoinRoom = async (roomId: number) => {
     try {
       await roomApi.joinRoom(roomId);
       navigate(`/game/${roomId}`);
     } catch (error) {
       console.error('Failed to join room:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 400) {
+        alert('방 입장에 실패했습니다. 정원이 초과되었을 수 있습니다.');
+      }
     }
   };
 

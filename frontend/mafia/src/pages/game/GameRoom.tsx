@@ -1,6 +1,6 @@
-/* eslint-disable jsx-a11y/label-has-associated-control */
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { connectWebSocket, sendChatMessage } from '@/api/webSocket';
 import roomApi from '@/api/roomApi';
 import { Room } from '@/types/room';
@@ -8,27 +8,26 @@ import { ChatMessage } from '@/types/chat';
 import GameHeader from '@/components/gameroom/GameHeader';
 import GameStatus from '@/components/gameroom/GameStatus';
 import ChatWindow from '@/components/gameroom/ChatWindow';
+import WaitingRoom from '@/components/gameroom/WaitingRoom';
 
-interface GameRoomParams {
-  roomId: string;
+interface Player {
+  id: number;
+  nickname: string;
+  isHost: boolean;
+  isReady: boolean;
 }
 
 function GameRoom(): JSX.Element {
-  const { roomId } = useParams<GameRoomParams>();
+  const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [gameState, setGameState] = useState<Room | null>(null);
-  const [voteTarget, setVoteTarget] = useState<string | null>(null);
-  const [players] = useState([
-    { id: '1', name: '생존자 1' },
-    { id: '2', name: '생존자 2' },
-    { id: '3', name: '생존자 3' },
-    { id: '4', name: '생존자 4' },
-  ]);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [isHost, setIsHost] = useState(false);
+  const [currentPlayerId, setCurrentPlayerId] = useState<number>(0);
 
   useEffect(() => {
-    // 빈 cleanup 함수를 반환하여 타입 일관성 유지
     if (!roomId) return () => {};
 
     const stompClient = connectWebSocket(
@@ -43,8 +42,30 @@ function GameRoom(): JSX.Element {
 
     const fetchRoomInfo = async () => {
       try {
-        const response = await roomApi.getRoom(roomId);
-        setGameState(response.data.result);
+        if (!roomId) return;
+
+        const response = await roomApi.getRoom(Number(roomId));
+        if (response.data.isSuccess) {
+          setGameState(response.data.result);
+          // 임시 플레이어 데이터 설정 (실제로는 API에서 받아와야 함)
+          setPlayers([
+            {
+              id: 1,
+              nickname: '방장',
+              isHost: true,
+              isReady: true,
+            },
+            {
+              id: 2,
+              nickname: '플레이어2',
+              isHost: false,
+              isReady: false,
+            },
+          ]);
+          // 임시로 현재 플레이어 ID와 방장 여부 설정
+          setCurrentPlayerId(2);
+          setIsHost(false);
+        }
       } catch (error) {
         console.error('Failed to fetch room info:', error);
       }
@@ -52,7 +73,6 @@ function GameRoom(): JSX.Element {
 
     fetchRoomInfo();
 
-    // cleanup 함수 반환
     return () => {
       stompClient?.deactivate();
     };
@@ -60,8 +80,10 @@ function GameRoom(): JSX.Element {
 
   const handleLeaveRoom = async () => {
     try {
-      if (roomId) {
-        await roomApi.leaveRoom(roomId);
+      if (!roomId) return;
+
+      const response = await roomApi.leaveRoom(Number(roomId));
+      if (response.data.isSuccess) {
         navigate('/game-lobby');
       }
     } catch (error) {
@@ -71,21 +93,38 @@ function GameRoom(): JSX.Element {
 
   const handleReadyState = async () => {
     try {
-      if (roomId) {
-        await roomApi.readyRoom(roomId);
+      if (!roomId) return;
+
+      const response = await roomApi.readyRoom(Number(roomId));
+      if (response.data.isSuccess) {
+        // 플레이어의 준비 상태 업데이트
+        setPlayers((prevPlayers) =>
+          prevPlayers.map((player) =>
+            player.id === currentPlayerId ? { ...player, isReady: !player.isReady } : player,
+          ),
+        );
       }
     } catch (error) {
       console.error('Failed to change ready state:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        alert('플레이어를 찾을 수 없습니다.');
+      }
     }
   };
 
   const handleGameStart = async () => {
     try {
-      if (roomId) {
-        await roomApi.startGame(roomId);
+      if (!roomId) return;
+
+      const response = await roomApi.startGame(Number(roomId));
+      if (response.data.isSuccess) {
+        setGameState(response.data.result);
       }
     } catch (error) {
       console.error('Failed to start game:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 400) {
+        alert('모든 참가자가 준비를 완료하지 않았습니다.');
+      }
     }
   };
 
@@ -120,32 +159,24 @@ function GameRoom(): JSX.Element {
           onLeave={handleLeaveRoom}
           onReady={handleReadyState}
           onStart={handleGameStart}
+          isHost={isHost}
         />
 
         <div className="flex h-full gap-4 pt-16">
           <div className="flex-1">
-            <div className="w-full h-full bg-gray-900 bg-opacity-80 rounded-lg border border-gray-800">
-              {gameState ? (
-                <div className="relative h-full">
-                  <div className="absolute inset-0">{/* 게더타운 컴포넌트 */}</div>
-                  <GameStatus
-                    gameState={gameState}
-                    players={players}
-                    voteTarget={voteTarget}
-                    onVoteSelect={setVoteTarget}
-                  />
-                </div>
-              ) : (
-                <div className="h-full flex items-center justify-center">
-                  <div
-                    className="text-red-500 text-2xl animate-pulse"
-                    style={{ fontFamily: 'BMEuljiro10yearslater' }}
-                  >
-                    시설 점검 중...
-                  </div>
-                </div>
-              )}
-            </div>
+            {gameState?.roomStatus ? (
+              <div className="w-full h-full bg-gray-900 bg-opacity-80 rounded-lg border border-gray-800">
+                <GameStatus gameState={gameState} />
+              </div>
+            ) : (
+              <WaitingRoom
+                players={players}
+                isHost={isHost}
+                currentPlayerId={currentPlayerId}
+                onReady={handleReadyState}
+                onStart={handleGameStart}
+              />
+            )}
           </div>
 
           <ChatWindow

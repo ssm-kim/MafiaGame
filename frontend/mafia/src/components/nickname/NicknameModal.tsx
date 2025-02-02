@@ -6,7 +6,7 @@ interface NicknameModalProps {
   onSubmit: (nickname: string) => void;
 }
 
-export const NicknameModal: React.FC<NicknameModalProps> = ({ show, onClose, onSubmit }) => {
+function NicknameModal({ show, onClose, onSubmit }: NicknameModalProps): JSX.Element {
   const [nickname, setNickname] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -19,7 +19,10 @@ export const NicknameModal: React.FC<NicknameModalProps> = ({ show, onClose, onS
   return (
     <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50">
       <div className="bg-gray-900 p-8 rounded-lg w-full max-w-md border border-gray-800">
-        <h2 className="text-2xl font-bold text-red-500 mb-6 text-center">
+        <h2
+          className="text-2xl font-bold text-red-500 mb-6 text-center"
+          style={{ fontFamily: 'BMEuljiro10yearslater' }}
+        >
           생존자 닉네임 설정
         </h2>
         <form onSubmit={handleSubmit}>
@@ -40,4 +43,6 @@ export const NicknameModal: React.FC<NicknameModalProps> = ({ show, onClose, onS
       </div>
     </div>
   );
-};
+}
+
+export default NicknameModal;

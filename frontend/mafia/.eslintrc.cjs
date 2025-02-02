@@ -4,8 +4,11 @@ module.exports = {
     browser: true,
     node: true,
   },
+  parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: './tsconfig.eslint.json',
+    project: require.resolve('./tsconfig.eslint.json'),
+    ecmaVersion: 'latest',
+    sourceType: 'module',
   },
   ignorePatterns: [
     'vite.config.ts',
@@ -14,6 +17,7 @@ module.exports = {
   plugins: [
     'prettier',
     'no-relative-import-paths',
+    '@typescript-eslint'
   ],
   settings: {
     'import/resolver': {
@@ -31,7 +35,7 @@ module.exports = {
     // 같은 폴더인 경우를 제외하고 import 경로는 항상 절대 경로를 사용
     "no-relative-import-paths/no-relative-import-paths": [
       "error",
-      { "allowSameFolder": false, "rootDir": "src", "prefix": "@" }
+      { "allowSameFolder": true, "rootDir": "src", "prefix": "@" }
     ],
     // public 폴더는 절대 경로로 import 할 수 있도록 허용
     "import/no-absolute-path": [
@@ -41,15 +45,11 @@ module.exports = {
       }
     ],
     // Prettier 설정
-    'prettier/prettier': 'error',
     'arrow-body-style': 'off',
     'prefer-arrow-callback': 'off',
-    'prettier/prettier': [
-      'error',
-      {
-          endOfLine: 'auto',
-      },
-    ],
+    'prettier/prettier': ['error', {
+      endOfLine: 'auto',
+    }],
     'import/extensions': 'off',
   }
-}
+ }
