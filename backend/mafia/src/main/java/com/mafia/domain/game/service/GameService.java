@@ -1,20 +1,6 @@
 package com.mafia.domain.game.service;
 
-import static com.mafia.global.common.model.dto.BaseResponseStatus.CANNOT_KILL_ROLE;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_ALREADY_START;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_NOT_FOUND;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_TIME_OVER;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_PHASE;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.MEDICAL_COUNT_ZERO;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.MUTANT_CANNOT_VOTE;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_DOCTOR_HEAL;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.PHASE_NOT_FOUND;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_CANNOT_HEAL;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_IS_DEAD;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_NOT_ENOUGH;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.POLICE_CANNOT_VOTE;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.TARGET_IS_DEAD;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.UNKNOWN_PHASE;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.*;
 
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
@@ -44,6 +30,7 @@ public class GameService {
     private final RoomRedisService roomService;
     private final GameRepository gameRepository; // 게임 데이터를 관리하는 리포지토리
     private final GameSeqRepository gameSeqRepository; // 게임 상태 및 시간 정보를 관리하는 리포지토리
+    private final VoiceService voiceService; // 🔥 OpenVidu 연동 추가
 
     /**
      * 게임 조회
@@ -69,6 +56,15 @@ public class GameService {
         getPhase(gameId);
         gameRepository.delete(gameId);
         gameSeqRepository.delete(gameId);
+
+        // 🔥 OpenVidu 세션 종료
+        try {
+            voiceService.closeSession(gameId);
+            log.info("OpenVidu Session closed for Game {}", gameId);
+        } catch (Exception e) {
+            log.error("Failed to close OpenVidu session: {}", e.getMessage());
+        }
+
         log.info("Room {} deleted.", gameId);
     }
 
@@ -92,6 +88,21 @@ public class GameService {
         log.info("Game started in Room {}: Phase set to {}, Timer set to {} seconds",
             roomId, GamePhase.DAY_DISCUSSION, game.getOption().getDayDisTimeSec());
         gameRepository.save(game);
+
+        // 🔥 OpenVidu 세션 생성
+        try {
+            String sessionId = voiceService.createSession(roomId);
+            log.info("OpenVidu Session {} created for Game {}", sessionId, roomId);
+
+            // 🔥 모든 플레이어에게 토큰 발급
+            for (Integer playerId : game.getPlayers().keySet()) {
+                String token = voiceService.generateToken(roomId, playerId);
+                log.info("Token issued for Player {}: {}", playerId, token);
+            }
+        } catch (Exception e) {
+            log.error("Failed to create OpenVidu session: {}", e.getMessage());
+        }
+
         log.info("Game started in Room {}.", roomId);
         return true;
     }
@@ -102,8 +113,6 @@ public class GameService {
         Game game = new Game(roomId, roominfo.getGameOption());
 
         // 게임에 참가할 플레이어를 추가한다.
-
-        Map<Long, Participant> participants = roominfo.getParticipant();
         roominfo.getParticipant().values().forEach(game::addPlayer);
 
         return game;
@@ -291,6 +300,7 @@ public class GameService {
             case DAY_DISCUSSION -> {
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_VOTE);
                 gameSeqRepository.saveTimer(gameId, 20);
+                updateVoicePermissions(gameId, "day"); // 🔥 모든 생존자 음성 채팅 활성화 (토론)
             }
             case DAY_VOTE -> {
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_FINAL_STATEMENT);
@@ -308,6 +318,7 @@ public class GameService {
                 gameRepository.save(game);
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_DISCUSSION);
                 gameSeqRepository.saveTimer(gameId, game.getOption().getDayDisTimeSec());
+                updateVoicePermissions(gameId, "night"); // 🔥 좀비만 음성 채팅 활성화
             }
             default -> throw new BusinessException(UNKNOWN_PHASE);
         }
@@ -367,4 +378,42 @@ public class GameService {
             throw new BusinessException(INVALID_PHASE);
         }
     }
+
+    /**
+     * 페이즈별 음성 채팅 권한 관리
+     */
+    private void updateVoicePermissions(long gameId, String phase) {
+        Game game = findById(gameId);
+        game.getPlayers().forEach((playerId, player) -> {
+            boolean muteMic, muteAudio;
+
+            if (phase.equals("day")) {
+                // 낮 토론 시간 -> 모든 생존자 마이크+오디오 허용
+                if (player.isDead()) {
+                    muteMic = true;
+                    muteAudio = false; // 죽은 플레이어는 듣기만 가능
+                } else {
+                    muteMic = false;
+                    muteAudio = false;
+                }
+            } else {
+                // 밤 -> 좀비만 말하기+듣기 가능, 나머지는 둘 다 음소거
+                if (player.getRole() == Role.ZOMBIE) {
+                    muteMic = false;
+                    muteAudio = false;
+                } else {
+                    muteMic = true;
+                    muteAudio = true; // 살아있는 시민 & 경찰 & 의사는 둘 다 음소거
+                }
+
+                if (player.isDead()) {
+                    muteMic = true;
+                    muteAudio = false; // 죽은 플레이어는 듣기만 가능
+                }
+            }
+
+            voiceService.mutePlayer(gameId, playerId, muteMic, muteAudio);
+        });
+    }
+
 }
