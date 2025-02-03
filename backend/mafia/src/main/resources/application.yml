@@ -2,30 +2,42 @@ spring:
   application:
     name: mafia
   profiles:
-    active: secret
-  devtools:
-    restart:
-      enabled: true  # 서버 코드 변경 시 재시작
-    livereload:
-      enabled: true  # 프론트엔드 수정 시 새로고침
+    active: local
+    group:
+      local: local, secret
+      blue: blue, secret, prod
+      green: green, secret, prod
 
   jpa:
     generate-ddl: true
     hibernate:
-      ddl-auto: create # 테이블 자동 생성
-    show-sql: true     # SQL 쿼리 로그 출력
+      ddl-auto: update
     properties:
       hibernate:
-        format_sql: true # SQL 쿼리 포맷팅
+        format_sql: true
+    show-sql: true
 
   data:
     redis:
-      host: localhost
-      port: 6379
-      password: "" # 비밀번호가 없으면 빈 문자열
-      database: 0
-    session:
-      store-type=redis: redis
+      repositories:
+        enabled: true
 
-app:
-  baseUrl: http://localhost:8080
+---
+spring:
+  config:
+    activate:
+      on-profile: blue
+deploy:
+  env: blue
+server:
+  port: 8081
+
+---
+spring:
+  config:
+    activate:
+      on-profile: green
+deploy:
+  env: green
+server:
+  port: 8082

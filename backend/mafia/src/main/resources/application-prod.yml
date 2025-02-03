@@ -1,0 +1,12 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+app:
+  baseUrl: http://i12d101.p.ssafy.io
