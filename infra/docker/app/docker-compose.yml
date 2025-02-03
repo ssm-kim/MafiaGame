@@ -1,0 +1,51 @@
+#infra/docker/app/docker-compose.yml
+version: '3.8'
+
+services:
+  blue:
+    build:
+      context: ../../../backend/mafia
+      dockerfile: Dockerfile
+      args:
+        - PROFILE=blue
+    container_name: mafia-blue
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-blue}
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
+      - SERVER_PORT=8081
+    restart: always
+    networks:
+      - app-network
+
+  green:
+    build:
+      context: ../../../backend/mafia
+      dockerfile: Dockerfile
+      args:
+        - PROFILE=green
+    container_name: mafia-green
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-green}
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
+      - SERVER_PORT=8082
+    restart: always
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true
