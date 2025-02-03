@@ -28,11 +28,19 @@ public class Player {
     @Schema(description = "플레이어가 투표 가능 여부", example = "true")
     private boolean enableVote;
 
+    @Schema(description = "오디오 음소거 여부", example = "false")
+    private boolean muteAudio;
+
+    @Schema(description = "마이크 음소거 여부", example = "true")
+    private boolean muteMic;
+
     public Player(Participant participant) {
         this.memberId = participant.getMemberId();
         this.nickname = participant.getNickName();
         this.role = Role.CITIZEN;
         this.isDead = false;
         this.enableVote = true;
+        this.muteAudio = false;
+        this.muteMic = false;
     }
 }
