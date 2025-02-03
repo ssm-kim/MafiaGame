@@ -19,8 +19,6 @@ public class GameOption {
     private int nightTimeSec;
     @Schema(description = "토론 시간(초 단위)", example = "60")
     private int dayDisTimeSec;
-    @Schema(description = "방 생성 시 게임 필요 인원", example = "4")
-    private int requiredPlayers;
 
     public GameOption() {
         this.zombie = 2;
@@ -28,7 +26,6 @@ public class GameOption {
         this.doctorSkillUsage = 2;
         this.nightTimeSec = 30;
         this.dayDisTimeSec = 5;
-        this.requiredPlayers = 4;  // 기본 게임 시작 인원
     }
 
     public GameOption(int preset) {

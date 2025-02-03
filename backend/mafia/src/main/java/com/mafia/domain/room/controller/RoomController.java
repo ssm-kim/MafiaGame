@@ -127,11 +127,10 @@ public class RoomController {
 
         RoomInfo roomInfo = roomRedisService.findById(roomId);
         roomInfo.setRoomStatus(true);
-        GameOption gameOption = roomInfo.getGameOption();
         int currentPlayers = roomInfo.getParticipant().size();
 
         // 참가자 수 체크
-        if (currentPlayers != gameOption.getRequiredPlayers()) {
+        if (currentPlayers != roomInfo.getRequiredPlayers()) {
             throw new BusinessException(PLAYER_COUNT_INVALID);
         }
 

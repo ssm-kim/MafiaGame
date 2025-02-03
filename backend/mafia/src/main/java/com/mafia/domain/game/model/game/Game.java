@@ -15,7 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @Slf4j
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -35,54 +36,27 @@ public class Game implements Serializable { // 필드정리
     @Schema(description = "플레이어들의 투표 정보", example = "{101: 102, 103: 104}")
     private Map<Integer, Integer> votes;
 
-    @Schema(description = "죽은 플레이어들의 ID 목록", example = "[105, 106]")
-    private Set<Integer> deadPlayers; // 메서드로 뺴보기
-
     @Schema(description = "게임의 현재 상태", example = "STARTED",
         allowableValues = {"PLAYING", "CITIZEN_WIN", "ZOMBIE_WIN", "MUTANT_WIN"})
     private STATUS status;
-
-    @Schema(description = "현재 생존한 플레이어 수", example = "8")
-    private int alive;
-
-    @Schema(description = "현재 죽은 플레이어 수", example = "2")
-    private int dead;
-
-    @Schema(description = "생존한 시민의 수", example = "3")
-    private int citizen;
-
-    @Schema(description = "생존한 좀비의 수", example = "1")
-    private int zombie;
-
-    @Schema(description = "생존한 돌연변이의 수", example = "1")
-    private int mutant;
 
     @Schema(description = "현재 라운드에서 의사가 치료 대상으로 지정한 플레이어의 ID", example = "101")
     private Integer healTarget;
 
     @Schema(description = "현재 라운드에서 변종이 공격 대상으로 지정한 플레이어의 ID", example = "102")
-    private Integer mutantTarget;
-
-    @Schema(description = "현재 라운드에서 좀비들이 공격 대상으로 지정한 플레이어의 ID", example = "103")
-    private Integer zombieTarget;
+    private Set<Integer> killTarget;
 
     @Schema(description = "게임 옵션")
-    private GameOption option;
-// @PostConstruct <- 이후 알아봄
-    public Game(long roomId, GameOption option) {
+    private GameOption setting;
+
+    // @PostConstruct <- 이후 알아봄
+    public Game(long roomId, GameOption setting) {
         this.gameId = roomId;
         this.players = new HashMap<>();
         this.votes = new ConcurrentHashMap<>();
-        this.deadPlayers = new HashSet<>();
-        this.alive = 0;
-        this.dead = 0;
-        this.citizen = 0;
-        this.zombie = 0;
-        this.mutant = 0;
-        this.healTarget = 0;
-        this.mutantTarget = 0;
-        this.zombieTarget = 0;
-        this.option = option; // <- POST CONSTRUCT
+        this.healTarget = null;
+        this.killTarget = new HashSet<>();
+        this.setting = setting; // <- POST CONSTRUCT
     }
 
     /*
@@ -92,12 +66,13 @@ public class Game implements Serializable { // 필드정리
     public void addPlayer(Participant participant) {
         for (Player p : players.values()) {
             if (p.getMemberId().equals(participant.getMemberId())) {
-                log.info("[Game{}] User {} is already in the game", gameId, participant.getMemberId());
+                log.info("[Game{}] User {} is already in the game", gameId,
+                    participant.getMemberId());
                 return;
             }
         }
         Player player = new Player(participant);
-        players.put(++alive, player);
+        players.put(players.size() + 1, player);
     }
 
     public void startGame() {
@@ -118,23 +93,20 @@ public class Game implements Serializable { // 필드정리
     }
 
     public void init_role(List<Role> role) {
-        this.zombie = option.getZombie();
-        this.mutant = option.getMutant();
-        for (int i = 0; i < this.zombie; i++) {
+        for (int i = 0; i < setting.getZombie(); i++) {
             role.add(Role.ZOMBIE);
         }
-        if (this.mutant > 0 && Math.random() < 0.5) {
+        if (setting.getMutant() > 0 && Math.random() < 0.5) {
             role.add(Role.MUTANT);
         } else {
-            this.mutant = 0;
+            setting.setMutant(0);
         }
         role.add(Role.POLICE);
         role.add(Role.PLAGUE_DOCTOR);
-        this.citizen = this.alive - role.size();
-        for (int i = 0; i < this.citizen; i++) {
+        int citizen = players.size() - role.size();
+        for (int i = 0; i < citizen; i++) {
             role.add(Role.CITIZEN);
         }
-        this.citizen = this.alive - this.zombie - this.mutant;
         Collections.shuffle(role);
     }
 
@@ -145,61 +117,52 @@ public class Game implements Serializable { // 필드정리
     public Integer voteResult() {
         Map<Integer, Integer> result = new HashMap<>();
         votes.forEach((user, target) -> result.merge(target, 1, Integer::sum));
+        int rtn = result.entrySet().stream().max(Map.Entry.comparingByValue())
+            .map(Map.Entry::getKey).orElse(-1);
+        votes.clear();
 
-        return result.entrySet().stream()
-            .max(Map.Entry.comparingByValue())
-            .map(Map.Entry::getKey)
-            .orElse(-1);
+        return rtn;
     }
 
     public void Kill(Integer targetNo) {
         Player p = players.get(targetNo);
         p.setDead(true);
-        deadPlayers.add(targetNo);
-        alive--;
-        dead++;
-        switch (p.getRole()) {
-            case ZOMBIE -> zombie--;
-            case MUTANT -> mutant--;
-            default -> citizen--;
-        }
         isGameOver();
     }
 
-    public boolean processKill() {
-        List<Integer> result = new ArrayList<>();
-        if (zombieTarget.equals(healTarget)) {
-            result.add(zombieTarget);
-        }
-        if (mutantTarget.equals(healTarget)) {
-            result.add(mutantTarget);
+    public boolean processRoundResults() { // 밤중 킬
+        if (killTarget == null || killTarget.isEmpty()) {
+            return false; // 죽일 대상이 없으면 바로 종료
         }
 
-        if (result.isEmpty()) {
-            log.info("[Game{}] No one is killed", gameId);
-            return false;
+        // 치료된 플레이어 제외
+        List<Integer> finalDeathList = new ArrayList<>(killTarget);
+        if (healTarget != null) {  // 유효한 healTarget만 제거
+            finalDeathList.remove(healTarget);
         }
-        for (Integer targetNo : result) {
-            Kill(targetNo);
+
+        // 실제 킬 처리
+        for (Integer target : finalDeathList) {
+            Kill(target);
         }
-        healTarget = -1;
+
+        // 라운드가 끝나면 리스트 초기화
+        healTarget = null;
+        killTarget.clear();
+
         return true;
     }
 
     public void heal(Integer targetNo) {
         healTarget = targetNo;
-        int cnt = option.getDoctorSkillUsage();
+        int cnt = setting.getDoctorSkillUsage();
         if (cnt > 0) {
-            option.setDoctorSkillUsage(cnt--);
+            setting.setDoctorSkillUsage(cnt - 1);
         }
     }
 
-    public void zombieTarget(Integer targetNo) {
-        zombieTarget = targetNo;
-    }
-
-    public void mutantTarget(Integer targetNo) {
-        mutantTarget = targetNo;
+    public void setKillTarget(Integer targetNo) {
+        killTarget.add(targetNo);
     }
 
     public Role findRole(Integer playerNo, Integer targetNo) {
@@ -213,14 +176,29 @@ public class Game implements Serializable { // 필드정리
     }
 
     private void isGameOver() {
+        //각 역할별 생존자 수 계산
+        long citizen = players.values().stream()
+            .filter(player -> player.getRole() == Role.CITIZEN && !player.isDead())
+            .count();
+        long zombie = players.values().stream()
+            .filter(player -> player.getRole() == Role.ZOMBIE && !player.isDead())
+            .count();
+        long mutant = players.values().stream()
+            .filter(player -> player.getRole() == Role.MUTANT && !player.isDead())
+            .count();
+
         if (zombie == 0 && mutant == 0) {
             this.status = STATUS.CITIZEN_WIN;
         } else if (mutant == 0 && zombie >= citizen) {
             this.status = STATUS.ZOMBIE_WIN;
-        } else if (mutant == 1 && citizen + zombie <= mutant) {
+        } else if (mutant > 0 && citizen + zombie <= mutant) {
             this.status = STATUS.MUTANT_WIN;
         } else {
             log.info("[Game{}] Game is still in progress", gameId);
+        }
+
+        if (this.status != STATUS.PLAYING) {
+            log.info("[Game{}] Game over with status: {}", gameId, this.status);
         }
     }
 }

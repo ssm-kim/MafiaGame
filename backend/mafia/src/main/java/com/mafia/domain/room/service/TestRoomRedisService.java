@@ -58,7 +58,6 @@ public class TestRoomRedisService {
         host.setNickName("테스트유저" + hostId);
 
         roomInfo.getParticipant().put(hostId, host);
-        roomInfo.getGameOption().setRequiredPlayers(requiredPlayer);
         roomRedisRepository.save(roomId, roomInfo);
     }
 
@@ -98,7 +97,7 @@ public class TestRoomRedisService {
 
         RoomInfo roomInfo = findById(roomId);
 
-        if (roomInfo.getParticipant().size() >= roomInfo.getGameOption().getRequiredPlayers()) {
+        if (roomInfo.getParticipant().size() >= roomInfo.getRequiredPlayers()) {
             throw new BusinessException(ROOM_FULL);
         }
 
