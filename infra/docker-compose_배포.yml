@@ -102,26 +102,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-
-
-version: '3.8'
-
-services:
-  openvidu-server:
-    image: openvidu/openvidu-server-kms:latest
-    container_name: openvidu-server
-    restart: always
-    ports:
-      - "4443:4443"  # OpenVidu 기본 포트
-    environment:
-      - OPENVIDU_SECRET=MY_SECRET_KEY  # 원하는 비밀번호로 설정
-      - OPENVIDU_CORS=*
-      - OPENVIDU_RECORDING=false  # 녹화 비활성화
-      - OPENVIDU_STREAMS_VIDEO=false  # 🔥 비디오 스트림 비활성화 (음성 전용)
-      - OPENVIDU_STREAMS_AUDIO=true   # ✅ 오디오 스트림 활성화
-    networks:
-      - openvidu_net
-
-networks:
-  openvidu_net:
-    driver: bridge
