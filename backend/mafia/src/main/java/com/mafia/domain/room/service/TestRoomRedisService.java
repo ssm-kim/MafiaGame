@@ -166,6 +166,8 @@ public class TestRoomRedisService {
 
         roomInfo.setReadyCnt(curReadyCnt);
         roomRedisRepository.save(roomId, roomInfo);
+
+        // return !participant.isReady();
     }
 
     /**
