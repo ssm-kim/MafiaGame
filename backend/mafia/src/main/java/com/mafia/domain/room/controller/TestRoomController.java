@@ -6,6 +6,8 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.UNAUTHORIZED_
 
 import com.mafia.domain.game.model.game.GameOption;
 import com.mafia.domain.game.service.GameService;
+import com.mafia.domain.room.model.RoomIdResponse;
+import com.mafia.domain.room.model.RoomLeaveResponse;
 import com.mafia.domain.room.model.RoomRequest;
 import com.mafia.domain.room.model.RoomResponse;
 import com.mafia.domain.room.model.redis.RoomInfo;
@@ -46,18 +48,17 @@ public class TestRoomController {
    */
 
     // 로그인 인증 없이 테스트 코드
-
     @PostMapping
-    public ResponseEntity<BaseResponse<Boolean>> createRoom(
+    public ResponseEntity<BaseResponse<RoomIdResponse>> createRoom(
         @RequestBody RoomRequest roomRequest,
         @RequestParam Long memberId
     ) {
-        return ResponseEntity.ok(
-            new BaseResponse<>(roomDbService.createRoom(roomRequest, memberId)));
+        RoomIdResponse response = roomDbService.createRoom(roomRequest, memberId);
+        return ResponseEntity.ok(new BaseResponse<>(response));
     }
 
     @DeleteMapping("/{roomId}")
-    public ResponseEntity<BaseResponse<Boolean>> deleteRoom(
+    public ResponseEntity<BaseResponse<Void>> deleteRoom(
         @PathVariable Long roomId) {
         roomDbService.deleteRoom(roomId);
         return ResponseEntity.ok(new BaseResponse<>());
@@ -70,20 +71,20 @@ public class TestRoomController {
     }
 
     @PostMapping("/{roomId}/enter")
-    public ResponseEntity<BaseResponse<String>> enterRoom(
+    public ResponseEntity<BaseResponse<Void>> enterRoom(
         @PathVariable Long roomId,
         @RequestParam Long memberId,
         @RequestBody(required = false) RoomRequest roomRequest) {
 
         String password = (roomRequest != null ? roomRequest.getRoomPassword() : null);
-
         roomRedisService.enterRoom(roomId, memberId, password);
 
-        return ResponseEntity.ok(new BaseResponse<>("Entered room"));
+        return ResponseEntity.ok(new BaseResponse<>());
     }
 
+    // Void
     @PostMapping("/{roomId}/leave")
-    public ResponseEntity<BaseResponse<String>> leaveRoom(
+    public ResponseEntity<BaseResponse<RoomLeaveResponse>> leaveRoom(
         @PathVariable Long roomId,
         @RequestParam Long memberId) {
 
@@ -96,22 +97,25 @@ public class TestRoomController {
         // 호스트라면 RDB에서도 삭제
         if (isHost) {
             roomDbService.deleteRoom(roomId);
-            return ResponseEntity.ok(new BaseResponse<>("Room deleted"));
         }
 
-        return ResponseEntity.ok(new BaseResponse<>("Left room"));
+        // 호스트이면 true 반환, 일반유저이면 false 반환
+        RoomLeaveResponse roomLeaveResponse = new RoomLeaveResponse(isHost);
+
+        return ResponseEntity.ok(new BaseResponse<>(roomLeaveResponse));
     }
 
     @PostMapping("/{roomId}/ready")
-    public ResponseEntity<BaseResponse<String>> toggleReady(
+    public ResponseEntity<BaseResponse<Void>> toggleReady(
         @PathVariable Long roomId,
         @RequestParam Long memberId) {
         roomRedisService.toggleReady(roomId, memberId);
-        return ResponseEntity.ok(new BaseResponse<>("Ready toggled"));
+        return ResponseEntity.ok(new BaseResponse<>());
     }
 
+    // 해당 방 정보에 대한 모든 정보 key value
     @PostMapping("/{roomId}/start")
-    public ResponseEntity<BaseResponse<Boolean>> startGame(
+    public ResponseEntity<BaseResponse<RoomInfo>> startGame(
         @PathVariable Long roomId,
         @RequestParam Long memberId) {
 
@@ -121,10 +125,9 @@ public class TestRoomController {
         }
 
         RoomInfo roomInfo = roomRedisService.findById(roomId);
+        roomInfo.setRoomStatus(true);
         GameOption gameOption = roomInfo.getGameOption();
         int currentPlayers = roomInfo.getParticipant().size();
-
-        System.out.println(currentPlayers + " #### " + gameOption.getRequiredPlayers());
 
         // 참가자 수 체크
         if (currentPlayers != gameOption.getRequiredPlayers()) {
@@ -136,9 +139,10 @@ public class TestRoomController {
             throw new BusinessException(NOT_ALL_READY);
         }
 
-        System.out.println(roomInfo.toString() + " ####%%%%%%");
+        // 게임 시작
+        gameService.startGame(roomId);
 
-        // 방 아이디만 넘겨주면 게임서비스에서 roominfo에서 participant 객체 조회하면 memberId, nickName 얻을 수 있음
-        return ResponseEntity.ok(new BaseResponse<>(gameService.startGame(roomId)));
+        return ResponseEntity.ok(new BaseResponse<>(roomInfo));
     }
+
 }

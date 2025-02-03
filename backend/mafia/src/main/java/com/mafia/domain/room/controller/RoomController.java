@@ -7,6 +7,8 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.UNAUTHORIZED_
 import com.mafia.domain.game.model.game.GameOption;
 import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.login.model.dto.CustomOAuth2User;
+import com.mafia.domain.room.model.RoomIdResponse;
+import com.mafia.domain.room.model.RoomLeaveResponse;
 import com.mafia.domain.room.model.RoomRequest;
 import com.mafia.domain.room.model.RoomResponse;
 import com.mafia.domain.room.model.redis.RoomInfo;
@@ -47,16 +49,19 @@ public class RoomController {
    */
 
     @PostMapping
-    public ResponseEntity<BaseResponse<Boolean>> createRoom(
+    public ResponseEntity<BaseResponse<RoomIdResponse>> createRoom(
         @RequestBody RoomRequest roomRequest,
         @AuthenticationPrincipal CustomOAuth2User detail
     ) {
-        return ResponseEntity.ok(
-            new BaseResponse<>(roomDbService.createRoom(roomRequest, detail.getMemberId())));
+        RoomIdResponse response = roomDbService.createRoom(roomRequest, detail.getMemberId());
+
+        System.out.println(" ###### " + response.toString());
+
+        return ResponseEntity.ok(new BaseResponse<>(response));
     }
 
     @DeleteMapping("/{roomId}")
-    public ResponseEntity<BaseResponse<Boolean>> deleteRoom(
+    public ResponseEntity<BaseResponse<Void>> deleteRoom(
         @PathVariable Long roomId) {
         roomDbService.deleteRoom(roomId);
         return ResponseEntity.ok(new BaseResponse<>());
@@ -69,20 +74,19 @@ public class RoomController {
     }
 
     @PostMapping("/{roomId}/enter")
-    public ResponseEntity<BaseResponse<String>> enterRoom(
+    public ResponseEntity<BaseResponse<Void>> enterRoom(
         @PathVariable Long roomId,
         @AuthenticationPrincipal CustomOAuth2User detail,
         @RequestBody(required = false) RoomRequest roomRequest) {
 
         String password = (roomRequest != null ? roomRequest.getRoomPassword() : null);
-
         roomRedisService.enterRoom(roomId, detail.getMemberId(), password);
 
-        return ResponseEntity.ok(new BaseResponse<>("Entered room"));
+        return ResponseEntity.ok(new BaseResponse<>());
     }
 
     @PostMapping("/{roomId}/leave")
-    public ResponseEntity<BaseResponse<String>> leaveRoom(
+    public ResponseEntity<BaseResponse<RoomLeaveResponse>> leaveRoom(
         @PathVariable Long roomId,
         @AuthenticationPrincipal CustomOAuth2User detail) {
 
@@ -92,25 +96,27 @@ public class RoomController {
         // Redis 참가자 정보 삭제 (호스트 여부 체크 포함)
         roomRedisService.leaveRoom(roomId, detail.getMemberId());
 
-        // 호스트라면 RDB 삭제
+        // 호스트라면 RDB에서도 삭제
         if (isHost) {
             roomDbService.deleteRoom(roomId);
-            return ResponseEntity.ok(new BaseResponse<>("Room deleted"));
         }
 
-        return ResponseEntity.ok(new BaseResponse<>("Left room"));
+        // 호스트이면 true 반환, 일반유저이면 false 반환
+        RoomLeaveResponse roomLeaveResponse = new RoomLeaveResponse(isHost);
+
+        return ResponseEntity.ok(new BaseResponse<>(roomLeaveResponse));
     }
 
     @PostMapping("/{roomId}/ready")
-    public ResponseEntity<BaseResponse<String>> toggleReady(
+    public ResponseEntity<BaseResponse<Void>> toggleReady(
         @PathVariable Long roomId,
         @AuthenticationPrincipal CustomOAuth2User detail) {
         roomRedisService.toggleReady(roomId, detail.getMemberId());
-        return ResponseEntity.ok(new BaseResponse<>("Ready toggled"));
+        return ResponseEntity.ok(new BaseResponse<>());
     }
 
     @PostMapping("/{roomId}/start")
-    public ResponseEntity<BaseResponse<Boolean>> startGame(
+    public ResponseEntity<BaseResponse<RoomInfo>> startGame(
         @PathVariable Long roomId,
         @AuthenticationPrincipal CustomOAuth2User detail) {
 
@@ -120,6 +126,7 @@ public class RoomController {
         }
 
         RoomInfo roomInfo = roomRedisService.findById(roomId);
+        roomInfo.setRoomStatus(true);
         GameOption gameOption = roomInfo.getGameOption();
         int currentPlayers = roomInfo.getParticipant().size();
 
@@ -135,9 +142,10 @@ public class RoomController {
 
         System.out.println("게임시작 데이터 :  " + roomInfo.toString());
 
-        // Redis에 저장된 RoomInfo에는 모든 참가자 정보(memberId, nickName)가 포함됨
-        // 게임 서비스에서는 roomId로 해당 정보를 조회하여 사용
-        return ResponseEntity.ok(new BaseResponse<>(gameService.startGame(roomId)));
+        // 게임 시작
+        gameService.startGame(roomId);
+
+        return ResponseEntity.ok(new BaseResponse<>(roomInfo));
     }
 }
 
