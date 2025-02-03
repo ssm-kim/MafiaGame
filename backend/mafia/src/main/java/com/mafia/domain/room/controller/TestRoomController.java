@@ -77,7 +77,6 @@ public class TestRoomController {
         @RequestBody(required = false) RoomRequest roomRequest) {
 
         String password = (roomRequest != null ? roomRequest.getRoomPassword() : null);
-
         roomRedisService.enterRoom(roomId, memberId, password);
 
         return ResponseEntity.ok(new BaseResponse<>());
@@ -114,40 +113,7 @@ public class TestRoomController {
         return ResponseEntity.ok(new BaseResponse<>());
     }
 
-    // 기존
-//    @PostMapping("/{roomId}/start")
-//    public ResponseEntity<BaseResponse<Boolean>> startGame(
-//        @PathVariable Long roomId,
-//        @RequestParam Long memberId) {
-//
-//        // 방장 체크
-//        if (!roomRedisService.isHost(roomId, memberId)) {
-//            throw new BusinessException(UNAUTHORIZED_ACCESS);
-//        }
-//
-//        RoomInfo roomInfo = roomRedisService.findById(roomId);
-//        GameOption gameOption = roomInfo.getGameOption();
-//        int currentPlayers = roomInfo.getParticipant().size();
-//
-//        System.out.println(currentPlayers + " #### " + gameOption.getRequiredPlayers());
-//
-//        // 참가자 수 체크
-//        if (currentPlayers != gameOption.getRequiredPlayers()) {
-//            throw new BusinessException(PLAYER_COUNT_INVALID);
-//        }
-//
-//        // 모든 참가자 준비 상태 체크
-//        if (roomInfo.getReadyCnt() != currentPlayers - 1) { // 방장 제외라서 -1
-//            throw new BusinessException(NOT_ALL_READY);
-//        }
-//
-//        System.out.println(roomInfo.toString() + " ####%%%%%%");
-//
-//        // 방 아이디만 넘겨주면 게임서비스에서 roominfo에서 participant 객체 조회하면 memberId, nickName 얻을 수 있음
-//        return ResponseEntity.ok(new BaseResponse<>(gameService.startGame(roomId)));
-//    }
-
-    //    해당 방 정보에 대한 모든 정보 key value
+    // 해당 방 정보에 대한 모든 정보 key value
     @PostMapping("/{roomId}/start")
     public ResponseEntity<BaseResponse<RoomInfo>> startGame(
         @PathVariable Long roomId,
@@ -159,6 +125,7 @@ public class TestRoomController {
         }
 
         RoomInfo roomInfo = roomRedisService.findById(roomId);
+        roomInfo.setRoomStatus(true);
         GameOption gameOption = roomInfo.getGameOption();
         int currentPlayers = roomInfo.getParticipant().size();
 

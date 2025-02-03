@@ -17,6 +17,7 @@ public class RoomInfo {
     private Long roomId;
     private Long hostId;
     private int readyCnt;
+    private boolean roomStatus = false;
     private Map<Long, Participant> participant;  // key: member_id, value: 해당방에 들어간 참가자들
     private GameOption gameOption;
 
