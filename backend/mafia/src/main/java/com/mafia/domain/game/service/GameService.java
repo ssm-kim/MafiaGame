@@ -311,14 +311,13 @@ public class GameService {
                 gameSeqRepository.saveTimer(gameId, 20);
             }
             case DAY_FINAL_VOTE -> {
+                updateVoicePermissions(gameId, "night"); // 🔥 좀비만 음성 채팅 활성화
                 gameSeqRepository.savePhase(gameId, GamePhase.NIGHT_ACTION);
                 gameSeqRepository.saveTimer(gameId, game.getOption().getNightTimeSec());
             }
             case NIGHT_ACTION -> {
-                gameRepository.save(game);
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_DISCUSSION);
                 gameSeqRepository.saveTimer(gameId, game.getOption().getDayDisTimeSec());
-                updateVoicePermissions(gameId, "night"); // 🔥 좀비만 음성 채팅 활성화
             }
             default -> throw new BusinessException(UNKNOWN_PHASE);
         }
@@ -384,36 +383,27 @@ public class GameService {
      */
     private void updateVoicePermissions(long gameId, String phase) {
         Game game = findById(gameId);
-        game.getPlayers().forEach((playerId, player) -> {
-            boolean muteMic, muteAudio;
-
-            if (phase.equals("day")) {
+        game.getPlayers().forEach((playerNo, player) -> {
+            if (player.isDead()) {
+                player.setMuteMic(true);
+                player.setMuteAudio(false); // 죽은 플레이어는 듣기만 가능
+            } else if (phase.equals("day")) {
                 // 낮 토론 시간 -> 모든 생존자 마이크+오디오 허용
-                if (player.isDead()) {
-                    muteMic = true;
-                    muteAudio = false; // 죽은 플레이어는 듣기만 가능
-                } else {
-                    muteMic = false;
-                    muteAudio = false;
-                }
+                player.setMuteMic(false);
+                player.setMuteAudio(false);
             } else {
                 // 밤 -> 좀비만 말하기+듣기 가능, 나머지는 둘 다 음소거
                 if (player.getRole() == Role.ZOMBIE) {
-                    muteMic = false;
-                    muteAudio = false;
+                    player.setMuteMic(false);
+                    player.setMuteAudio(false);
                 } else {
-                    muteMic = true;
-                    muteAudio = true; // 살아있는 시민 & 경찰 & 의사는 둘 다 음소거
-                }
-
-                if (player.isDead()) {
-                    muteMic = true;
-                    muteAudio = false; // 죽은 플레이어는 듣기만 가능
+                    player.setMuteMic(true);
+                    player.setMuteAudio(true); // 살아있는 시민 & 경찰 & 의사는 둘 다 음소거
                 }
             }
-
-            voiceService.mutePlayer(gameId, playerId, muteMic, muteAudio);
+            System.out.println("player[" + playerNo + "]: " + player);
         });
+        gameRepository.save(game);
     }
 
 }

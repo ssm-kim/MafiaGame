@@ -27,7 +27,7 @@ public class GameOption {
         this.mutant = 1;
         this.doctorSkillUsage = 2;
         this.nightTimeSec = 30;
-        this.dayDisTimeSec = 60;
+        this.dayDisTimeSec = 5;
         this.requiredPlayers = 4;  // 기본 게임 시작 인원
     }
 

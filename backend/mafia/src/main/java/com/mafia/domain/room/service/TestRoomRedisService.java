@@ -106,6 +106,7 @@ public class TestRoomRedisService {
         Participant participant = new Participant();
         participant.setMemberId(memberId);
         participant.setNickName("테스트유저" + memberId);
+        participant.setReady(true);
 
         roomInfo.getParticipant().put(memberId, participant);
         roomRedisRepository.save(roomId, roomInfo);
