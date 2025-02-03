@@ -59,7 +59,6 @@ public class RoomRedisService {
         host.setNickName(memberInfo.getNickname());
 
         roomInfo.getParticipant().put(hostId, host);
-        roomInfo.getGameOption().setRequiredPlayers(requiredPlayer);  // 방 인원 설정
         roomRedisRepository.save(roomId, roomInfo);
     }
 
@@ -103,7 +102,7 @@ public class RoomRedisService {
         RoomInfo roomInfo = findById(roomId);
 
         // 입장 전에 인원 수 체크
-        if (roomInfo.getParticipant().size() >= roomInfo.getGameOption().getRequiredPlayers()) {
+        if (roomInfo.getParticipant().size() >= roomInfo.getRequiredPlayers()) {
             throw new BusinessException(ROOM_FULL);
         }
 

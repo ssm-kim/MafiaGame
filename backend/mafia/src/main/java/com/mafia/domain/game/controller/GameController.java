@@ -3,6 +3,7 @@ package com.mafia.domain.game.controller;
 import com.mafia.domain.chat.model.dto.ChatRoom;
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
+import com.mafia.domain.game.model.game.Player;
 import com.mafia.domain.game.model.game.Role;
 import com.mafia.domain.game.model.game.STATUS;
 import com.mafia.domain.game.service.GameService;
@@ -42,6 +43,14 @@ public class GameController {
     public ResponseEntity<BaseResponse<Game>> getGame(@PathVariable Long roomId) {
         Game game = gameService.findById(roomId);
         return ResponseEntity.ok(new BaseResponse<>(game));
+    }
+
+    @GetMapping("/{roomId}/player/{playerNo}")
+    @Operation(summary = "Get game", description = "플레이어의 정보를 가져옵니다.")
+    public ResponseEntity<BaseResponse<Player>> getGame(@PathVariable Long roomId,
+        @PathVariable Integer playerNo) {
+        Player player = gameService.findPlayerByNo(roomId, playerNo);
+        return ResponseEntity.ok(new BaseResponse<>(player));
     }
 
     @DeleteMapping("/{roomId}")
@@ -104,7 +113,7 @@ public class GameController {
                 new BaseResponse<>("User " + playerNo + " killed in Room " + roomId + "."));
         } else {
             return ResponseEntity.ok(
-                new BaseResponse<>("User " + playerNo + " saved in Room " + roomId + "."));
+                new BaseResponse<>("No one is dead in Room " + roomId + "."));
         }
     }
 

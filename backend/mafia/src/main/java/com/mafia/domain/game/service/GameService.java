@@ -4,6 +4,7 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.*;
 
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
+import com.mafia.domain.game.model.game.Player;
 import com.mafia.domain.game.model.game.Role;
 import com.mafia.domain.game.model.game.STATUS;
 import com.mafia.domain.game.repository.GameRepository;
@@ -45,27 +46,15 @@ public class GameService {
     }
 
     /**
-     * 게임 삭제
+     * 게임 조회
      *
-     * @param gameId 방 ID
-     * @throws BusinessException 게임이 존재하지 않을 경우 예외 발생
+     * @param gameId   방 ID
+     * @param playerNo 플레이어 번호
+     * @return 플레이어 객체
      */
-    public void deleteGame(long gameId) {
-        findById(gameId);
-        getTime(gameId);
-        getPhase(gameId);
-        gameRepository.delete(gameId);
-        gameSeqRepository.delete(gameId);
-
-        // 🔥 OpenVidu 세션 종료
-        try {
-            voiceService.closeSession(gameId);
-            log.info("OpenVidu Session closed for Game {}", gameId);
-        } catch (Exception e) {
-            log.error("Failed to close OpenVidu session: {}", e.getMessage());
-        }
-
-        log.info("Room {} deleted.", gameId);
+    public Player findPlayerByNo(long gameId, int playerNo) {
+        Game game = findById(gameId);
+        return game.getPlayers().get(playerNo);
     }
 
     /**
@@ -84,9 +73,9 @@ public class GameService {
         log.info("Game {} created.", roomId);
         game.startGame();
         gameSeqRepository.savePhase(roomId, GamePhase.DAY_DISCUSSION); // 낮 토론 시작
-        gameSeqRepository.saveTimer(roomId, game.getOption().getDayDisTimeSec()); // 설정된 시간
+        gameSeqRepository.saveTimer(roomId, game.getSetting().getDayDisTimeSec()); // 설정된 시간
         log.info("Game started in Room {}: Phase set to {}, Timer set to {} seconds",
-            roomId, GamePhase.DAY_DISCUSSION, game.getOption().getDayDisTimeSec());
+            roomId, GamePhase.DAY_DISCUSSION, game.getSetting().getDayDisTimeSec());
         gameRepository.save(game);
 
         // 🔥 OpenVidu 세션 생성
@@ -119,6 +108,30 @@ public class GameService {
     }
 
     /**
+     * 게임 삭제
+     *
+     * @param gameId 방 ID
+     * @throws BusinessException 게임이 존재하지 않을 경우 예외 발생
+     */
+    public void deleteGame(long gameId) {
+        findById(gameId);
+        getTime(gameId);
+        getPhase(gameId);
+        gameRepository.delete(gameId);
+        gameSeqRepository.delete(gameId);
+
+        // 🔥 OpenVidu 세션 종료
+        try {
+            voiceService.closeSession(gameId);
+            log.info("OpenVidu Session closed for Game {}", gameId);
+        } catch (Exception e) {
+            log.error("Failed to close OpenVidu session: {}", e.getMessage());
+        }
+
+        log.info("Room {} deleted.", gameId);
+    }
+
+    /**
      * 투표 처리
      *
      * @param gameId   방 ID
@@ -135,9 +148,10 @@ public class GameService {
                 return;
             }
             if (game.getPlayers().get(playerNo).isDead()) {
-                throw new BusinessException(PLAYER_IS_DEAD);
+                throw new BusinessException(DEAD_CANNOT_VOTE);
             }
             if (game.getPlayers().get(targetNo).isDead()) {
+                game.vote(playerNo, -1);
                 throw new BusinessException(TARGET_IS_DEAD);
             }
             if (game.getPlayers().get(playerNo).getRole() == Role.POLICE && !game.getPlayers()
@@ -191,7 +205,7 @@ public class GameService {
             game.Kill(playerNo);
             return true;
         } else {
-            boolean isKill = game.processKill();
+            boolean isKill = game.processRoundResults();
             gameRepository.save(game);
             return isKill;
         }
@@ -210,11 +224,11 @@ public class GameService {
         if (game.getPlayers().get(playerNo).getRole() != Role.PLAGUE_DOCTOR) {
             throw new BusinessException(NOT_DOCTOR_HEAL);
         }
-        if (game.getOption().getDoctorSkillUsage() == 0) {
+        if (game.getSetting().getDoctorSkillUsage() == 0) {
             throw new BusinessException(MEDICAL_COUNT_ZERO);
         }
         if (game.getPlayers().get(targetNo).isDead()) {
-            throw new BusinessException(PLAYER_CANNOT_HEAL);
+            throw new BusinessException(TARGET_IS_DEAD);
         }
         game.heal(targetNo);
         gameRepository.save(game);
@@ -232,7 +246,7 @@ public class GameService {
     public Role findRole(long gameId, Integer playerNo, Integer targetNo) {
         Game game = findById(gameId);
         if (game.getPlayers().get(playerNo).getRole() != Role.POLICE) {
-            throw new BusinessException(CANNOT_KILL_ROLE);
+            throw new BusinessException(NOT_POLICE_FIND_ROLE);
         }
         if (game.getPlayers().get(targetNo).isDead()) {
             throw new BusinessException(TARGET_IS_DEAD);
@@ -256,17 +270,13 @@ public class GameService {
         Game game = findById(gameId);
         Role myrole = game.getPlayers().get(playerNo).getRole();
         if (myrole != Role.ZOMBIE && myrole != Role.MUTANT) {
-            throw new BusinessException(NOT_DOCTOR_HEAL);
+            throw new BusinessException(CANNOT_KILL_ROLE);
         }
         if (game.getPlayers().get(targetNo).isDead()) {
             throw new BusinessException(TARGET_IS_DEAD);
         }
 
-        if (myrole == Role.ZOMBIE) {
-            game.zombieTarget(targetNo);
-        } else {
-            game.mutantTarget(targetNo);
-        }
+        game.setKillTarget(targetNo);
 
         log.info("[Game{}] Player {} set the target of {}", gameId, targetNo, myrole);
         gameRepository.save(game);
@@ -284,7 +294,7 @@ public class GameService {
     }
 
     /**
-     * 상태 전환
+     * 페이즈 전환
      *
      * @param gameId 방 ID
      * @throws BusinessException 유효하지 않은 페이즈일 경우 예외 발생
@@ -300,7 +310,6 @@ public class GameService {
             case DAY_DISCUSSION -> {
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_VOTE);
                 gameSeqRepository.saveTimer(gameId, 20);
-                updateVoicePermissions(gameId, "day"); // 🔥 모든 생존자 음성 채팅 활성화 (토론)
             }
             case DAY_VOTE -> {
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_FINAL_STATEMENT);
@@ -313,11 +322,12 @@ public class GameService {
             case DAY_FINAL_VOTE -> {
                 updateVoicePermissions(gameId, "night"); // 🔥 좀비만 음성 채팅 활성화
                 gameSeqRepository.savePhase(gameId, GamePhase.NIGHT_ACTION);
-                gameSeqRepository.saveTimer(gameId, game.getOption().getNightTimeSec());
+                gameSeqRepository.saveTimer(gameId, game.getSetting().getNightTimeSec());
             }
             case NIGHT_ACTION -> {
+                updateVoicePermissions(gameId, "day"); // 🔥 모든 생존자 음성 채팅 활성화 (토론)
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_DISCUSSION);
-                gameSeqRepository.saveTimer(gameId, game.getOption().getDayDisTimeSec());
+                gameSeqRepository.saveTimer(gameId, game.getSetting().getDayDisTimeSec());
             }
             default -> throw new BusinessException(UNKNOWN_PHASE);
         }
@@ -401,7 +411,6 @@ public class GameService {
                     player.setMuteAudio(true); // 살아있는 시민 & 경찰 & 의사는 둘 다 음소거
                 }
             }
-            System.out.println("player[" + playerNo + "]: " + player);
         });
         gameRepository.save(game);
     }

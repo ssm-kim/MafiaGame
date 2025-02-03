@@ -19,12 +19,14 @@ public class RoomInfo {
     private int readyCnt;
     private boolean roomStatus = false;
     private Map<Long, Participant> participant;  // key: member_id, value: 해당방에 들어간 참가자들
+    private int requiredPlayers;
     private GameOption gameOption;
 
     public RoomInfo(Long roomId, Long hostId) {
         this.hostId = hostId;
         this.roomId = roomId;
         this.readyCnt = 0;
+        this.requiredPlayers = 4;
         this.participant = new HashMap<>();
         this.gameOption = new GameOption();
     }
