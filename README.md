@@ -36,6 +36,10 @@ profile blue green 고정
 
 compose 세미콜론 제거 및 withFileCredentials 이용
 
+## 열한번째 배포 테스트입니다.
+
+withCredentials 이용
+
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**
