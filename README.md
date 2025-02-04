@@ -16,6 +16,10 @@ sql init 설정완료
 
 (권한 실패 계속 발생) 권한 ->Anyone can do anything으로 변경
 
+## 여섯번째 배포 테스트입니다.
+
+build때 -x test 옵션 추가
+
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**
