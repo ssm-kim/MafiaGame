@@ -1,11 +1,13 @@
 package com.mafia.domain.room.service;
 
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ALREADY_HAS_ROOM;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.CANNOT_KICK_HOST;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.HOST_CANNOT_READY;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_ROOM_PASSWORD;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_FULL;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_NOT_FOUND;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.UNAUTHORIZED_HOST_ACTION;
 
 import com.mafia.domain.member.model.dto.response.MemberResponse;
 import com.mafia.domain.member.service.MemberService;
@@ -19,10 +21,12 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -41,6 +45,7 @@ public class RoomRedisService {
     public RoomInfo findById(long roomId) {
         return Optional.ofNullable(roomRedisRepository.findById(roomId))
             .orElseThrow(() -> new BusinessException(ROOM_NOT_FOUND));
+
     }
 
     /**
@@ -51,15 +56,17 @@ public class RoomRedisService {
      * @param requiredPlayer 게임 시작에 필요한 인원 수
      */
     public void createRoomInfo(Long roomId, Long hostId, int requiredPlayer) {
+        log.info("방 생성 시작: roomId={}, hostId={}, 필요인원={}", roomId, hostId, requiredPlayer);
         RoomInfo roomInfo = new RoomInfo(roomId, hostId);
         Participant host = new Participant();  // 방장을 첫 참가자로 추가
 
         MemberResponse memberInfo = memberService.getMemberInfo(hostId);
         host.setMemberId(hostId);
         host.setNickName(memberInfo.getNickname());
-
+        roomInfo.setRequiredPlayers(requiredPlayer);
         roomInfo.getParticipant().put(hostId, host);
         roomRedisRepository.save(roomId, roomInfo);
+        log.info("방 생성 완료: roomId={}, 방장닉네임={}", roomId, memberInfo.getNickname());
     }
 
     /**
@@ -72,6 +79,7 @@ public class RoomRedisService {
     }
 
     public void deleteById(Long roomId) {
+        log.info("방 삭제 : roomId={}", roomId);
         roomRedisRepository.delete(roomId);
     }
 
@@ -84,6 +92,7 @@ public class RoomRedisService {
      * @throws BusinessException ALREADY_HAS_ROOM, ROOM_NOT_FOUND, INVALID_ROOM_PASSWORD, ROOM_FULL
      */
     public void enterRoom(Long roomId, Long memberId, String password) {
+        log.info("유저 방 입장 시도: roomId={}, memberId={}", roomId, memberId);
         // 유저가 이미 방을 생성하거나 참여 중인지 확인
         if (isMemberInRoom(memberId)) {
             throw new BusinessException(ALREADY_HAS_ROOM);
@@ -117,6 +126,8 @@ public class RoomRedisService {
         // 참가자 추가 및 Redis 저장
         roomInfo.getParticipant().put(memberId, participant);
         roomRedisRepository.save(roomId, roomInfo);
+        log.info("방 입장 완료: roomId={}, memberId={}, 닉네임={}", roomId, memberId,
+            memberInfo.getNickname());
     }
 
     /**
@@ -126,18 +137,42 @@ public class RoomRedisService {
      * @param memberId 참가자 ID
      */
     public void leaveRoom(Long roomId, Long memberId) {
-        // 방 정보 조회
+        log.info("유저 방 퇴장: roomId={}, memberId={}", roomId, memberId);
         RoomInfo roomInfo = findById(roomId);
 
-        // 방장 퇴장인 경우 방 삭제
         if (isHost(roomId, memberId)) {
             roomRedisRepository.delete(roomId);
             return;
         }
 
-        // 일반 유저 퇴장
         roomInfo.getParticipant().remove(memberId);
         roomRedisRepository.save(roomId, roomInfo);
+
+        log.info("방 퇴장 완료: roomId={}, memberId={}, 남은인원={}", roomId, memberId,
+            roomInfo.getParticipant().size());
+    }
+
+    /**
+     * 참가자 강퇴 처리
+     *
+     * @param roomId   방 ID
+     * @param hostId   방장 ID (강퇴를 요청한 사람)
+     * @param targetId 강퇴할 참가자 ID
+     * @throws BusinessException UNAUTHORIZED_HOST_ACTION, CANNOT_KICK_HOST, PLAYER_NOT_FOUND
+     */
+    public void kickMember(Long roomId, Long hostId, Long targetId) {
+        log.info("유저 강퇴 시도: roomId={}, hostId={}, targetId={}", roomId, hostId, targetId);
+
+        // 요청한 사람이 방장인지 확인
+        if (!isHost(roomId, hostId)) {
+            throw new BusinessException(UNAUTHORIZED_HOST_ACTION);
+        }
+
+        // 강퇴 대상이 방장인지 확인
+        if (isHost(roomId, targetId)) {
+            throw new BusinessException(CANNOT_KICK_HOST);
+        }
+        leaveRoom(roomId, targetId);
     }
 
     /**
@@ -146,6 +181,7 @@ public class RoomRedisService {
      * @throws BusinessException HOST_CANNOT_READY, PLAYER_NOT_FOUND
      */
     public void toggleReady(Long roomId, Long memberId) {
+        log.info("준비상태 토글: roomId={}, memberId={}", roomId, memberId);
         // 현재 방 정보 조회
         RoomInfo roomInfo = findById(roomId);
 
@@ -173,6 +209,8 @@ public class RoomRedisService {
 
         roomInfo.setReadyCnt(curReadyCnt);
         roomRedisRepository.save(roomId, roomInfo);
+        log.info("준비상태 변경 완료: roomId={}, memberId={}, 준비상태={}, 총준비인원={}", roomId, memberId,
+            participant.isReady(), curReadyCnt);
     }
 
     /**

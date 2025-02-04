@@ -4,7 +4,9 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_ALL_READY
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_COUNT_INVALID;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.UNAUTHORIZED_ACCESS;
 
-import com.mafia.domain.game.model.game.GameOption;
+import com.mafia.domain.chat.model.dto.ChatRoom;
+import com.mafia.domain.chat.model.enumerate.ChatRoomType;
+import com.mafia.domain.chat.service.ChatService;
 import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.room.model.RoomIdResponse;
 import com.mafia.domain.room.model.RoomLeaveResponse;
@@ -33,8 +35,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class TestRoomController {
 
     private final RoomDbService roomDbService;
-    private final TestRoomRedisService roomRedisService;
+    private final TestRoomRedisService TestRoomRedisService;
     private final GameService gameService;
+    private final ChatService chatService;
 
     /*
        TODO: 방 관리 서비스
@@ -77,22 +80,21 @@ public class TestRoomController {
         @RequestBody(required = false) RoomRequest roomRequest) {
 
         String password = (roomRequest != null ? roomRequest.getRoomPassword() : null);
-        roomRedisService.enterRoom(roomId, memberId, password);
+        TestRoomRedisService.enterRoom(roomId, memberId, password);
 
         return ResponseEntity.ok(new BaseResponse<>());
     }
 
-    // Void
     @PostMapping("/{roomId}/leave")
     public ResponseEntity<BaseResponse<RoomLeaveResponse>> leaveRoom(
         @PathVariable Long roomId,
         @RequestParam Long memberId) {
 
         // 먼저 호스트 여부 체크
-        boolean isHost = roomRedisService.isHost(roomId, memberId);
+        boolean isHost = TestRoomRedisService.isHost(roomId, memberId);
 
         // Redis에서 참가자 정보 삭제 (호스트 여부 체크 포함)
-        roomRedisService.leaveRoom(roomId, memberId);
+        TestRoomRedisService.leaveRoom(roomId, memberId);
 
         // 호스트라면 RDB에서도 삭제
         if (isHost) {
@@ -105,11 +107,21 @@ public class TestRoomController {
         return ResponseEntity.ok(new BaseResponse<>(roomLeaveResponse));
     }
 
+    // 방장 강제퇴장 기능
+    @PostMapping("/{roomId}/kick")
+    public ResponseEntity<BaseResponse<Void>> kickMember(
+        @PathVariable Long roomId,
+        @RequestParam Long hostId,
+        @RequestParam Long targetId) {
+        TestRoomRedisService.kickMember(roomId, hostId, targetId);
+        return ResponseEntity.ok(new BaseResponse<>());
+    }
+
     @PostMapping("/{roomId}/ready")
     public ResponseEntity<BaseResponse<Void>> toggleReady(
         @PathVariable Long roomId,
         @RequestParam Long memberId) {
-        roomRedisService.toggleReady(roomId, memberId);
+        TestRoomRedisService.toggleReady(roomId, memberId);
         return ResponseEntity.ok(new BaseResponse<>());
     }
 
@@ -120,11 +132,11 @@ public class TestRoomController {
         @RequestParam Long memberId) {
 
         // 방장 체크
-        if (!roomRedisService.isHost(roomId, memberId)) {
+        if (!TestRoomRedisService.isHost(roomId, memberId)) {
             throw new BusinessException(UNAUTHORIZED_ACCESS);
         }
 
-        RoomInfo roomInfo = roomRedisService.findById(roomId);
+        RoomInfo roomInfo = TestRoomRedisService.findById(roomId);
         roomInfo.setRoomStatus(true);
         int currentPlayers = roomInfo.getParticipant().size();
 
@@ -137,6 +149,16 @@ public class TestRoomController {
         if (roomInfo.getReadyCnt() != currentPlayers - 1) { // 방장 제외라서 -1
             throw new BusinessException(NOT_ALL_READY);
         }
+
+        // 채팅방 생성
+        ChatRoom dayChat = chatService.createRoom(ChatRoomType.DAY_CHAT, roomId);
+        ChatRoom mafiaChat = chatService.createRoom(ChatRoomType.MAFIA_CHAT, roomId);
+        ChatRoom deadChat = chatService.createRoom(ChatRoomType.DEAD_CHAT, roomId);
+
+        // 채팅방 ID 저장
+        roomInfo.setDayChatId(dayChat.getChatRoomId());
+        roomInfo.setMafiaChatId(mafiaChat.getChatRoomId());
+        roomInfo.setDeadChatId(deadChat.getChatRoomId());
 
         // 게임 시작
         gameService.startGame(roomId);

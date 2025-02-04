@@ -4,7 +4,6 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_ALL_READY
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_COUNT_INVALID;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.UNAUTHORIZED_ACCESS;
 
-import com.mafia.domain.game.model.game.GameOption;
 import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.login.model.dto.CustomOAuth2User;
 import com.mafia.domain.room.model.RoomIdResponse;
@@ -26,6 +25,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -105,6 +105,16 @@ public class RoomController {
         RoomLeaveResponse roomLeaveResponse = new RoomLeaveResponse(isHost);
 
         return ResponseEntity.ok(new BaseResponse<>(roomLeaveResponse));
+    }
+
+    // 방장 강제퇴장 기능
+    @PostMapping("/{roomId}/kick")
+    public ResponseEntity<BaseResponse<Void>> kickMember(
+        @PathVariable Long roomId,
+        @RequestParam Long hostId,
+        @RequestParam Long targetId) {
+        roomRedisService.kickMember(roomId, hostId, targetId);
+        return ResponseEntity.ok(new BaseResponse<>());
     }
 
     @PostMapping("/{roomId}/ready")
