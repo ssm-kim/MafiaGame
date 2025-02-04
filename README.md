@@ -28,6 +28,10 @@ build때 -x test 옵션 추가
 
 .env 파일 위치 /infra/docker/app
 
+## 아홉번째 배포 테스트입니다.
+
+profile blue green 고정
+
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**
