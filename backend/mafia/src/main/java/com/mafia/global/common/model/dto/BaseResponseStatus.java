@@ -23,6 +23,8 @@ public enum BaseResponseStatus {
     // 방 입장/퇴장 관련
     ALREADY_HAS_ROOM(false, HttpStatus.BAD_REQUEST, 1005, "이미 다른 방에 참여 중입니다."),
     ROOM_FULL(false, HttpStatus.BAD_REQUEST, 1006, "더 이상 입장할 수 없습니다."),
+    UNAUTHORIZED_HOST_ACTION(false, HttpStatus.FORBIDDEN, 1007, "방장만 강퇴할 수 있습니다."),
+    CANNOT_KICK_HOST(false, HttpStatus.BAD_REQUEST, 1008, "방장은 강퇴할 수 없습니다."),
 
     // 게임 시작 관련
     UNAUTHORIZED_ACCESS(false, HttpStatus.FORBIDDEN, 1007, "권한이 없습니다."),

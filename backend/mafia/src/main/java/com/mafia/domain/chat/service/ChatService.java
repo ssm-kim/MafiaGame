@@ -1,15 +1,15 @@
 package com.mafia.domain.chat.service;
 
 import com.mafia.domain.chat.model.dto.ChatRoom;
+import com.mafia.domain.chat.model.enumerate.ChatRoomType;
 import com.mafia.global.common.exception.exception.BusinessException;
 import com.mafia.global.common.model.dto.BaseResponseStatus;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
@@ -25,15 +25,28 @@ public class ChatService {
     private final Map<String, ChatRoom> chatRooms = new ConcurrentHashMap<>();
 
     // 채팅방 생성
-    public ChatRoom createRoom() {
-        ChatRoom chatRoom = ChatRoom.create();
+//    public ChatRoom createRoom() {
+//        ChatRoom chatRoom = ChatRoom.create();
+//        chatRooms.put(chatRoom.getChatRoomId(), chatRoom);
+//        log.info("채팅방 생성: chatRoomId={}", chatRoom.getChatRoomId());
+//        return chatRoom;
+//    }
+
+    // 새로운 메서드 추가
+    public ChatRoom createRoom(ChatRoomType type, Long roomId) {
+        ChatRoom chatRoom = ChatRoom.create(type, roomId);
         chatRooms.put(chatRoom.getChatRoomId(), chatRoom);
-        log.info("채팅방 생성: chatRoomId={}", chatRoom.getChatRoomId());
+        log.info("채팅방 생성: chatRoomId={}, type={}, roomId={}",
+            chatRoom.getChatRoomId(), type, roomId);
         return chatRoom;
     }
 
     // 특정 채팅방 조회
     public ChatRoom findRoomById(String chatRoomId) {
+        log.info("채팅방 조회: chatRoomId={}, 존재하는 방 목록={}",
+            chatRoomId,
+            chatRooms.keySet());
+        
         return Optional.ofNullable(chatRooms.get(chatRoomId))
             .orElseThrow(() -> new BusinessException(BaseResponseStatus.NOT_FOUND_CHAT));
     }
