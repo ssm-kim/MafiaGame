@@ -32,6 +32,10 @@ build때 -x test 옵션 추가
 
 profile blue green 고정
 
+## 열번째 배포 테스트입니다.
+
+compose 세미콜론 제거 및 withFileCredentials 이용
+
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**
