@@ -1,6 +1,5 @@
 package com.mafia.domain.game.controller;
 
-import com.mafia.domain.chat.model.dto.ChatRoom;
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
 import com.mafia.domain.game.model.game.Player;

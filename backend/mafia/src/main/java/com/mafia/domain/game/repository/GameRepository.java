@@ -1,10 +1,7 @@
 package com.mafia.domain.game.repository;
 
-import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_NOT_FOUND;
 
 import com.mafia.domain.game.model.game.Game;
-import com.mafia.domain.game.model.game.GamePhase;
-import com.mafia.global.common.exception.exception.BusinessException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

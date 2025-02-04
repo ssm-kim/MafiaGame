@@ -1,27 +1,14 @@
 package com.mafia.domain.chat.controller;
 
-import com.mafia.domain.chat.model.dto.ChatRoom;
-import com.mafia.domain.chat.model.enumerate.ChatRoomType;
+import com.mafia.domain.chat.model.dto.ChatMessage;
 import com.mafia.domain.chat.service.ChatService;
-import com.mafia.global.common.model.dto.BaseResponse;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-@RestController
-@RequiredArgsConstructor
-@RequestMapping("/api/chat")
-public class ChatController {
-
-    private final ChatService chatService;
 
     /*
     TODO:
@@ -31,34 +18,29 @@ public class ChatController {
      4. 예외 처리
      */
 
-    //채팅방 생성
-    @PostMapping("/room")
-    public ResponseEntity<BaseResponse<ChatRoom>> createRoom(
-        @RequestParam ChatRoomType type,
-        @RequestParam Long roomId) {
-        ChatRoom chatRoom = chatService.createRoom(type, roomId);
-        return ResponseEntity.ok(new BaseResponse<>(chatRoom));
+@RestController
+@RequestMapping("/api/chat")
+@RequiredArgsConstructor
+public class ChatController {
+
+    private final ChatService chatService;
+
+    /**
+     * STOMP를 통한 채팅 메시지 처리
+     */
+    @MessageMapping("/send")
+    public void sendMessage(ChatMessage message) {
+        chatService.processChatMessage(message);
     }
 
-    //채팅방 전체 조회
-    @GetMapping("/rooms")
-    public ResponseEntity<BaseResponse<List<ChatRoom>>> getRooms() {
-        List<ChatRoom> rooms = new ArrayList<>(chatService.getAllRooms().values());
-        return ResponseEntity.ok(new BaseResponse<>(rooms));
-    }
-
-    //채팅방 입장
-    @GetMapping("/room/{chatRoomId}")
-    public ResponseEntity<BaseResponse<ChatRoom>> getRoom(@PathVariable String chatRoomId) {
-        ChatRoom room = chatService.findRoomById(chatRoomId);
-        return ResponseEntity.ok(new BaseResponse<>(room));
-    }
-
-    //채팅방 삭제
-    @DeleteMapping("/room/{chatRoomId}")
-    public ResponseEntity<BaseResponse<Void>> deleteRoom(@PathVariable String chatRoomId) {
-        chatService.removeRoom(chatRoomId);
-
-        return ResponseEntity.ok(new BaseResponse<>());
+    /**
+     * 특정 채팅 채널의 최근 채팅 기록 가져오기
+     */
+    @GetMapping("/recent")
+    public List<ChatMessage> getRecentMessages(
+        @RequestParam long gameId,
+        @RequestParam String chatType,
+        @RequestParam int count) {
+        return chatService.getRecentMessages(gameId, chatType, count);
     }
 }

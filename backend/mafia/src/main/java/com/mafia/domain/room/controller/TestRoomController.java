@@ -4,8 +4,6 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_ALL_READY
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_COUNT_INVALID;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.UNAUTHORIZED_ACCESS;
 
-import com.mafia.domain.chat.model.dto.ChatRoom;
-import com.mafia.domain.chat.model.enumerate.ChatRoomType;
 import com.mafia.domain.chat.service.ChatService;
 import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.room.model.RoomIdResponse;
@@ -149,16 +147,6 @@ public class TestRoomController {
         if (roomInfo.getReadyCnt() != currentPlayers - 1) { // 방장 제외라서 -1
             throw new BusinessException(NOT_ALL_READY);
         }
-
-        // 채팅방 생성
-        ChatRoom dayChat = chatService.createRoom(ChatRoomType.DAY_CHAT, roomId);
-        ChatRoom mafiaChat = chatService.createRoom(ChatRoomType.MAFIA_CHAT, roomId);
-        ChatRoom deadChat = chatService.createRoom(ChatRoomType.DEAD_CHAT, roomId);
-
-        // 채팅방 ID 저장
-        roomInfo.setDayChatId(dayChat.getChatRoomId());
-        roomInfo.setMafiaChatId(mafiaChat.getChatRoomId());
-        roomInfo.setDeadChatId(deadChat.getChatRoomId());
 
         // 게임 시작
         gameService.startGame(roomId);

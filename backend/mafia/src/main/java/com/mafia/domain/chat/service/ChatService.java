@@ -1,78 +1,61 @@
 package com.mafia.domain.chat.service;
 
-import com.mafia.domain.chat.model.dto.ChatRoom;
-import com.mafia.domain.chat.model.enumerate.ChatRoomType;
-import com.mafia.global.common.exception.exception.BusinessException;
-import com.mafia.global.common.model.dto.BaseResponseStatus;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import com.mafia.domain.chat.model.dto.ChatMessage;
+import com.mafia.domain.chat.repository.ChatRepository;
+import com.mafia.domain.game.model.game.Player;
+import com.mafia.domain.game.service.GameService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class ChatService {
 
+    private final ChatPublisher chatPublisher;
+    private final ChatRepository chatRepository;
+    private final GameService gameService;
 
-    /*
-    TODO: 예외처리 변경
+    /**
+     * 채팅 메시지 처리 및 전송
      */
+    public void processChatMessage(ChatMessage message) {
+        long gameId = message.getGameId();
+        int playerNo = message.getPlayerNo();
 
-    // 모든 채팅방을 관리
-    private final Map<String, ChatRoom> chatRooms = new ConcurrentHashMap<>();
+        // 🔹 플레이어 정보 가져오기
+        Player player = gameService.findPlayerByNo(gameId, playerNo);
+        String chatContent = "[" + player.getNickname() + "] " + message.getContent();
 
-    // 채팅방 생성
-//    public ChatRoom createRoom() {
-//        ChatRoom chatRoom = ChatRoom.create();
-//        chatRooms.put(chatRoom.getChatRoomId(), chatRoom);
-//        log.info("채팅방 생성: chatRoomId={}", chatRoom.getChatRoomId());
-//        return chatRoom;
-//    }
+        log.info("Processing chat message: gameId={}, playerNo={}, chatType={}, content={}",
+            gameId, playerNo, message.getChatType(), chatContent);
 
-    // 새로운 메서드 추가
-    public ChatRoom createRoom(ChatRoomType type, Long roomId) {
-        ChatRoom chatRoom = ChatRoom.create(type, roomId);
-        chatRooms.put(chatRoom.getChatRoomId(), chatRoom);
-        log.info("채팅방 생성: chatRoomId={}, type={}, roomId={}",
-            chatRoom.getChatRoomId(), type, roomId);
-        return chatRoom;
+        // 🔥 채팅 권한 확인 후 메시지 저장 & 전송
+        switch (message.getChatType()) {
+            case DAY:
+                chatRepository.saveMessage(String.valueOf(gameId), "day-chat", message);
+                chatPublisher.publish("day-chat", chatContent);
+                log.info("Published to Redis: day-chat -> {}", chatContent);
+                break;
+            case NIGHT:
+                chatRepository.saveMessage(String.valueOf(gameId), "night-chat", message);
+                chatPublisher.publish("night-chat", chatContent);
+                log.info("Published to Redis: night-chat -> {}", chatContent);
+                break;
+            case DEAD:
+                chatRepository.saveMessage(String.valueOf(gameId), "dead-chat", message);
+                chatPublisher.publish("dead-chat", chatContent);
+                log.info("Published to Redis: dead-chat -> {}", chatContent);
+                break;
+        }
     }
 
-    // 특정 채팅방 조회
-    public ChatRoom findRoomById(String chatRoomId) {
-        log.info("채팅방 조회: chatRoomId={}, 존재하는 방 목록={}",
-            chatRoomId,
-            chatRooms.keySet());
-        
-        return Optional.ofNullable(chatRooms.get(chatRoomId))
-            .orElseThrow(() -> new BusinessException(BaseResponseStatus.NOT_FOUND_CHAT));
+    /**
+     * 특정 채팅 채널의 최근 메시지 가져오기
+     */
+    public List<ChatMessage> getRecentMessages(long gameId, String chatType, int count) {
+        return chatRepository.getRecentMessages(String.valueOf(gameId), chatType, count);
     }
-
-    // 전체 채팅방 맵 반환
-    public Map<String, ChatRoom> getAllRooms() {
-        return chatRooms;
-    }
-
-    // 채팅방 삭제
-    public void removeRoom(String chatRoomId) {
-        Optional.ofNullable(chatRooms.remove(chatRoomId))
-            .orElseThrow(() -> new BusinessException(BaseResponseStatus.NOT_FOUND_CHAT));
-        log.info("채팅방 삭제: roomId={}", chatRoomId);
-    }
-
-    // 빈 채팅방 정리 (선택적)
-    public void cleanEmptyRooms() {
-        chatRooms.entrySet().removeIf(entry -> {
-            ChatRoom room = entry.getValue();
-            if (room.getSessions().isEmpty()) {
-                log.info("빈 채팅방 정리: chatRoomId={}", room.getChatRoomId());
-                return true;
-            }
-            return false;
-        });
-    }
-
 }

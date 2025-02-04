@@ -1,25 +1,16 @@
 package com.mafia.domain.chat.model.dto;
 
-import com.mafia.domain.chat.model.enumerate.MessageType;
+import com.mafia.domain.chat.model.enumerate.ChatType;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
+@Getter
+@Setter
+public class ChatMessage {
 
-public record ChatMessage(
-    String chatRoomId,
-    MessageType type,
-    String sender,
-    String content,
-    LocalDateTime timestamp
-) {
-
-    // 시스템 메시지 생성을 위한 팩토리 메서드
-    public static ChatMessage systemMessage(String chatRoomId, String content) {
-        return new ChatMessage(
-            chatRoomId,
-            MessageType.SYSTEM,
-            "시스템",
-            content,
-            LocalDateTime.now()
-        );
-    }
+    private long gameId;
+    private int playerNo;
+    private String content;
+    private ChatType chatType;
 }
+
