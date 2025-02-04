@@ -1,0 +1,22 @@
+#infra/docker/rtc/docker-compose.yml
+version: '3.8'
+
+services:
+  openvidu-server:
+    image: openvidu/openvidu-server-kms:latest
+    container_name: openvidu-server
+    restart: always
+    ports:
+      - "4443:4443"
+    environment:
+      - OPENVIDU_SECRET=${OPENVIDU_SECRET}
+      - OPENVIDU_CORS=*
+      - OPENVIDU_RECORDING=false
+      - OPENVIDU_STREAMS_VIDEO=false
+      - OPENVIDU_STREAMS_AUDIO=true
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true
