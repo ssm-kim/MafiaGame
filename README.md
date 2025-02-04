@@ -22,7 +22,11 @@ build때 -x test 옵션 추가
 
 ## 일곱번째 배포 테스트입니다.
 
-.env 파일 못읽음 -> Jenkins credentials db 확인
+.env 파일 못읽음 -> Jenkins credentials db 확인\
+
+## 여덟번째 배포 테스트입니다.
+
+.env 파일 위치 /infra/docker/app
 
 # 서비스 소개
 
