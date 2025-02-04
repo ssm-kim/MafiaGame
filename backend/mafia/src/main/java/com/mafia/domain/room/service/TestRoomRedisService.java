@@ -1,11 +1,13 @@
 package com.mafia.domain.room.service;
 
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ALREADY_HAS_ROOM;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.CANNOT_KICK_HOST;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.HOST_CANNOT_READY;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_ROOM_PASSWORD;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_FULL;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_NOT_FOUND;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.UNAUTHORIZED_HOST_ACTION;
 
 import com.mafia.domain.room.model.entity.Room;
 import com.mafia.domain.room.model.redis.Participant;
@@ -143,6 +145,29 @@ public class TestRoomRedisService {
         roomRedisRepository.save(roomId, roomInfo);
         log.info("방 퇴장 완료: roomId={}, memberId={}, 남은인원={}", roomId, memberId,
             roomInfo.getParticipant().size());
+    }
+
+    /**
+     * 참가자 강퇴 처리
+     *
+     * @param roomId   방 ID
+     * @param hostId   방장 ID (강퇴를 요청한 사람)
+     * @param targetId 강퇴할 참가자 ID
+     * @throws BusinessException UNAUTHORIZED_HOST_ACTION, CANNOT_KICK_HOST, PLAYER_NOT_FOUND
+     */
+    public void kickMember(Long roomId, Long hostId, Long targetId) {
+        log.info("유저 강퇴 시도: roomId={}, hostId={}, targetId={}", roomId, hostId, targetId);
+
+        // 요청한 사람이 방장인지 확인
+        if (!isHost(roomId, hostId)) {
+            throw new BusinessException(UNAUTHORIZED_HOST_ACTION);
+        }
+
+        // 강퇴 대상이 방장인지 확인
+        if (isHost(roomId, targetId)) {
+            throw new BusinessException(CANNOT_KICK_HOST);
+        }
+        leaveRoom(roomId, targetId);
     }
 
     /**
