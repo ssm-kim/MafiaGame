@@ -1,14 +1,14 @@
 package com.mafia.domain.chat.controller;
 
 import com.mafia.domain.chat.model.dto.ChatMessage;
+import com.mafia.domain.chat.model.dto.GetMessageRequest;
 import com.mafia.domain.chat.service.ChatService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
     /*
     TODO:
@@ -18,8 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
      4. 예외 처리
      */
 
-@RestController
-@RequestMapping("/api/chat")
+@Controller
 @RequiredArgsConstructor
 public class ChatController {
 
@@ -28,7 +27,7 @@ public class ChatController {
     /**
      * STOMP를 통한 채팅 메시지 처리
      */
-    @MessageMapping("/send")
+    @MessageMapping("/chat/send")
     public void sendMessage(ChatMessage message) {
         chatService.processChatMessage(message);
     }
@@ -36,11 +35,10 @@ public class ChatController {
     /**
      * 특정 채팅 채널의 최근 채팅 기록 가져오기
      */
-    @GetMapping("/recent")
+    @GetMapping("/chat")
     public List<ChatMessage> getRecentMessages(
-        @RequestParam long gameId,
-        @RequestParam String chatType,
+        GetMessageRequest req,
         @RequestParam int count) {
-        return chatService.getRecentMessages(gameId, chatType, count);
+        return chatService.getRecentMessages(req, count);
     }
 }

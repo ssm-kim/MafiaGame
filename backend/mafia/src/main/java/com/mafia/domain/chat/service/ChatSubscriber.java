@@ -21,21 +21,10 @@ public class ChatSubscriber implements MessageListener {
         String msg = new String(message.getBody());
         String channel = new String(pattern);
 
-        // 🔥 Redis Pub/Sub에서 받은 메시지를 WebSocket으로 전송
-        switch (channel) {
-            case "day-chat":
-                messagingTemplate.convertAndSend("/topic/day-chat", msg);
-                log.info("Sent to WebSocket: /topic/day-chat -> {}", msg);
-                break;
-            case "night-chat":
-                messagingTemplate.convertAndSend("/topic/night-chat", msg);
-                log.info("Sent to WebSocket: /topic/night-chat -> {}", msg);
-                break;
-            case "dead-chat":
-                messagingTemplate.convertAndSend("/topic/dead-chat", msg);
-                log.info("Sent to WebSocket: /topic/dead-chat -> {}", msg);
-                break;
-        }
+        log.info("📩 Redis Message Received: channel={}, message={}", channel, msg);
+
+        // WebSocket을 통해 클라이언트에게 메시지 전달
+        messagingTemplate.convertAndSend("/topic/" + channel, msg);
     }
 }
 
