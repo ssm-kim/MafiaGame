@@ -65,6 +65,7 @@ public enum BaseResponseStatus {
 
     // Chat Error Codes (5000~)
     NOT_FOUND_CHAT(false, HttpStatus.NOT_FOUND, 5001, "채팅방을 찾을 수 없습니다."),
+    NOT_PERMISSION_CHAT(false, HttpStatus.NOT_FOUND, 5002, "해당 채팅방에 접근이 불가합니다."),
 
     // JWT Error Codes (6000~)
     REFRESH_TOKEN_NOT_FOUND(false, HttpStatus.BAD_REQUEST, 6001, "리프레시 토큰을 찾을 수 없습니다."),
