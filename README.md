@@ -20,6 +20,10 @@ sql init 설정완료
 
 build때 -x test 옵션 추가
 
+## 일곱번째 배포 테스트입니다.
+
+.env 파일 못읽음 -> Jenkins credentials db 확인
+
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**
