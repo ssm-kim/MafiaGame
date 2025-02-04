@@ -85,7 +85,6 @@ public class TestRoomController {
         return ResponseEntity.ok(new BaseResponse<>());
     }
 
-    // Void
     @PostMapping("/{roomId}/leave")
     public ResponseEntity<BaseResponse<RoomLeaveResponse>> leaveRoom(
         @PathVariable Long roomId,
@@ -106,6 +105,16 @@ public class TestRoomController {
         RoomLeaveResponse roomLeaveResponse = new RoomLeaveResponse(isHost);
 
         return ResponseEntity.ok(new BaseResponse<>(roomLeaveResponse));
+    }
+
+    // 방장 강제퇴장 기능
+    @PostMapping("/{roomId}/kick")
+    public ResponseEntity<BaseResponse<Void>> kickMember(
+        @PathVariable Long roomId,
+        @RequestParam Long hostId,
+        @RequestParam Long targetId) {
+        TestRoomRedisService.kickMember(roomId, hostId, targetId);
+        return ResponseEntity.ok(new BaseResponse<>());
     }
 
     @PostMapping("/{roomId}/ready")
