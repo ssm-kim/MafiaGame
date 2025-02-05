@@ -32,8 +32,8 @@ public class ChatService {
         log.info("📩 Client Message Received: channel={}, message={}", type, message.getContent());
 
         // 🔹 플레이어 정보 가져오기
-        Player player = gameService.findPlayerByNo(gameId, playerNo);
-        String chatContent = "[" + player.getNickname() + "] " + message.getContent();
+        //Player player = gameService.findPlayerByNo(gameId, playerNo);
+        String chatContent = "[" + "TEST" + "] " + message.getContent();
 
         // 🔥 채팅 권한 확인 후 메시지 저장 & 전송
         String channel;

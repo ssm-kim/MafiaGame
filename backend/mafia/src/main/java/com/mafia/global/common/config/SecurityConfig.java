@@ -3,12 +3,11 @@ package com.mafia.global.common.config;
 import com.mafia.domain.login.filter.JWTFilter;
 import com.mafia.domain.login.handler.CustomSuccessHandler;
 import com.mafia.domain.login.service.CustomOAuth2UserService;
-import com.mafia.domain.login.utils.JWTUtil;
+import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -17,8 +16,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
@@ -30,7 +27,7 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomSuccessHandler customSuccessHandler;
-    private final JWTUtil jwtUtil;
+    private final JWTFilter jwtFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -43,7 +40,7 @@ public class SecurityConfig {
 
         //JWTFilter
         http
-            .addFilterBefore(new JWTFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         //oauth2
         http
             .oauth2Login(oauth2 -> oauth2
@@ -58,7 +55,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/login/**", "/", "/error", "/swagger-ui/**", "/oauth2/**")
                     .permitAll()
                 .requestMatchers("/reissue")
-                    .permitAll().anyRequest().permitAll());
+                    .permitAll()
+                .anyRequest().permitAll());
                     //.anyRequest().authenticated()); //TODO : 개발 완료 시 처리
 
         //세션 설정 : STATELESS
