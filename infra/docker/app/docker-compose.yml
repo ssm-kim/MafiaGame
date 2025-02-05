@@ -1,6 +1,4 @@
 #infra/docker/app/docker-compose.yml
-version: '3.8'
-
 services:
   blue:
     build:
@@ -9,9 +7,6 @@ services:
       args:
         - PROFILE=blue
     container_name: blue
-    depends_on:
-      mysql:
-        condition: service_healthy
     ports:
       - "8081:8081"
     environment:
@@ -31,9 +26,6 @@ services:
       args:
         - PROFILE=green
     container_name: green
-    depends_on:
-      mysql:
-        condition: service_healthy
     ports:
       - "8082:8082"
     environment:
