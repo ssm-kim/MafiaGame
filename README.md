@@ -54,6 +54,10 @@ git 브랜치가 master로 되어있는거 확인-> dev_BE로 수정
 
 blue,green에 depends_on mysql 제거(이미 컨테이너 실행중)
 
+## 열여섯번째 배포 테스트
+
+컨테이너는 생성 -> 실행 에러 ARG PROFILE 인식이 안됨 -> profile
+
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**
