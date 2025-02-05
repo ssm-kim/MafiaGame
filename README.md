@@ -58,6 +58,10 @@ blue,green에 depends_on mysql 제거(이미 컨테이너 실행중)
 
 컨테이너는 생성 -> 실행 에러 ARG PROFILE 인식이 안됨 -> profile
 
+## 열일곱번째 배포 테스트
+
+현재는 파일의 경로만 저장되어 있고 실제 내용이 복사되지 않음. -> pipeline 수정
+
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**
