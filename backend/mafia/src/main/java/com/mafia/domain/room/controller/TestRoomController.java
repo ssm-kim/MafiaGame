@@ -135,7 +135,6 @@ public class TestRoomController {
         }
 
         RoomInfo roomInfo = TestRoomRedisService.findById(roomId);
-        roomInfo.setRoomStatus(true);
         int currentPlayers = roomInfo.getParticipant().size();
 
         // 참가자 수 체크
@@ -148,10 +147,17 @@ public class TestRoomController {
             throw new BusinessException(NOT_ALL_READY);
         }
 
+        roomInfo.setRoomStatus(true);
+        return ResponseEntity.ok(new BaseResponse<>(roomInfo));
+    }
+
+    @PostMapping("/{roomId}/game-start")
+    public ResponseEntity<BaseResponse<Void>> initializeGame(@PathVariable Long roomId) {
+
         // 게임 시작
         gameService.startGame(roomId);
 
-        return ResponseEntity.ok(new BaseResponse<>(roomInfo));
+        return ResponseEntity.ok(new BaseResponse<>());
     }
 
 }

@@ -21,14 +21,18 @@ import com.mafia.domain.game.model.game.GamePhase;
 import com.mafia.domain.game.model.game.Player;
 import com.mafia.domain.game.model.game.Role;
 import com.mafia.domain.game.model.game.STATUS;
+import com.mafia.domain.game.model.pos.PlayerPosition;
 import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
 import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.service.RoomRedisService;
 import com.mafia.global.common.exception.exception.BusinessException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -40,6 +44,8 @@ import org.springframework.stereotype.Service;
 public class GameService {
 
     private final RoomRedisService roomService;
+    private final GamePositionService positionService;
+    private final SimpMessagingTemplate messagingTemplate;
     private final GameRepository gameRepository; // 게임 데이터를 관리하는 리포지토리
     private final GameSeqRepository gameSeqRepository; // 게임 상태 및 시간 정보를 관리하는 리포지토리
     private final VoiceService voiceService; // 🔥 OpenVidu 연동 추가
@@ -115,6 +121,32 @@ public class GameService {
 
         // 게임에 참가할 플레이어를 추가한다.
         roominfo.getParticipant().values().forEach(game::addPlayer);
+
+        // STOMP 웹 소켓 연결 각 멤버마다
+        // 2. 게임 시작 알림을 방의 모든 참가자에게 전송
+        System.out.println(":###############");
+        messagingTemplate.convertAndSend("/topic/game/" + roomId + "/start", roominfo);
+
+        // 3. 참가자들의 초기 위치 설정
+        Map<Long, PlayerPosition> initialPositions = new HashMap<>();
+        roominfo.getParticipant().forEach((id, participant) -> {
+            PlayerPosition position = new PlayerPosition(
+                participant.getMemberId(),
+                "player",
+                300.0,  // 초기 X 좌표
+                200.0,  // 초기 Y 좌표
+                0.0,    // 초기 velocityX
+                0.0,    // 초기 velocityY
+                "right" // 초기 방향
+            );
+            initialPositions.put(participant.getMemberId(), position);
+        });
+
+        // 4. 초기 위치 정보 저장
+        positionService.initGamePositions(roomId, initialPositions);
+
+        log.info("Game started for room {} with {} players", roomId,
+            roominfo.getParticipant().size());
 
         return game;
     }

@@ -10,6 +10,10 @@ import lombok.NoArgsConstructor;
 public class PlayerPosition {
 
     private Long memberId;
+    private String character;
     private double x;
     private double y;
+    private double velocityX;
+    private double velocityY;
+    private String lastDirection;
 }

@@ -13,12 +13,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/mafia-chat-ws") // 클라이언트가 연결할 WebSocket 엔드포인트
-            .setAllowedOriginPatterns("*")
-            .withSockJS(); // SockJS 지원
+            .setAllowedOriginPatterns("*");
+        // .withSockJS(); // SockJS 지원
 
         registry.addEndpoint("/mafia-game-ws")  // 게임 위치 전용 엔드포인트
-            .setAllowedOriginPatterns("*")
-            .withSockJS();
+            .setAllowedOriginPatterns("*");
+        // .withSockJS();
     }
 
     @Override
