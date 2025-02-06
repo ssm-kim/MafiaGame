@@ -2,6 +2,11 @@
 
 error : Invalid tool ID NodeJS 22.13.0
 
+# 2번째 배포 테스트
+
+error : Invalid tool ID NodeJS 22.13.0
+plugin에서 잡아주질 못함.
+
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**
