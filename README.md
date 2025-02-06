@@ -15,6 +15,12 @@ Cannot find module '@/types/player'
 
 ->  npm build --force로 변경
 
+# 4번째 배포 테스트
+
+error : 위와 동일
+->
+CI=false npm run build
+
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**
