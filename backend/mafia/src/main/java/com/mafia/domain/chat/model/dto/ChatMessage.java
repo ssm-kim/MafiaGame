@@ -9,7 +9,6 @@ import lombok.Setter;
 public class ChatMessage {
 
     private long gameId;
-    private int playerNo;
     private String content;
     private ChatType chatType;
 }

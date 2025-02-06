@@ -2,6 +2,8 @@ package com.mafia.domain.game.model.game;
 
 import com.mafia.domain.room.model.redis.Participant;
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,6 +24,9 @@ public class Player {
         "MUTANT", "POLICE", "PLAGUE_DOCTOR"})
     private Role role;
 
+    @Schema(description = "플레이어 채팅방 구독 목록", example = "room-1-day-chat")
+    private Set<String> subscriptions;
+
     @Schema(description = "플레이어의 사망 여부", example = "false")
     private boolean isDead;
 
@@ -38,9 +43,23 @@ public class Player {
         this.memberId = participant.getMemberId();
         this.nickname = participant.getNickName();
         this.role = Role.CITIZEN;
+        this.subscriptions = new HashSet<>();
         this.isDead = false;
         this.enableVote = true;
         this.muteAudio = false;
         this.muteMic = false;
+    }
+
+    public void subscribe(String channel) {
+        subscriptions.add(channel);
+    }
+
+    public boolean isSubscribed(String channel) {
+        return subscriptions.contains(channel);
+    }
+
+    public void updateSubscriptionsOnDeath(Long roomId) {
+        subscribe("game-" + roomId + "-night-chat");
+        subscribe("game-" + roomId + "-dead-chat");
     }
 }

@@ -7,6 +7,7 @@ import com.mafia.domain.chat.service.ChatService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,8 +31,8 @@ public class ChatController {
      * STOMP를 통한 채팅 메시지 처리
      */
     @MessageMapping("/chat/send")
-    public void sendMessage(ChatMessage message, @AuthenticationPrincipal StompPrincipal detail) {
-        chatService.processChatMessage(message, Long.valueOf(detail.getName()));
+    public void sendMessage(@Payload ChatMessage message, @AuthenticationPrincipal StompPrincipal detail) {
+        chatService.sendMessage(message, Long.valueOf(detail.getName()));
     }
 
     /**

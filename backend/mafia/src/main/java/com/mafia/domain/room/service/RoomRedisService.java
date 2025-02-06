@@ -125,6 +125,7 @@ public class RoomRedisService {
 
         // 참가자 추가 및 Redis 저장
         roomInfo.getParticipant().put(memberId, participant);
+
         roomRedisRepository.save(roomId, roomInfo);
         log.info("방 입장 완료: roomId={}, memberId={}, 닉네임={}", roomId, memberId,
             memberInfo.getNickname());

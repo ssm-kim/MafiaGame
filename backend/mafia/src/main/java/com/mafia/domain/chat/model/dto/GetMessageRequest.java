@@ -8,6 +8,5 @@ import lombok.Setter;
 @Setter
 public class GetMessageRequest {
     private long gameId;
-    private int playerNo;
     private ChatType chatType;
 }

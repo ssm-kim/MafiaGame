@@ -62,7 +62,7 @@ public class GameService {
      * 게임 조회
      *
      * @param gameId   방 ID
-     * @param playerNo 플레이어 번호
+     * @param memberId 플레이어 번호
      * @return 플레이어 객체
      */
     public Player findMemberByGame(long gameId, Long memberId) {
@@ -100,7 +100,7 @@ public class GameService {
             log.info("OpenVidu Session {} created for Game {}", sessionId, roomId);
 
             // 🔥 모든 플레이어에게 토큰 발급
-            for (Integer playerId : game.getPlayers().keySet()) {
+            for (Long playerId : game.getPlayers().keySet()) {
                 String token = voiceService.generateToken(roomId, playerId);
                 log.info("Token issued for Player {}: {}", playerId, token);
             }
@@ -156,7 +156,7 @@ public class GameService {
      * @param targetNo 투표 대상 사용자 ID
      * @throws BusinessException 유효하지 않은 투표 조건일 경우 예외 발생
      */
-    public void vote(long gameId, Integer playerNo, Integer targetNo) { // 투표 sync 고려
+    public void vote(long gameId, Long playerNo, Long targetNo) { // 투표 sync 고려
         Game game = findById(gameId);
         if (game != null) {
             if (targetNo == -1) // 기권 처리
@@ -168,7 +168,7 @@ public class GameService {
                 throw new BusinessException(DEAD_CANNOT_VOTE);
             }
             if (game.getPlayers().get(targetNo).isDead()) {
-                game.vote(playerNo, -1);
+                game.vote(playerNo, -1L);
                 throw new BusinessException(TARGET_IS_DEAD);
             }
             if (game.getPlayers().get(playerNo).getRole() == Role.POLICE && !game.getPlayers()
@@ -194,14 +194,14 @@ public class GameService {
      * @param gameId 방 ID
      * @return 투표 결과 대상 ID
      */
-    public Integer getVoteResult(long gameId) {
-        int target = findById(gameId).voteResult();
+    public Long getVoteResult(long gameId) {
+        long target = findById(gameId).voteResult();
 
         if (target == -1) {
             gameEventPublisher.publishVoteResult(
                 "Game[" + gameId + "] VoteResult: -1");
             log.info("[Game{}] No one is selected", gameId);
-            return -1;
+            return -1L;
         } else {
             gameEventPublisher.publishVoteResult(
                 "Game[" + gameId + "] VoteResult: " + target);
@@ -218,7 +218,7 @@ public class GameService {
      * @param isVote   투표로 사망 여부 (true: 투표로 사망, false: 밤 페이즈 사망)
      * @return 사망 여부
      */
-    public boolean killPlayer(long gameId, Integer playerNo, boolean isVote) {
+    public boolean killPlayer(long gameId, Long playerNo, boolean isVote) {
         Game game = findById(gameId);
         if (game.getPlayers().get(playerNo).isDead()) {
             throw new BusinessException(TARGET_IS_DEAD);
@@ -241,7 +241,7 @@ public class GameService {
      * @param targetNo 보호할 대상 사용자 ID
      * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
      */
-    public void healPlayer(long gameId, Integer playerNo, Integer targetNo) {
+    public void healPlayer(long gameId, Long playerNo, Long targetNo) {
         Game game = findById(gameId);
         if (game.getPlayers().get(playerNo).getRole() != Role.PLAGUE_DOCTOR) {
             throw new BusinessException(NOT_DOCTOR_HEAL);
@@ -265,7 +265,7 @@ public class GameService {
      * @return 대상 사용자의 역할
      * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
      */
-    public Role findRole(long gameId, Integer playerNo, Integer targetNo) {
+    public Role findRole(long gameId, Long playerNo, Long targetNo) {
         Game game = findById(gameId);
         if (game.getPlayers().get(playerNo).getRole() != Role.POLICE) {
             throw new BusinessException(NOT_POLICE_FIND_ROLE);
@@ -288,7 +288,7 @@ public class GameService {
      * @param targetNo 죽일 사용자 ID
      * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
      */
-    public void setKillTarget(long gameId, Integer playerNo, Integer targetNo) {
+    public void setKillTarget(long gameId, Long playerNo, Long targetNo) {
         Game game = findById(gameId);
         Role myrole = game.getPlayers().get(playerNo).getRole();
         if (myrole != Role.ZOMBIE && myrole != Role.MUTANT) {
@@ -298,7 +298,7 @@ public class GameService {
             throw new BusinessException(TARGET_IS_DEAD);
         }
 
-        game.setKillTarget(targetNo);
+        game.setKillTarget(playerNo, targetNo);
 
         log.info("[Game{}] Player {} set the target of {}", gameId, targetNo, myrole);
         gameRepository.save(game);

@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
@@ -47,41 +46,9 @@ public class RedisConfig {
 
     // 🔥 Redis Pub/Sub 설정 추가
     // 🔥 채팅 채널 설정
-    @Bean
-    public ChannelTopic dayChatTopic() {
-        return new ChannelTopic("day-chat");
-    }
 
-    @Bean
-    public ChannelTopic nightChatTopic() {
-        return new ChannelTopic("night-chat");
-    }
-
-    @Bean
-    public ChannelTopic deadChatTopic() {
-        return new ChannelTopic("dead-chat");
-    }
-
-//    @Bean
-//    public ChannelTopic roomChatTopic() {
-//        return new ChannelTopic("room-chat");
-//    }
 
     // 🔥 게임 이벤트 채널 설정
-    @Bean
-    public ChannelTopic gamePhaseTopic() {
-        return new ChannelTopic("game-phase");
-    }
-
-    @Bean
-    public ChannelTopic voteResultTopic() {
-        return new ChannelTopic("vote-result");
-    }
-
-    @Bean
-    public ChannelTopic roundResultTopic() {
-        return new ChannelTopic("round-result");
-    }
 
 
     // 🔥 Redis 메시지 리스너 설정
@@ -90,14 +57,6 @@ public class RedisConfig {
         MessageListenerAdapter listenerAdapter) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-        container.addMessageListener(listenerAdapter, dayChatTopic());
-        container.addMessageListener(listenerAdapter, nightChatTopic());
-        container.addMessageListener(listenerAdapter, deadChatTopic());
-        //container.addMessageListener(listenerAdapter, roomChatTopic());
-
-        container.addMessageListener(listenerAdapter, gamePhaseTopic());
-        container.addMessageListener(listenerAdapter, voteResultTopic());
-        container.addMessageListener(listenerAdapter, roundResultTopic());
         return container;
     }
 
