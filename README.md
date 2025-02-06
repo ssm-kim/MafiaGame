@@ -7,6 +7,14 @@ error : Invalid tool ID NodeJS 22.13.0
 error : Invalid tool ID NodeJS 22.13.0
 plugin에서 잡아주질 못함.
 
+# 3번째 배포 테스트
+
+error : 빌드에서 TypeScript 오류, 경로, 타입 오류 등등
+Cannot find module '@/../frontend/mafia/src/api/axios'
+Cannot find module '@/types/player'
+
+->  npm build --force로 변경
+
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**
