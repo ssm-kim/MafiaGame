@@ -1,11 +1,13 @@
 package com.mafia.domain.chat.controller;
 
+import com.mafia.domain.chat.model.StompPrincipal;
 import com.mafia.domain.chat.model.dto.ChatMessage;
 import com.mafia.domain.chat.model.dto.GetMessageRequest;
 import com.mafia.domain.chat.service.ChatService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,8 +30,8 @@ public class ChatController {
      * STOMP를 통한 채팅 메시지 처리
      */
     @MessageMapping("/chat/send")
-    public void sendMessage(ChatMessage message) {
-        chatService.processChatMessage(message);
+    public void sendMessage(ChatMessage message, @AuthenticationPrincipal StompPrincipal detail) {
+        chatService.processChatMessage(message, Long.valueOf(detail.getName()));
     }
 
     /**
@@ -38,7 +40,7 @@ public class ChatController {
     @GetMapping("/chat")
     public List<ChatMessage> getRecentMessages(
         GetMessageRequest req,
-        @RequestParam int count) {
-        return chatService.getRecentMessages(req, count);
+        @RequestParam int count, @AuthenticationPrincipal StompPrincipal detail) {
+        return chatService.getRecentMessages(req, count, Long.valueOf(detail.getName()));
     }
 }

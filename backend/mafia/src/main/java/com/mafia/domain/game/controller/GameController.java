@@ -6,11 +6,13 @@ import com.mafia.domain.game.model.game.Player;
 import com.mafia.domain.game.model.game.Role;
 import com.mafia.domain.game.model.game.STATUS;
 import com.mafia.domain.game.service.GameService;
+import com.mafia.domain.login.model.dto.AuthenticatedUser;
 import com.mafia.global.common.model.dto.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -44,11 +46,11 @@ public class GameController {
         return ResponseEntity.ok(new BaseResponse<>(game));
     }
 
-    @GetMapping("/{roomId}/player/{playerNo}")
+    @GetMapping("/{roomId}/player")
     @Operation(summary = "Get game", description = "플레이어의 정보를 가져옵니다.")
     public ResponseEntity<BaseResponse<Player>> getGame(@PathVariable Long roomId,
-        @PathVariable Integer playerNo) {
-        Player player = gameService.findPlayerByNo(roomId, playerNo);
+        @AuthenticationPrincipal AuthenticatedUser detail) {
+        Player player = gameService.findMemberByGame(roomId, detail.getMemberId());
         return ResponseEntity.ok(new BaseResponse<>(player));
     }
 

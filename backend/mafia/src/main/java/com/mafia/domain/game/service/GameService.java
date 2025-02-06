@@ -26,6 +26,7 @@ import com.mafia.domain.game.repository.GameSeqRepository;
 import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.service.RoomRedisService;
 import com.mafia.global.common.exception.exception.BusinessException;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,9 +65,12 @@ public class GameService {
      * @param playerNo 플레이어 번호
      * @return 플레이어 객체
      */
-    public Player findPlayerByNo(long gameId, int playerNo) {
+    public Player findMemberByGame(long gameId, Long memberId) {
         Game game = findById(gameId);
-        return game.getPlayers().get(playerNo);
+        return game.getPlayers().values().stream()
+            .filter(player -> player.getMemberId().equals(memberId))
+            .findFirst()
+            .orElseThrow(() -> new NoSuchElementException("해당 멤버 ID를 가진 플레이어를 찾을 수 없습니다."));
     }
 
     /**

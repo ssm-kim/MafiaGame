@@ -56,6 +56,7 @@ public class SecurityConfig {
                     .permitAll()
                 .requestMatchers("/reissue")
                     .permitAll()
+                .requestMatchers("/ws-mafia").authenticated()
                 .anyRequest().permitAll());
                     //.anyRequest().authenticated()); //TODO : 개발 완료 시 처리
 

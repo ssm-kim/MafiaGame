@@ -1,8 +1,8 @@
 package com.mafia.domain.login.controller;
 
 
-import com.mafia.domain.login.model.dto.CustomOAuth2User;
-import com.mafia.domain.login.utils.CookieUtil;
+import com.mafia.domain.login.model.dto.AuthenticatedUser;
+import com.mafia.global.common.utils.CookieUtil;
 import com.mafia.domain.member.model.dto.response.MemberResponse;
 import com.mafia.domain.member.service.MemberService;
 import com.mafia.global.common.model.dto.BaseResponse;
@@ -18,8 +18,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.mafia.global.common.model.dto.BaseResponseStatus.AUTHORIZATION_SUCCESS;
-
 @Slf4j
 @RestController
 @RequestMapping("/api")
@@ -31,14 +29,14 @@ public class LoginController {
     private final CookieUtil cookieUtil;
 
     @GetMapping("/login/success")
-    public ResponseEntity<BaseResponse<MemberResponse>> loginSuccess(@AuthenticationPrincipal CustomOAuth2User detail) {
+    public ResponseEntity<BaseResponse<MemberResponse>> loginSuccess(@AuthenticationPrincipal AuthenticatedUser detail) {
         MemberResponse memberResponse = memberService.getMemberInfo(detail.getMemberId());
 
         return ResponseEntity.ok(new BaseResponse<>(memberResponse));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<BaseResponse<Void>> logout(@AuthenticationPrincipal CustomOAuth2User detail,
+    public ResponseEntity<BaseResponse<Void>> logout(@AuthenticationPrincipal AuthenticatedUser detail,
     HttpServletResponse response) {
         // Redis에서 Refresh 토큰 제거
         String providerId = detail.getProviderId();

@@ -1,4 +1,4 @@
-package com.mafia.domain.login.utils;
+package com.mafia.global.common.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

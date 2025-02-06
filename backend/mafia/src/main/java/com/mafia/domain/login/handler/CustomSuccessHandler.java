@@ -1,15 +1,14 @@
 package com.mafia.domain.login.handler;
 
-import com.mafia.domain.login.utils.AuthenticationUtil;
-import com.mafia.domain.login.utils.CookieUtil;
-import com.mafia.domain.login.utils.JWTUtil;
+import com.mafia.global.common.utils.AuthenticationUtil;
+import com.mafia.global.common.utils.CookieUtil;
+import com.mafia.global.common.utils.JWTUtil;
 import com.mafia.global.common.service.RedisService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;

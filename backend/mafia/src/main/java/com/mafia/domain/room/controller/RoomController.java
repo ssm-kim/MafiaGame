@@ -5,7 +5,7 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_COUNT_
 import static com.mafia.global.common.model.dto.BaseResponseStatus.UNAUTHORIZED_ACCESS;
 
 import com.mafia.domain.game.service.GameService;
-import com.mafia.domain.login.model.dto.CustomOAuth2User;
+import com.mafia.domain.login.model.dto.AuthenticatedUser;
 import com.mafia.domain.room.model.RoomIdResponse;
 import com.mafia.domain.room.model.RoomLeaveResponse;
 import com.mafia.domain.room.model.RoomRequest;
@@ -51,7 +51,7 @@ public class RoomController {
     @PostMapping
     public ResponseEntity<BaseResponse<RoomIdResponse>> createRoom(
         @RequestBody RoomRequest roomRequest,
-        @AuthenticationPrincipal CustomOAuth2User detail
+        @AuthenticationPrincipal AuthenticatedUser detail
     ) {
         RoomIdResponse response = roomDbService.createRoom(roomRequest, detail.getMemberId());
 
@@ -76,7 +76,7 @@ public class RoomController {
     @PostMapping("/{roomId}/enter")
     public ResponseEntity<BaseResponse<Void>> enterRoom(
         @PathVariable Long roomId,
-        @AuthenticationPrincipal CustomOAuth2User detail,
+        @AuthenticationPrincipal AuthenticatedUser detail,
         @RequestBody(required = false) RoomRequest roomRequest) {
 
         String password = (roomRequest != null ? roomRequest.getRoomPassword() : null);
@@ -88,7 +88,7 @@ public class RoomController {
     @PostMapping("/{roomId}/leave")
     public ResponseEntity<BaseResponse<RoomLeaveResponse>> leaveRoom(
         @PathVariable Long roomId,
-        @AuthenticationPrincipal CustomOAuth2User detail) {
+        @AuthenticationPrincipal AuthenticatedUser detail) {
 
         // 호스트 여부 체크
         boolean isHost = roomRedisService.isHost(roomId, detail.getMemberId());
@@ -120,7 +120,7 @@ public class RoomController {
     @PostMapping("/{roomId}/ready")
     public ResponseEntity<BaseResponse<Void>> toggleReady(
         @PathVariable Long roomId,
-        @AuthenticationPrincipal CustomOAuth2User detail) {
+        @AuthenticationPrincipal AuthenticatedUser detail) {
         roomRedisService.toggleReady(roomId, detail.getMemberId());
         return ResponseEntity.ok(new BaseResponse<>());
     }
@@ -128,7 +128,7 @@ public class RoomController {
     @PostMapping("/{roomId}/start")
     public ResponseEntity<BaseResponse<RoomInfo>> startGame(
         @PathVariable Long roomId,
-        @AuthenticationPrincipal CustomOAuth2User detail) {
+        @AuthenticationPrincipal AuthenticatedUser detail) {
 
         // 호스트 체크
         if (!roomRedisService.isHost(roomId, detail.getMemberId())) {

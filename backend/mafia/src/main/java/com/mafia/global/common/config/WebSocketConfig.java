@@ -17,7 +17,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final StompHandler stompHandler;
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-maifa") // 클라이언트가 연결할 WebSocket 엔드포인트
+        registry.addEndpoint("/ws-mafia") // 클라이언트가 연결할 WebSocket 엔드포인트
             .setAllowedOriginPatterns("*");
     }
 
