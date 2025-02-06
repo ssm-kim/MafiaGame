@@ -6,11 +6,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ChatMessage {
-
+public class GetMessageRequest {
     private long gameId;
     private int playerNo;
-    private String content;
     private ChatType chatType;
 }
-

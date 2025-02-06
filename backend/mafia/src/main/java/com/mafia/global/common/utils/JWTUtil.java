@@ -1,13 +1,13 @@
-package com.mafia.domain.login.utils;
+package com.mafia.global.common.utils;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Component
 public class JWTUtil {
@@ -61,4 +61,31 @@ public class JWTUtil {
             .signWith(secretKey)
             .compact();
     }
+
+    public boolean validateToken(String token) {
+
+
+        try {
+            // 토큰 만료 및 유효성 검증
+            Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token);
+            System.out.println("Token valid: "+ !isExpired(token));
+            return !isExpired(token);
+        } catch (Exception e) {
+            e.getStackTrace();
+            return false;
+        }
+    }
+
+
+    public Claims parseToken(String token) {
+        return Jwts.parser()
+            .verifyWith(secretKey)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload();
+    }
+
 }

@@ -1,7 +1,21 @@
 package com.mafia.domain.game.service;
 
-import static com.mafia.global.common.model.dto.BaseResponseStatus.*;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.CANNOT_KILL_ROLE;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.DEAD_CANNOT_VOTE;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_ALREADY_START;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_NOT_FOUND;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_TIME_OVER;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_PHASE;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.MEDICAL_COUNT_ZERO;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.MUTANT_CANNOT_VOTE;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_DOCTOR_HEAL;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_POLICE_FIND_ROLE;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.PHASE_NOT_FOUND;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.POLICE_CANNOT_VOTE;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.TARGET_IS_DEAD;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.UNKNOWN_PHASE;
 
+import com.mafia.domain.game.event.GameEventPublisher;
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
 import com.mafia.domain.game.model.game.Player;
@@ -9,12 +23,10 @@ import com.mafia.domain.game.model.game.Role;
 import com.mafia.domain.game.model.game.STATUS;
 import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
-import com.mafia.domain.room.model.redis.Participant;
 import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.service.RoomRedisService;
 import com.mafia.global.common.exception.exception.BusinessException;
-
-import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +44,7 @@ public class GameService {
     private final GameRepository gameRepository; // 게임 데이터를 관리하는 리포지토리
     private final GameSeqRepository gameSeqRepository; // 게임 상태 및 시간 정보를 관리하는 리포지토리
     private final VoiceService voiceService; // 🔥 OpenVidu 연동 추가
+    private final GameEventPublisher gameEventPublisher; // Game Websocket
 
     /**
      * 게임 조회
@@ -52,9 +65,12 @@ public class GameService {
      * @param playerNo 플레이어 번호
      * @return 플레이어 객체
      */
-    public Player findPlayerByNo(long gameId, int playerNo) {
+    public Player findMemberByGame(long gameId, Long memberId) {
         Game game = findById(gameId);
-        return game.getPlayers().get(playerNo);
+        return game.getPlayers().values().stream()
+            .filter(player -> player.getMemberId().equals(memberId))
+            .findFirst()
+            .orElseThrow(() -> new NoSuchElementException("해당 멤버 ID를 가진 플레이어를 찾을 수 없습니다."));
     }
 
     /**
@@ -106,6 +122,7 @@ public class GameService {
 
         return game;
     }
+
 
     /**
      * 게임 삭제
@@ -179,10 +196,15 @@ public class GameService {
      */
     public Integer getVoteResult(long gameId) {
         int target = findById(gameId).voteResult();
+
         if (target == -1) {
+            gameEventPublisher.publishVoteResult(
+                "Game[" + gameId + "] VoteResult: -1");
             log.info("[Game{}] No one is selected", gameId);
             return -1;
         } else {
+            gameEventPublisher.publishVoteResult(
+                "Game[" + gameId + "] VoteResult: " + target);
             log.info("[Game{}] Target is {}", gameId, target);
             return target;
         }

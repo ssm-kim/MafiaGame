@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Map;
 
 @RequiredArgsConstructor
-public class CustomOAuth2User implements OAuth2User {
+public class AuthenticatedUser implements OAuth2User {
 
     private final MemberDTO memberDTO;
 
@@ -40,4 +40,5 @@ public class CustomOAuth2User implements OAuth2User {
     public Long getMemberId() {
         return memberDTO.getMemberId();
     }
+
 }

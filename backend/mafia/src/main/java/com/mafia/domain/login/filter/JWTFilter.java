@@ -1,7 +1,7 @@
 package com.mafia.domain.login.filter;
 
-import com.mafia.domain.login.model.dto.CustomOAuth2User;
-import com.mafia.domain.login.utils.JWTUtil;
+import com.mafia.domain.login.model.dto.AuthenticatedUser;
+import com.mafia.global.common.utils.JWTUtil;
 import com.mafia.domain.member.model.dto.MemberDTO;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -13,12 +13,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
 @Slf4j
 @RequiredArgsConstructor
+@Component
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
@@ -48,11 +50,11 @@ public class JWTFilter extends OncePerRequestFilter {
             .build();
 
         // Spring Security 인증 객체 생성 및 설정
-        CustomOAuth2User customOAuth2User = new CustomOAuth2User(memberDTO);
+        AuthenticatedUser authenticatedUser = new AuthenticatedUser(memberDTO);
         Authentication authToken = new UsernamePasswordAuthenticationToken(
-            customOAuth2User,
+            authenticatedUser,
             null,
-            customOAuth2User.getAuthorities()
+            authenticatedUser.getAuthorities()
         );
 
         SecurityContextHolder.getContext().setAuthentication(authToken);

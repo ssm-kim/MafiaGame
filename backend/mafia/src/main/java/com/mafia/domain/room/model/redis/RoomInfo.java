@@ -21,9 +21,6 @@ public class RoomInfo {
     private Map<Long, Participant> participant;  // key: member_id, value: 해당방에 들어간 참가자들
     private int requiredPlayers;
     private GameOption gameOption;
-    private String dayChatId;
-    private String mafiaChatId;
-    private String deadChatId;
 
     public RoomInfo(Long roomId, Long hostId) {
         this.hostId = hostId;

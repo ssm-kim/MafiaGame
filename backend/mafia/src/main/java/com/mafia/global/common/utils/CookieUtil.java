@@ -1,4 +1,4 @@
-package com.mafia.domain.login.utils;
+package com.mafia.global.common.utils;
 
 import jakarta.servlet.http.Cookie;
 import org.springframework.stereotype.Component;

@@ -1,32 +1,34 @@
 package com.mafia.global.common.config;
 
-import com.mafia.domain.chat.handler.CustomChatWebSocketHandler;
-import com.mafia.domain.chat.service.ChatService;
+import com.mafia.global.common.handler.StompHandler;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
-import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
-import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
-import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
+import org.springframework.messaging.simp.config.ChannelRegistration;
+import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
+import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 @Configuration
-@EnableWebSocket
+@EnableWebSocketMessageBroker
 @RequiredArgsConstructor
-public class WebSocketConfig implements WebSocketConfigurer {
+public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private final ChatService chatService;
-
+    private final StompHandler stompHandler;
     @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(webSocketHandler(), "/mafia")
-            .addInterceptors(new HttpSessionHandshakeInterceptor())
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/ws-mafia") // 클라이언트가 연결할 WebSocket 엔드포인트
             .setAllowedOriginPatterns("*");
     }
 
-    @Bean
-    public WebSocketHandler webSocketHandler() {
-        return new CustomChatWebSocketHandler(chatService);
+    @Override
+    public void configureMessageBroker(MessageBrokerRegistry registry) {
+        registry.enableSimpleBroker("/topic"); // 🔥 클라이언트가 구독할 경로
+        registry.setApplicationDestinationPrefixes("/app"); // 🔥 클라이언트가 메시지를 보낼 경로
+    }
+
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(stompHandler);
     }
 }
