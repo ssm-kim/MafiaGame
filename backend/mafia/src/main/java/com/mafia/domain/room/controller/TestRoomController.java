@@ -65,6 +65,13 @@ public class TestRoomController {
         return ResponseEntity.ok(new BaseResponse<>());
     }
 
+    @GetMapping("/{roomId}")
+    public ResponseEntity<BaseResponse<RoomInfo>> getRoom(
+        @PathVariable Long roomId) {
+        RoomInfo targetRoom = TestRoomRedisService.findById(roomId);
+        return ResponseEntity.ok(new BaseResponse<>(targetRoom));
+    }
+
     @GetMapping
     public ResponseEntity<BaseResponse<List<RoomResponse>>> getAllRooms() {
         List<RoomResponse> rooms = roomDbService.getAllRooms();

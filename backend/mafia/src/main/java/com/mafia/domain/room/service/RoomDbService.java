@@ -85,6 +85,7 @@ public class RoomDbService {
             roomResponse.setPeopleCnt(allRoomInfo.getOrDefault(room.getRoomId(), 0));
             roomList.add(roomResponse);
         }
+
         return roomList;
     }
 
