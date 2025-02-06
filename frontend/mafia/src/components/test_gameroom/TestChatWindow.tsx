@@ -1,19 +1,19 @@
 import React from 'react';
 import { ChatMessage } from '@/types/chat';
 
-interface ChatWindowProps {
+interface TestChatWindowProps {
   messages: ChatMessage[];
   newMessage: string;
   onMessageChange: (message: string) => void;
   onSendMessage: (e: React.FormEvent) => void;
 }
 
-function ChatWindow({
+function TestChatWindow({
   messages,
   newMessage,
   onMessageChange,
   onSendMessage,
-}: ChatWindowProps): JSX.Element {
+}: TestChatWindowProps): JSX.Element {
   return (
     <div className="w-80 flex flex-col bg-gray-900 bg-opacity-90 rounded-lg border border-gray-800">
       <div className="p-3 border-b border-gray-800">
@@ -62,4 +62,4 @@ function ChatWindow({
   );
 }
 
-export default ChatWindow;
+export default TestChatWindow;
