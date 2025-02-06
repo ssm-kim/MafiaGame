@@ -58,8 +58,8 @@ public class Player {
         return subscriptions.contains(channel);
     }
 
-    public void updateSubscriptionsOnDeath(Long roomId) {
-        subscribe("game-" + roomId + "-night-chat");
-        subscribe("game-" + roomId + "-dead-chat");
+    public void updateSubscriptionsOnDeath(Long gameId) {
+        subscribe("game-" + gameId + "-night-chat");
+        subscribe("game-" + gameId + "-dead-chat");
     }
 }

@@ -15,6 +15,7 @@ import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.repository.RoomRedisRepository;
 import com.mafia.domain.room.repository.RoomRepository;
 import com.mafia.global.common.exception.exception.BusinessException;
+import com.mafia.global.common.service.RoomSubscription;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -32,7 +33,7 @@ public class TestRoomRedisService {
 
     private final RoomRedisRepository roomRedisRepository;
     private final RoomRepository roomRepository;
-    // private final MemberService memberService;
+    private final RoomSubscription subscription;
 
     /**
      * Redis에서 방 정보 조회
@@ -63,6 +64,7 @@ public class TestRoomRedisService {
         host.setNickName("테스트유저" + hostId);
 
         roomInfo.getParticipant().put(hostId, host);
+        subscription.subscribe(roomId);
         roomRedisRepository.save(roomId, roomInfo);
         log.info("방 생성 완료: roomId={}, 방장닉네임={}", roomId, host.getNickName());
     }
@@ -78,6 +80,7 @@ public class TestRoomRedisService {
 
     public void deleteById(Long roomId) {
         log.info("방 삭제 : roomId={}", roomId);
+        subscription.unsubscribe(roomId);
         roomRedisRepository.delete(roomId);
     }
 
@@ -136,7 +139,7 @@ public class TestRoomRedisService {
 
         // 방장 퇴장인 경우 방 삭제
         if (isHost(roomId, memberId)) {
-            roomRedisRepository.delete(roomId);
+            deleteById(roomId);
             return;
         }
 

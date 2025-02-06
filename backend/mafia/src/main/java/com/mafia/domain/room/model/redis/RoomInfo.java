@@ -20,6 +20,7 @@ public class RoomInfo {
     private boolean roomStatus = false;
     private Map<Long, Participant> participant;  // key: member_id, value: 해당방에 들어간 참가자들
     private int requiredPlayers;
+    private  String chat;
     private GameOption gameOption;
 
     public RoomInfo(Long roomId, Long hostId) {
@@ -27,6 +28,7 @@ public class RoomInfo {
         this.roomId = roomId;
         this.readyCnt = 0;
         this.requiredPlayers = 4;
+        this.chat = "room-" + roomId + "-chat";
         this.participant = new HashMap<>();
         this.gameOption = new GameOption();
     }
