@@ -10,7 +10,7 @@ interface ApiResponse<T> {
 
 interface CreateRoomRequest {
   roomTitle: string;
-  requiredPlayer?: number;
+  requiredPlayer: number;
   roomPassword?: string;
 }
 
@@ -51,5 +51,4 @@ const roomApi = {
   startGame: (roomId: number) =>
     api.post<ApiResponse<GameStartResponse>>(`/api/room/${roomId}/start`),
 };
-
 export default roomApi;

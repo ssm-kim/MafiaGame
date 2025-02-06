@@ -16,7 +16,12 @@
 export interface Room {
   roomId: number;
   roomTitle: string;
-  peopleCnt: number;
+  roomStatus: boolean; // false(대기방), true(게임 진행 중)
+  roomOption: string;
+  maxPlayers: number;
+  isVoice: boolean;
+  createdAt: string;
+  curPlayers: number;
 }
 
 export interface GameStartResponse {

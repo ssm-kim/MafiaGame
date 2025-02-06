@@ -52,6 +52,56 @@
 //   }
 // };
 
+// import { Client } from '@stomp/stompjs';
+// import { ChatMessage } from '@/types/chat';
+
+// export const connectWebSocket = (
+//   roomId: string,
+//   onMessageReceived: (message: ChatMessage) => void,
+//   onGameStateChanged: (gameState: any) => void,
+// ) => {
+//   const client = new Client({
+//     brokerURL: 'ws://localhost:8080/mafia',
+//     debug: (str) => console.log(`STOMP: ${str}`),
+//     reconnectDelay: 5000,
+//   });
+
+//   client.onConnect = () => {
+//     client.subscribe(`/topic/room/${roomId}/chat`, (message) => {
+//       const chatMessage = JSON.parse(message.body);
+//       onMessageReceived(chatMessage);
+//     });
+
+//     client.subscribe(`/topic/room/${roomId}/state`, (message) => {
+//       const gameState = JSON.parse(message.body);
+//       onGameStateChanged(gameState);
+//     });
+//   };
+
+//   client.activate();
+//   return client;
+// };
+
+// export const sendChatMessage = (roomId: string, message: string) => {
+//   const client = new Client({
+//     brokerURL: 'ws://localhost:8080/mafia',
+//   });
+
+//   client.onConnect = () => {
+//     client.publish({
+//       destination: `/app/room/${roomId}/chat`,
+//       body: JSON.stringify({
+//         content: message,
+//         timestamp: new Date().toISOString(),
+//       }),
+//     });
+//     client.deactivate();
+//   };
+
+//   client.activate();
+// };
+
+// export default connectWebSocket;
 import { ChatMessage } from '@/types/chat';
 
 export const connectWebSocket = (
@@ -75,5 +125,5 @@ export const connectWebSocket = (
 };
 
 export const sendChatMessage = (roomId: string, message: string) => {
-  console.log(`Message sent to room ${roomId}: ${message}`);
+  console.log('Chat message sent:', message);
 };

@@ -44,27 +44,16 @@ function GameRoom(): JSX.Element {
       try {
         if (!roomId) return;
 
-        const response = await roomApi.getRoom(Number(roomId));
+        // 일단 방 목록을 가져와서 그 중에서 해당 방을 찾기
+        const response = await roomApi.getRooms();
         if (response.data.isSuccess) {
-          setGameState(response.data.result);
-          // 임시 플레이어 데이터 설정 (실제로는 API에서 받아와야 함)
-          setPlayers([
-            {
-              id: 1,
-              nickname: '방장',
-              isHost: true,
-              isReady: true,
-            },
-            {
-              id: 2,
-              nickname: '플레이어2',
-              isHost: false,
-              isReady: false,
-            },
-          ]);
-          // 임시로 현재 플레이어 ID와 방장 여부 설정
-          setCurrentPlayerId(2);
-          setIsHost(false);
+          const room = response.data.result.find((r) => r.roomId === Number(roomId));
+          if (room) {
+            setGameState(room);
+          } else {
+            // 방을 찾지 못했을 경우 로비로 이동
+            navigate('/game-lobby');
+          }
         }
       } catch (error) {
         console.error('Failed to fetch room info:', error);
@@ -94,16 +83,10 @@ function GameRoom(): JSX.Element {
   const handleReadyState = async () => {
     try {
       if (!roomId) return;
+      const memberId = localStorage.getItem('memberId');
+      if (!memberId) return;
 
-      const response = await roomApi.readyRoom(Number(roomId));
-      if (response.data.isSuccess) {
-        // 플레이어의 준비 상태 업데이트
-        setPlayers((prevPlayers) =>
-          prevPlayers.map((player) =>
-            player.id === currentPlayerId ? { ...player, isReady: !player.isReady } : player,
-          ),
-        );
-      }
+      await TestRoomApi.readyRoom(Number(roomId), Number(memberId));
     } catch (error) {
       console.error('Failed to change ready state:', error);
       if (axios.isAxiosError(error) && error.response?.status === 404) {
