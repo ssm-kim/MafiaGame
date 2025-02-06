@@ -1,12 +1,12 @@
 import React from 'react';
 
-interface SearchBarProps {
+interface TestSearchBarProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   onCreateRoom: () => void;
 }
 
-export function SearchBar({ searchTerm, onSearchChange, onCreateRoom }: SearchBarProps) {
+function TestSearchBar({ searchTerm, onSearchChange, onCreateRoom }: TestSearchBarProps) {
   return (
     <div className="max-w-6xl mx-auto mb-6 flex items-center gap-4">
       <input
@@ -27,4 +27,4 @@ export function SearchBar({ searchTerm, onSearchChange, onCreateRoom }: SearchBa
   );
 }
 
-export default SearchBar;
+export default TestSearchBar;

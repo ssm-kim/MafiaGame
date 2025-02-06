@@ -1,10 +1,6 @@
 import React from 'react';
 
-{
-  /* eslint-disable-next-line jsx-a11y/label-has-associated-control */
-}
-
-interface CreateRoomModalProps {
+interface TestCreateRoomModalProps {
   show: boolean;
   onClose: () => void;
   roomData: {
@@ -18,17 +14,17 @@ interface CreateRoomModalProps {
     nightTime: number;
     voteTime: number;
   };
-  onRoomDataChange: (data: CreateRoomModalProps['roomData']) => void;
+  onRoomDataChange: (data: TestCreateRoomModalProps['roomData']) => void;
   onCreateRoom: () => void;
 }
 
-export function CreateRoomModal({
+function TestCreateRoomModal({
   show,
   onClose,
   roomData,
   onRoomDataChange,
   onCreateRoom,
-}: CreateRoomModalProps) {
+}: TestCreateRoomModalProps) {
   if (!show) return null;
 
   return (
@@ -179,4 +175,4 @@ export function CreateRoomModal({
   );
 }
 
-export default CreateRoomModal;
+export default TestCreateRoomModal;

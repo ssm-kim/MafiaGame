@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 
-interface NicknameModalProps {
+interface TestNicknameModalProps {
   show: boolean;
   onClose: () => void;
   onSubmit: (nickname: string) => void;
 }
 
-function NicknameModal({ show, onClose, onSubmit }: NicknameModalProps): JSX.Element {
+function TestNicknameModal({ show, onClose, onSubmit }: TestNicknameModalProps): JSX.Element {
   const [nickname, setNickname] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -23,7 +23,7 @@ function NicknameModal({ show, onClose, onSubmit }: NicknameModalProps): JSX.Ele
           className="text-2xl font-bold text-red-500 mb-6 text-center"
           style={{ fontFamily: 'BMEuljiro10yearslater' }}
         >
-          생존자 닉네임 설정
+          생존자 닉네임 변경
         </h2>
         <form onSubmit={handleSubmit}>
           <input
@@ -45,4 +45,4 @@ function NicknameModal({ show, onClose, onSubmit }: NicknameModalProps): JSX.Ele
   );
 }
 
-export default NicknameModal;
+export default TestNicknameModal;

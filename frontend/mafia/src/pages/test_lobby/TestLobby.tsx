@@ -3,12 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // import roomApi from '@/api/roomApi';
 import { Room } from '@/types/room';
-import { Header } from '@/components/lobby/Header';
-import { SearchBar } from '@/components/lobby/SearchBar';
-import { RoomList } from '@/components/lobby/RoomList';
-import { CreateRoomModal } from '@/components/lobby/CreateRoomModal';
+// import { TestHeader } from '@/components/lobby/test/TestHeader';
+// import { TestSearchBar } from '@/components/lobby/test/TestSearchBar';
+// import { TestRoomList } from '@/components/lobby/test/TestRoomList';
+// import { TestCreateRoomModal } from '@/components/lobby/test/TestCreateRoomModal';
 import NicknameModal from '@/components/nickname/NicknameModal';
-import roomApi from '@/api/roomApi';
+// import roomApi from '@/api/roomApi';
+import TestRoomApi from '../../api/TestRoomApi';
+import TestCreateRoomModal from '../../components/testlobby_modal/TestCreateRoomModal';
+import TestHeader from '../../components/testlobby_modal/TestHeader';
+import TestSearchBar from '../../components/testlobby_modal/TestSearchBar';
+import TestRoomList from '../../components/testlobby_modal/TestRoomList';
 
 export interface LoginResponse {
   memberId: number;
@@ -27,30 +32,30 @@ const initialRoomState = {
   voteTime: 60,
 };
 
-function GameLobby() {
+function TestLobby() {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showNicknameModal, setShowNicknameModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [testMemberId, setTestMemberId] = useState<number>(1);
   const [newRoom, setNewRoom] = useState(initialRoomState);
   const [nickname, setNickname] = useState(''); // 카카오 로그인 시 받아온 닉네임으로 초기화되어야 함
 
   // useEffect(() => {
   //   const fetchRooms = async () => {
   //     try {
-  //       const response = await roomApi.getRooms();
+  //       const response = await TestRoomApi.getRooms();
+  //       console.log('방 목록 응답:', response.data);
   //       setRooms(response.data.result);
   //     } catch (error) {
   //       console.error('Failed to fetch rooms:', error);
-  //       if (axios.isAxiosError(error) && error.response?.status === 401) {
-  //         navigate('/login', { replace: true });
-  //       }
   //     }
   //   };
-
   //   fetchRooms();
-
+  //   const interval = setInterval(fetchRooms, 100000000000);
+  //   return () => clearInterval(interval);
+  // }, [navigate]);
   useEffect(() => {
     const fetchRoomsAndUserInfo = async () => {
       try {
@@ -72,9 +77,7 @@ function GameLobby() {
 
     fetchRoomsAndUserInfo();
 
-    //   const interval = setInterval(fetchRooms, 5000);
-    //   return () => clearInterval(interval);
-    // }, [navigate]);
+    // 주기적으로 방 목록만 업데이트
     const interval = setInterval(async () => {
       try {
         const roomsResponse = await TestRoomApi.getRooms();
@@ -87,138 +90,94 @@ function GameLobby() {
     return () => clearInterval(interval);
   }, [navigate]);
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     try {
-      const response = await axios.post('/api/logout');
-      if (response.data.isSuccess) {
-        navigate('/login', { replace: true });
-      }
+      TestRoomApi.logout();
+      navigate('/test-login', { replace: true });
     } catch (error) {
       console.error('Failed to logout:', error);
-      if (axios.isAxiosError(error) && error.response?.status === 400) {
-        alert('로그아웃 처리 중 오류가 발생했습니다.');
-      } else {
-        alert('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-      }
     }
   };
 
   // const handleCreateRoom = async () => {
   //   try {
   //     const createRoomData = {
-  //       roomTitle: newRoom.name,
-  //       requiredPlayer: newRoom.maxPlayers,
+  //       roomTitle: newRoom.name || '테스트방',
+  //       requiredPlayer: 4,
   //       roomPassword: newRoom.password || '',
   //     };
 
-  //     const response = await roomApi.createRoom(createRoomData);
-  //     if (response.data.isSuccess) {
-  //       await roomApi.joinRoom(response.data.result.roomId);
-  //       navigate(`/game/${response.data.result.roomId}`);
-  //     }
-  //   } catch (error) {
-  //     console.error('Failed to create room:', error);
-  //   }
-  // };
-  // const handleCreateRoom = async () => {
-  //   try {
-  //     const createRoomData = {
-  //       roomTitle: newRoom.name, // API 명세에 맞게 변경
-  //       requiredPlayer: 4, // 기본값 설정
-  //       roomPassword: newRoom.password, // 선택적 비밀번호
-  //     };
+  //     console.log('방 생성 요청 데이터:', createRoomData);
+  //     const response = await TestRoomApi.createRoom(createRoomData);
+  //     console.log('방 생성 응답:', response.data);
 
-  //     console.log('Creating room with data:', createRoomData); // 디버깅용
+  //     const { roomId } = response.data.result;
+  //     console.log('생성된 방 ID:', roomId);
 
-  //     const response = await roomApi.createRoom(createRoomData);
-  //     if (response.data.isSuccess) {
-  //       const { roomId } = response.data.result;
-  //       await roomApi.joinRoom(roomId);
-  //       navigate(`/game/${roomId}`);
+  //     if (!roomId) {
+  //       throw new Error('방 ID를 받지 못했습니다');
   //     }
+
+  //     navigate(`/game-test/${roomId}`);
   //   } catch (error) {
-  //     console.error('Failed to create room:', error);
-  //     if (axios.isAxiosError(error) && error.response) {
-  //       alert(error.response.data.message || '방 생성에 실패했습니다.');
+  //     console.error('방 생성 에러:', error);
+  //     if (axios.isAxiosError(error)) {
+  //       console.error('서버 응답:', error.response?.data);
   //     }
+  //     alert('방 생성 실패');
   //   }
   // };
   const handleCreateRoom = async () => {
     try {
-      // 방 목록 가져오기
-      const roomsResponse = await roomApi.getRooms();
-      const userRooms = roomsResponse.data.result;
-
-      // 참여중인 방이 있다면 먼저 나가기 시도
-      await Promise.all(
-        userRooms
-          .filter((room) => room.curPlayers > 0)
-          .map(async (room) => {
-            try {
-              await roomApi.leaveRoom(room.roomId);
-              console.log(`Left room: ${room.roomId}`);
-            } catch (err) {
-              console.log(`Failed to leave room ${room.roomId}:`, err);
-            }
-          }),
-      );
-
-      // 잠시 대기 (함수를 전달하는 방식으로 수정)
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 500);
-      });
-
-      // 방 생성 요청
       const createRoomData = {
-        roomTitle: newRoom.name,
+        roomTitle: newRoom.name || '테스트방',
         requiredPlayer: 4,
         roomPassword: newRoom.password || '',
       };
 
-      console.log('Sending create request:', createRoomData);
+      console.log('방 생성 요청 데이터:', createRoomData);
+      const response = await TestRoomApi.createRoom(createRoomData);
+      console.log('방 생성 응답:', response.data);
 
-      const response = await roomApi.createRoom(createRoomData);
-      console.log('Create room response:', response);
+      // 배열로 오는 응답 처리
+      const roomId = response.data.result?.roomId;
+      console.log('생성된 방 ID:', roomId);
 
-      if (response.data.isSuccess) {
-        console.log('###############', response.data.result.roomId);
-        const { roomId } = response.data.result;
-        // 방 생성 성공 후 입장
-        const joinResponse = await roomApi.joinRoom(roomId);
-        console.log('Join response:', joinResponse);
-
-        if (joinResponse.data.isSuccess) {
-          navigate(`/game/${roomId}`);
-        }
+      console.log(response.data.result);
+      if (!roomId) {
+        throw new Error('방 ID를 받지 못했습니다');
       }
-    } catch (error: any) {
-      console.error('Failed to create/join room:', error);
-      console.error('Error response:', error.response?.data);
-      alert(error.response?.data?.message || '방 생성에 실패했습니다.');
+
+      console.log(`이동할 경로: /game-test/${roomId}`);
+      navigate(`/game-test/${roomId}`);
+    } catch (error) {
+      console.error('방 생성 에러:', error);
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        alert('API 경로를 찾을 수 없습니다. 서버가 실행 중인지 확인해주세요.');
+        return;
+      }
+      alert('방 생성에 실패했습니다.');
     }
   };
+
   const handleJoinRoom = async (roomId: number) => {
     try {
-      await roomApi.joinRoom(roomId);
-      navigate(`/game/${roomId}`);
+      const memberId = Number(localStorage.getItem('memberId'));
+      await TestRoomApi.joinRoom(roomId, memberId);
+      navigate(`/game-test/${roomId}`);
     } catch (error) {
       console.error('Failed to join room:', error);
-      if (axios.isAxiosError(error) && error.response?.status === 400) {
-        alert('방 입장에 실패했습니다. 정원이 초과되었을 수 있습니다.');
-      }
+      alert('방 입장에 실패했습니다.');
     }
   };
-
   const handleNicknameChange = async (newNickname: string) => {
     try {
-      const response = await axios.post('/api/member/nickname', {
+      const response = await axios.post('/nickname', {
         nickname: newNickname,
       });
 
       if (response.data.isSuccess) {
-        setNickname(newNickname);
+        setNickname(response.data.result.nickname);
         setShowNicknameModal(false);
       }
     } catch (error) {
@@ -271,25 +230,26 @@ function GameLobby() {
         </div>
 
         <div className="text-center mb-12 pt-16">
-          <Header
+          <TestHeader
             title="생존자 대피소"
             subtitle="안전한 방을 찾거나 새로운 대피소를 만드세요"
           />
         </div>
 
-        <SearchBar
+        <TestSearchBar
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           onCreateRoom={() => setShowCreateModal(true)}
         />
 
-        <RoomList
+        <TestRoomList
           rooms={rooms}
           searchTerm={searchTerm}
           onJoinRoom={handleJoinRoom}
+          // maxPlayers={maxPlayers}
         />
 
-        <CreateRoomModal
+        <TestCreateRoomModal
           show={showCreateModal}
           roomData={newRoom}
           onRoomDataChange={setNewRoom}
@@ -310,4 +270,4 @@ function GameLobby() {
   );
 }
 
-export default GameLobby;
+export default TestLobby;

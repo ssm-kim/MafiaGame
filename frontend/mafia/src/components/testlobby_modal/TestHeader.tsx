@@ -5,7 +5,7 @@ interface HeaderProps {
   subtitle: string;
 }
 
-export function Header({ title, subtitle }: HeaderProps) {
+function TestHeader({ title, subtitle }: HeaderProps) {
   return (
     <div className="text-center mb-8">
       <h1
@@ -19,4 +19,4 @@ export function Header({ title, subtitle }: HeaderProps) {
   );
 }
 
-export default Header;
+export default TestHeader;

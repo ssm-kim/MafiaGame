@@ -2,15 +2,15 @@ import React from 'react';
 import { Room } from '@/types/room';
 // import { RoomCard } from '@/components/lobby/RoomCard';
 
-import RoomCard from './RoomCard';
+import RoomCard from './TestRoomCard';
 
-interface RoomListProps {
+interface TestRoomListProps {
   rooms: Room[];
   searchTerm: string;
   onJoinRoom: (roomId: number) => void;
 }
 
-export function RoomList({ rooms, searchTerm, onJoinRoom }: RoomListProps): JSX.Element {
+function TestRoomList({ rooms, searchTerm, onJoinRoom }: TestRoomListProps): JSX.Element {
   return (
     <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
       {rooms
@@ -26,4 +26,4 @@ export function RoomList({ rooms, searchTerm, onJoinRoom }: RoomListProps): JSX.
   );
 }
 
-export default RoomList;
+export default TestRoomList;

@@ -1,10 +1,10 @@
 import { Room } from '@/types/room';
 
-interface GameStatusProps {
+interface TestGameStatusProps {
   gameState: Room;
 }
 
-const GameStatus: React.FC<GameStatusProps> = ({ gameState }) => (
+const TestGameStatus: React.FC<TestGameStatusProps> = ({ gameState }) => (
   <div className="absolute top-4 left-4 bg-gray-900 bg-opacity-90 p-3 rounded-lg border border-gray-800">
     <h2
       className="text-red-500 text-lg mb-2"
@@ -20,4 +20,4 @@ const GameStatus: React.FC<GameStatusProps> = ({ gameState }) => (
   </div>
 );
 
-export default GameStatus;
+export default TestGameStatus;

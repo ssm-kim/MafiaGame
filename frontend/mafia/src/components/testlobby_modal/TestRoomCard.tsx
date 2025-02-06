@@ -1,16 +1,17 @@
 import React from 'react';
 // import { Room } from '@/types/room';
 
-interface RoomCardProps {
+interface TestRoomCardProps {
   room: {
     roomId: number;
     roomTitle: string;
     peopleCnt: number;
+    maxPlayers: number;
   };
   onJoin: (roomId: number) => void;
 }
 
-function RoomCard({ room, onJoin }: RoomCardProps): JSX.Element {
+function TestRoomCard({ room, onJoin }: TestRoomCardProps): JSX.Element {
   return (
     <div
       className="p-4 bg-gray-800 bg-opacity-90 rounded-lg text-white hover:bg-gray-700 cursor-pointer border border-gray-700 transform hover:scale-102 transition-all duration-200"
@@ -28,9 +29,11 @@ function RoomCard({ room, onJoin }: RoomCardProps): JSX.Element {
           <div className="text-xl font-medium mb-1">{room.roomTitle}</div>
           <div className="text-sm text-gray-400">방 번호: {room.roomId}</div>
         </div>
-        <div className="bg-red-900 px-3 py-1 rounded-full text-sm">{room.peopleCnt} / 4</div>
+        <div className="bg-red-900 px-3 py-1 rounded-full text-sm">
+          {room.peopleCnt} / {room.maxPlayers}
+        </div>
       </div>
     </div>
   );
 }
-export default RoomCard;
+export default TestRoomCard;
