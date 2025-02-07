@@ -4,7 +4,6 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_ALL_READY
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_COUNT_INVALID;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.UNAUTHORIZED_ACCESS;
 
-import com.mafia.domain.chat.service.ChatService;
 import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.room.model.RoomIdResponse;
 import com.mafia.domain.room.model.RoomLeaveResponse;
@@ -35,7 +34,6 @@ public class TestRoomController {
     private final RoomDbService roomDbService;
     private final TestRoomRedisService TestRoomRedisService;
     private final GameService gameService;
-    private final ChatService chatService;
 
     /*
        TODO: 방 관리 서비스
