@@ -1,14 +1,12 @@
 package com.mafia.domain.login.model.dto;
 
-
 import com.mafia.domain.member.model.dto.MemberDTO;
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.oauth2.core.user.OAuth2User;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 @RequiredArgsConstructor
 public class AuthenticatedUser implements OAuth2User {

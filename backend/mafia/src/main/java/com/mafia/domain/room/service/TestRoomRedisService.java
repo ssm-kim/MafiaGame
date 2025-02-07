@@ -17,6 +17,7 @@ import com.mafia.domain.room.repository.RoomRepository;
 import com.mafia.global.common.exception.exception.BusinessException;
 import com.mafia.global.common.service.RoomSubscription;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -122,6 +123,14 @@ public class TestRoomRedisService {
         participant.setNickName("테스트유저" + memberId);
 
         roomInfo.getParticipant().put(memberId, participant);
+
+        for (Map.Entry<Long, Participant> entry : roomInfo.getParticipant().entrySet()) {
+            memberId = entry.getKey();
+            participant = entry.getValue();
+            // 여기서 memberId와 participant 정보 사용
+            System.out.println("ID: " + memberId + ", Nickname: " + participant.getNickName());
+        }
+
         roomRedisRepository.save(roomId, roomInfo);
         log.info("방 입장 완료: roomId={}, memberId={}, 닉네임={}", roomId, memberId,
             participant.getNickName());
