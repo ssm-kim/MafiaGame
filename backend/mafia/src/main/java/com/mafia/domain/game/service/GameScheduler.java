@@ -30,10 +30,11 @@ public class GameScheduler {
     private final GameSeqRepository gameSeqRepository;
     private final GameRepository gameRepository;
     private final GamePublisher gamePublisher;
+    private final ObjectMapper objectMapper;
 
     // 게임별 개별 스케줄러 관리
     private final Map<Long, ScheduledFuture<?>> gameSchedulers = new ConcurrentHashMap<>();
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(32);
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(8);
     // CPU 코어 개수를 모르겠네요...
 
     /**
@@ -83,8 +84,9 @@ public class GameScheduler {
             "time", String.valueOf(remainingTime),
             "phaze", String.valueOf(phaze)
         );
-            // JSON 변환
-        String jsonMessage = new ObjectMapper().writeValueAsString(timer);
+
+        // JSON 변환
+        String jsonMessage = objectMapper.writeValueAsString(timer);
 
         gamePublisher.publish("game-"+roomId+"-system", jsonMessage);
     }
@@ -135,6 +137,7 @@ public class GameScheduler {
             }
             default -> throw new BusinessException(UNKNOWN_PHASE);
         }
+
         gameRepository.save(game);
         log.info("Game phase advanced in Room {}: New Phase = {}, Timer = {} seconds",
             gameId, gameSeqRepository.getPhase(gameId), gameSeqRepository.getTimer(gameId));

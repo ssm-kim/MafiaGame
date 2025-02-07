@@ -49,6 +49,7 @@ public class GameService {
     private final GamePublisher gamePublisher; // Game Websocket
     private final GameSubscription subscription;
     private final GameScheduler gameScheduler;
+    private final ObjectMapper objectMapper;
 
     /**
      * 게임 조회
@@ -280,7 +281,7 @@ public class GameService {
         }
 
         if (!message.isEmpty()) {
-            String jsonMessage = new ObjectMapper().writeValueAsString(message);
+            String jsonMessage = objectMapper.writeValueAsString(message);
 
             // Redis Pub/Sub 전송
             gamePublisher.publish("game-" + gameId + "-system", jsonMessage);
