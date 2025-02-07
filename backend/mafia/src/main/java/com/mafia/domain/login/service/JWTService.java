@@ -1,20 +1,22 @@
 package com.mafia.domain.login.service;
 
+import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_REFRESH_TOKEN;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.MEMBER_NOT_FOUND;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.REFRESH_TOKEN_EXPIRED;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.REFRESH_TOKEN_NOT_FOUND;
+
 import com.mafia.domain.login.model.dto.ReissueDto;
-import com.mafia.domain.login.utils.JWTUtil;
 import com.mafia.domain.member.model.entity.Member;
 import com.mafia.domain.member.repository.MemberRepository;
 import com.mafia.global.common.exception.exception.BusinessException;
 import com.mafia.global.common.service.RedisService;
+import com.mafia.global.common.utils.JWTUtil;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
-import static com.mafia.global.common.model.dto.BaseResponseStatus.*;
 
 @Slf4j
 @Service

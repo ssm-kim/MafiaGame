@@ -17,6 +17,7 @@ import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.repository.RoomRedisRepository;
 import com.mafia.domain.room.repository.RoomRepository;
 import com.mafia.global.common.exception.exception.BusinessException;
+import com.mafia.global.common.service.RoomSubscription;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -35,6 +36,7 @@ public class RoomRedisService {
     private final RoomRedisRepository roomRedisRepository;
     private final RoomRepository roomRepository;
     private final MemberService memberService;
+    private final RoomSubscription subscription;
 
     /**
      * Redis에서 방 정보 조회
@@ -65,6 +67,7 @@ public class RoomRedisService {
         host.setNickName(memberInfo.getNickname());
         roomInfo.setRequiredPlayers(requiredPlayer);
         roomInfo.getParticipant().put(hostId, host);
+        subscription.subscribe(roomId);
         roomRedisRepository.save(roomId, roomInfo);
         log.info("방 생성 완료: roomId={}, 방장닉네임={}", roomId, memberInfo.getNickname());
     }
@@ -80,6 +83,7 @@ public class RoomRedisService {
 
     public void deleteById(Long roomId) {
         log.info("방 삭제 : roomId={}", roomId);
+        subscription.unsubscribe(roomId);
         roomRedisRepository.delete(roomId);
     }
 
@@ -125,6 +129,7 @@ public class RoomRedisService {
 
         // 참가자 추가 및 Redis 저장
         roomInfo.getParticipant().put(memberId, participant);
+
         roomRedisRepository.save(roomId, roomInfo);
         log.info("방 입장 완료: roomId={}, memberId={}, 닉네임={}", roomId, memberId,
             memberInfo.getNickname());
@@ -141,7 +146,7 @@ public class RoomRedisService {
         RoomInfo roomInfo = findById(roomId);
 
         if (isHost(roomId, memberId)) {
-            roomRedisRepository.delete(roomId);
+            deleteById(roomId);
             return;
         }
 

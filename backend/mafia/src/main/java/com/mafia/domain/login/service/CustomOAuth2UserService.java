@@ -1,13 +1,13 @@
 package com.mafia.domain.login.service;
 
-import com.mafia.domain.login.model.dto.CustomOAuth2User;
+import com.mafia.domain.login.model.dto.AuthenticatedUser;
 import com.mafia.domain.login.model.dto.KakaoResponse;
 import com.mafia.domain.login.model.dto.NaverResponse;
 import com.mafia.domain.login.model.dto.OAuth2Response;
 import com.mafia.domain.member.model.dto.MemberDTO;
 import com.mafia.domain.member.model.entity.Member;
 import com.mafia.domain.member.repository.MemberRepository;
-import com.mafia.domain.member.service.MemberService;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -16,15 +16,12 @@ import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final MemberRepository memberRepository;
-    private final MemberService memberService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -55,6 +52,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         } else {
             member = optionalMember.get();
         }
-        return new CustomOAuth2User(MemberDTO.from(member));
+        return new AuthenticatedUser(MemberDTO.from(member));
     }
 }

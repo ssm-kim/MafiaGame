@@ -4,16 +4,17 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mafia.domain.room.model.redis.Participant;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.*;
 
 @Getter
 @Setter
@@ -31,20 +32,23 @@ public class Game implements Serializable { // 필드정리
 
     @Schema(description = "게임에 참여한 플레이어 정보", example =
         "{101: {\"name\": \"Player1\"}, 102: {\"name\": \"Player2\"}}")
-    private Map<Integer, Player> players;
+    private Map<Long, Player> players;
 
     @Schema(description = "플레이어들의 투표 정보", example = "{101: 102, 103: 104}")
-    private Map<Integer, Integer> votes;
+    private Map<Long, Long> votes;
 
     @Schema(description = "게임의 현재 상태", example = "STARTED",
         allowableValues = {"PLAYING", "CITIZEN_WIN", "ZOMBIE_WIN", "MUTANT_WIN"})
     private STATUS status;
 
     @Schema(description = "현재 라운드에서 의사가 치료 대상으로 지정한 플레이어의 ID", example = "101")
-    private Integer healTarget;
+    private Long healTarget;
+
+    @Schema(description = "현재 라운드에서 좀비가 공격 대상으로 지정한 플레이어의 ID", example = "102")
+    private Long zTarget;
 
     @Schema(description = "현재 라운드에서 변종이 공격 대상으로 지정한 플레이어의 ID", example = "102")
-    private Set<Integer> killTarget;
+    private Long mTarget;
 
     @Schema(description = "게임 옵션")
     private GameOption setting;
@@ -55,7 +59,8 @@ public class Game implements Serializable { // 필드정리
         this.players = new HashMap<>();
         this.votes = new ConcurrentHashMap<>();
         this.healTarget = null;
-        this.killTarget = new HashSet<>();
+        this.zTarget = null;
+        this.mTarget = null;
         this.setting = setting; // <- POST CONSTRUCT
     }
 
@@ -72,7 +77,7 @@ public class Game implements Serializable { // 필드정리
             }
         }
         Player player = new Player(participant);
-        players.put(players.size() + 1, player);
+        players.put(participant.getMemberId(), player);
     }
 
     public void startGame() {
@@ -81,11 +86,19 @@ public class Game implements Serializable { // 필드정리
         List<Role> role = new ArrayList<>();
         init_role(role);
         int rcnt = 0;
-        for (Map.Entry<Integer, Player> e : players.entrySet()) {
-            Role user_role = role.get(rcnt);
-            e.getValue().setRole(user_role);
-            if (user_role == Role.MUTANT) {
-                e.getValue().setEnableVote(false);
+        for (Map.Entry<Long, Player> entry : players.entrySet()) {
+            Player player = entry.getValue();
+            Role userRole = role.get(rcnt);
+
+            player.setRole(userRole);
+            player.subscribe("game-" + gameId + "-day-chat");
+
+            if (userRole == Role.ZOMBIE) {
+                player.subscribe("game-" + gameId + "-night-chat");
+            }
+
+            if (userRole == Role.MUTANT) {
+                player.setEnableVote(false);
             }
             rcnt++;
         }
@@ -110,50 +123,54 @@ public class Game implements Serializable { // 필드정리
         Collections.shuffle(role);
     }
 
-    public void vote(Integer playerNo, Integer targetNo) {
+    public void vote(Long playerNo, Long targetNo) {
         votes.put(playerNo, targetNo);
     }
 
-    public Integer voteResult() {
-        Map<Integer, Integer> result = new HashMap<>();
-        votes.forEach((user, target) -> result.merge(target, 1, Integer::sum));
-        int rtn = result.entrySet().stream().max(Map.Entry.comparingByValue())
-            .map(Map.Entry::getKey).orElse(-1);
+    public Long voteResult() {
+        Map<Long, Long> result = new HashMap<>();
+        votes.forEach((user, target) -> result.merge(target, 1L, Long::sum));
+        long rtn = result.entrySet().stream().max(Map.Entry.comparingByValue())
+            .map(Map.Entry::getKey).orElse(-1L);
         votes.clear();
 
         return rtn;
     }
 
-    public void Kill(Integer targetNo) {
+    public void Kill(Long targetNo) {
         Player p = players.get(targetNo);
         p.setDead(true);
+        p.updateSubscriptionsOnDeath(gameId);
         isGameOver();
     }
 
     public boolean processRoundResults() { // 밤중 킬
-        if (killTarget == null || killTarget.isEmpty()) {
+        if (zTarget == null && mTarget == null) {
             return false; // 죽일 대상이 없으면 바로 종료
         }
 
         // 치료된 플레이어 제외
-        List<Integer> finalDeathList = new ArrayList<>(killTarget);
+        List<Long> finalDeathList = new ArrayList<>();
+        finalDeathList.add(zTarget);
+        finalDeathList.add(mTarget);
         if (healTarget != null) {  // 유효한 healTarget만 제거
             finalDeathList.remove(healTarget);
         }
 
         // 실제 킬 처리
-        for (Integer target : finalDeathList) {
+        for (Long target : finalDeathList) {
             Kill(target);
         }
 
         // 라운드가 끝나면 리스트 초기화
         healTarget = null;
-        killTarget.clear();
+        zTarget = null;
+        mTarget = null;
 
         return true;
     }
 
-    public void heal(Integer targetNo) {
+    public void heal(Long targetNo) {
         healTarget = targetNo;
         int cnt = setting.getDoctorSkillUsage();
         if (cnt > 0) {
@@ -161,11 +178,12 @@ public class Game implements Serializable { // 필드정리
         }
     }
 
-    public void setKillTarget(Integer targetNo) {
-        killTarget.add(targetNo);
+    public void setKillTarget(Long playerNo, Long targetNo) {
+        if(players.get(playerNo).getRole() == Role.ZOMBIE) zTarget = targetNo;
+        else if(players.get(playerNo).getRole() == Role.MUTANT) mTarget = targetNo;
     }
 
-    public Role findRole(Integer playerNo, Integer targetNo) {
+    public Role findRole(Long playerNo, Long targetNo) {
         Role find = players.get(targetNo).getRole();
         if (find == Role.ZOMBIE) {
             players.get(playerNo).setEnableVote(false);

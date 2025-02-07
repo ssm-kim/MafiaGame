@@ -1,15 +1,19 @@
 package com.mafia.domain.game.service;
 
-import io.openvidu.java.client.*;
-import java.util.Base64;
-import java.util.Collections;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.*;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_FOUND_SESSION;
+
+import com.mafia.global.common.exception.exception.BusinessException;
+import io.openvidu.java.client.Connection;
+import io.openvidu.java.client.ConnectionProperties;
+import io.openvidu.java.client.ConnectionType;
+import io.openvidu.java.client.OpenVidu;
+import io.openvidu.java.client.OpenViduHttpException;
+import io.openvidu.java.client.OpenViduJavaClientException;
+import io.openvidu.java.client.Session;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +24,7 @@ public class VoiceService {
 
     private final OpenVidu openvidu = new OpenVidu(OPENVIDU_URL, SECRET);
     private final Map<Long, Session> gameSessions = new HashMap<>(); // 게임별 세션 저장
-    private final Map<Long, Map<Integer, String>> playerTokens = new HashMap<>(); // 게임 내 플레이어별 토큰 저장
+    private final Map<Long, Map<Long, String>> playerTokens = new HashMap<>(); // 게임 내 플레이어별 토큰 저장
 
     /**
      * 게임 시작 시 OpenVidu 세션 생성
@@ -36,10 +40,10 @@ public class VoiceService {
     /**
      * 특정 플레이어에게 토큰 발급 (음성 채팅 참여)
      */
-    public String generateToken(long gameId, int playerNo)
+    public String generateToken(long gameId, long playerNo)
         throws OpenViduJavaClientException, OpenViduHttpException {
         if (!gameSessions.containsKey(gameId)) {
-            throw new RuntimeException("Game session not found.");
+            throw new BusinessException(NOT_FOUND_SESSION);
         }
 
         Session session = gameSessions.get(gameId);
