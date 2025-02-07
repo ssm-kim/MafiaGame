@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { connectWebSocket } from '@/api/webSocket';
+import { connectWebSocket } from '@/api/WebSocket';
 import roomApi from '@/api/roomApi';
 
 import { ChatMessage } from '@/types/chat';
