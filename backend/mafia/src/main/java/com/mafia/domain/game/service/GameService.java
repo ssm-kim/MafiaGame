@@ -10,7 +10,6 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.MUTANT_CANNOT
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PHASE_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.POLICE_CANNOT_VOTE;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.UNKNOWN_PHASE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -48,6 +48,7 @@ public class GameService {
     private final VoiceService voiceService; // 🔥 OpenVidu 연동 추가
     private final GamePublisher gamePublisher; // Game Websocket
     private final GameSubscription subscription;
+    private final GameScheduler gameScheduler;
 
     /**
      * 게임 조회
@@ -116,6 +117,7 @@ public class GameService {
 
 
         log.info("Game started in Room {}.", gameId);
+        gameScheduler.startGameScheduler(gameId);
     }
 
     private Game makeGame(long roomId) {
@@ -140,6 +142,9 @@ public class GameService {
         findById(gameId);
         getTime(gameId);
         getPhase(gameId);
+
+        // 게임 스레드 풀 반납
+        gameScheduler.stopGameScheduler(gameId);
 
         //Redis 채팅 채널 제거
         subscription.unsubscribe(gameId);
@@ -256,17 +261,28 @@ public class GameService {
      */
     public boolean killPlayer(long gameId) throws JsonProcessingException {
         Game game = findById(gameId);
+        Integer healedPlayer = game.getHealTarget();
         List<Integer> killList = game.processRoundResults();
-        if(!killList.isEmpty()){
-            // JSON 형태로 메시지 구성
-            Map<String, String> death = new HashMap<>();
-            for(int death_player : killList){
-                death.put("death", String.valueOf(death_player)); // 닉네임 추가
-            }
-            // JSON 변환
-            String jsonMessage = new ObjectMapper().writeValueAsString(death);
 
-            // Redis Pub/Sub을 통해 메시지 전송
+        Map<String, String> message = new HashMap<>();
+        //의사
+        if (healedPlayer != null && (killList.isEmpty() || !killList.contains(healedPlayer))) {
+            message.put("healed", String.valueOf(healedPlayer));
+            log.info("Game[{}] 플레이어 " + healedPlayer + " 이(가) 의사의 치료로 살아남았습니다!", healedPlayer);
+        }
+        // 좀비
+        if(!killList.isEmpty()) {
+            // JSON 형태로 메시지 구성
+            String deaths = killList.stream()
+                .map(String::valueOf)
+                .collect(Collectors.joining(", "));
+            message.put("death", deaths);
+        }
+
+        if (!message.isEmpty()) {
+            String jsonMessage = new ObjectMapper().writeValueAsString(message);
+
+            // Redis Pub/Sub 전송
             gamePublisher.publish("game-" + gameId + "-system", jsonMessage);
             gameRepository.save(game);
             return true;
@@ -315,55 +331,6 @@ public class GameService {
     public STATUS isEnd(long gameId) {
         Game game = findById(gameId);
         return game.getStatus();
-    }
-
-    /**
-     * 페이즈 전환
-     *
-     * @param gameId 방 ID
-     * @throws BusinessException 유효하지 않은 페이즈일 경우 예외 발생
-     */
-    public void advanceGamePhase(long gameId) throws JsonProcessingException {
-        GamePhase curPhase = gameSeqRepository.getPhase(gameId);
-        Game game = findById(gameId);
-        if (curPhase == null) {
-            throw new BusinessException(PHASE_NOT_FOUND);
-        }
-
-        switch (curPhase) {
-            case DAY_DISCUSSION -> {
-                gameSeqRepository.savePhase(gameId, GamePhase.DAY_VOTE);
-                gameSeqRepository.saveTimer(gameId, 20);
-            }
-            case DAY_VOTE -> {
-                if(getVoteResult(gameId) == -1){
-                    updateVoicePermissions(gameId, "night"); // 좀비만 음성 채팅 활성화
-                    gameSeqRepository.savePhase(gameId, GamePhase.NIGHT_ACTION);
-                    gameSeqRepository.saveTimer(gameId, game.getSetting().getNightTimeSec());
-                } else {
-                    gameSeqRepository.savePhase(gameId, GamePhase.DAY_FINAL_STATEMENT);
-                    gameSeqRepository.saveTimer(gameId, 30);
-                }
-            }
-            case DAY_FINAL_STATEMENT -> {
-                gameSeqRepository.savePhase(gameId, GamePhase.DAY_FINAL_VOTE);
-                gameSeqRepository.saveTimer(gameId, 20);
-            }
-            case DAY_FINAL_VOTE -> {
-                updateVoicePermissions(gameId, "night"); // 좀비만 음성 채팅 활성화
-                gameSeqRepository.savePhase(gameId, GamePhase.NIGHT_ACTION);
-                gameSeqRepository.saveTimer(gameId, game.getSetting().getNightTimeSec());
-            }
-            case NIGHT_ACTION -> {
-                updateVoicePermissions(gameId, "day"); // 모든 생존자 음성 채팅 활성화 (토론)
-                gameSeqRepository.savePhase(gameId, GamePhase.DAY_DISCUSSION);
-                gameSeqRepository.saveTimer(gameId, game.getSetting().getDayDisTimeSec());
-            }
-            default -> throw new BusinessException(UNKNOWN_PHASE);
-        }
-
-        log.info("Game phase advanced in Room {}: New Phase = {}, Timer = {} seconds",
-            gameId, gameSeqRepository.getPhase(gameId), gameSeqRepository.getTimer(gameId));
     }
 
     /**
@@ -416,33 +383,6 @@ public class GameService {
         if (currentPhase != expectedPhase) {
             throw new BusinessException(INVALID_PHASE);
         }
-    }
-
-    /**
-     * 페이즈별 음성 채팅 권한 관리
-     */
-    private void updateVoicePermissions(long gameId, String phase) {
-        Game game = findById(gameId);
-        game.getPlayers().forEach((playerNo, player) -> {
-            if (player.isDead()) {
-                player.setMuteMic(true);
-                player.setMuteAudio(false); // 죽은 플레이어는 듣기만 가능
-            } else if (phase.equals("day")) {
-                // 낮 토론 시간 -> 모든 생존자 마이크+오디오 허용
-                player.setMuteMic(false);
-                player.setMuteAudio(false);
-            } else {
-                // 밤 -> 좀비만 말하기+듣기 가능, 나머지는 둘 다 음소거
-                if (player.getRole() == Role.ZOMBIE) {
-                    player.setMuteMic(false);
-                    player.setMuteAudio(false);
-                } else {
-                    player.setMuteMic(true);
-                    player.setMuteAudio(true); // 살아있는 시민 & 경찰 & 의사는 둘 다 음소거
-                }
-            }
-        });
-        gameRepository.save(game);
     }
 
 }
