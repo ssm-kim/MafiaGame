@@ -11,6 +11,7 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.MUTANT_CANNOT
 import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_DOCTOR_HEAL;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_POLICE_FIND_ROLE;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PHASE_NOT_FOUND;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.POLICE_CANNOT_VOTE;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.TARGET_IS_DEAD;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.UNKNOWN_PHASE;
@@ -26,7 +27,7 @@ import com.mafia.domain.game.repository.GameSeqRepository;
 import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.service.RoomRedisService;
 import com.mafia.global.common.exception.exception.BusinessException;
-import java.util.NoSuchElementException;
+import com.mafia.global.common.service.GameSubscription;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,7 @@ public class GameService {
     private final GameSeqRepository gameSeqRepository; // 게임 상태 및 시간 정보를 관리하는 리포지토리
     private final VoiceService voiceService; // 🔥 OpenVidu 연동 추가
     private final GameEventPublisher gameEventPublisher; // Game Websocket
+    private final GameSubscription subscription;
 
     /**
      * 게임 조회
@@ -62,7 +64,7 @@ public class GameService {
      * 게임 조회
      *
      * @param gameId   방 ID
-     * @param playerNo 플레이어 번호
+     * @param memberId 플레이어 번호
      * @return 플레이어 객체
      */
     public Player findMemberByGame(long gameId, Long memberId) {
@@ -70,46 +72,50 @@ public class GameService {
         return game.getPlayers().values().stream()
             .filter(player -> player.getMemberId().equals(memberId))
             .findFirst()
-            .orElseThrow(() -> new NoSuchElementException("해당 멤버 ID를 가진 플레이어를 찾을 수 없습니다."));
+            .orElseThrow(() -> new BusinessException(PLAYER_NOT_FOUND));
     }
 
     /**
      * 게임 시작
      *
-     * @param roomId 방 ID
+     * @param gameId 방 ID를 그대로 사용한다.
      * @return 게임 시작 여부 (true: 시작됨)
      * @throws BusinessException 이미 시작된 게임이거나 플레이어가 부족할 경우 예외 발생
      */
-    public boolean startGame(long roomId) {
-        gameRepository.findById(roomId).ifPresent(game -> {
+    public void startGame(long gameId) {
+        gameRepository.findById(gameId).ifPresent(game -> {
             new BusinessException(GAME_ALREADY_START);
         });
-        Game game = makeGame(roomId);
+        Game game = makeGame(gameId);
 
-        log.info("Game {} created.", roomId);
+        log.info("Game {} created.", gameId);
         game.startGame();
-        gameSeqRepository.savePhase(roomId, GamePhase.DAY_DISCUSSION); // 낮 토론 시작
-        gameSeqRepository.saveTimer(roomId, game.getSetting().getDayDisTimeSec()); // 설정된 시간
+        gameSeqRepository.savePhase(gameId, GamePhase.DAY_DISCUSSION); // 낮 토론 시작
+        gameSeqRepository.saveTimer(gameId, game.getSetting().getDayDisTimeSec()); // 설정된 시간
         log.info("Game started in Room {}: Phase set to {}, Timer set to {} seconds",
-            roomId, GamePhase.DAY_DISCUSSION, game.getSetting().getDayDisTimeSec());
+            gameId, GamePhase.DAY_DISCUSSION, game.getSetting().getDayDisTimeSec());
+
+        //Redis 채팅방 생성
+        subscription.subscribe(gameId);
+
         gameRepository.save(game);
 
         // 🔥 OpenVidu 세션 생성
         try {
-            String sessionId = voiceService.createSession(roomId);
-            log.info("OpenVidu Session {} created for Game {}", sessionId, roomId);
+            String sessionId = voiceService.createSession(gameId);
+            log.info("OpenVidu Session {} created for Game {}", sessionId, gameId);
 
             // 🔥 모든 플레이어에게 토큰 발급
-            for (Integer playerId : game.getPlayers().keySet()) {
-                String token = voiceService.generateToken(roomId, playerId);
+            for (Long playerId : game.getPlayers().keySet()) {
+                String token = voiceService.generateToken(gameId, playerId);
                 log.info("Token issued for Player {}: {}", playerId, token);
             }
         } catch (Exception e) {
             log.error("Failed to create OpenVidu session: {}", e.getMessage());
         }
 
-        log.info("Game started in Room {}.", roomId);
-        return true;
+
+        log.info("Game started in Room {}.", gameId);
     }
 
     private Game makeGame(long roomId) {
@@ -134,6 +140,10 @@ public class GameService {
         findById(gameId);
         getTime(gameId);
         getPhase(gameId);
+
+        //Redis 채팅 채널 제거
+        subscription.unsubscribe(gameId);
+
         gameRepository.delete(gameId);
         gameSeqRepository.delete(gameId);
 
@@ -156,7 +166,7 @@ public class GameService {
      * @param targetNo 투표 대상 사용자 ID
      * @throws BusinessException 유효하지 않은 투표 조건일 경우 예외 발생
      */
-    public void vote(long gameId, Integer playerNo, Integer targetNo) { // 투표 sync 고려
+    public void vote(long gameId, Long playerNo, Long targetNo) { // 투표 sync 고려
         Game game = findById(gameId);
         if (game != null) {
             if (targetNo == -1) // 기권 처리
@@ -168,7 +178,7 @@ public class GameService {
                 throw new BusinessException(DEAD_CANNOT_VOTE);
             }
             if (game.getPlayers().get(targetNo).isDead()) {
-                game.vote(playerNo, -1);
+                game.vote(playerNo, -1L);
                 throw new BusinessException(TARGET_IS_DEAD);
             }
             if (game.getPlayers().get(playerNo).getRole() == Role.POLICE && !game.getPlayers()
@@ -194,14 +204,14 @@ public class GameService {
      * @param gameId 방 ID
      * @return 투표 결과 대상 ID
      */
-    public Integer getVoteResult(long gameId) {
-        int target = findById(gameId).voteResult();
+    public Long getVoteResult(long gameId) {
+        long target = findById(gameId).voteResult();
 
         if (target == -1) {
             gameEventPublisher.publishVoteResult(
                 "Game[" + gameId + "] VoteResult: -1");
             log.info("[Game{}] No one is selected", gameId);
-            return -1;
+            return -1L;
         } else {
             gameEventPublisher.publishVoteResult(
                 "Game[" + gameId + "] VoteResult: " + target);
@@ -218,13 +228,14 @@ public class GameService {
      * @param isVote   투표로 사망 여부 (true: 투표로 사망, false: 밤 페이즈 사망)
      * @return 사망 여부
      */
-    public boolean killPlayer(long gameId, Integer playerNo, boolean isVote) {
+    public boolean killPlayer(long gameId, Long playerNo, boolean isVote) {
         Game game = findById(gameId);
         if (game.getPlayers().get(playerNo).isDead()) {
             throw new BusinessException(TARGET_IS_DEAD);
         }
         if (isVote) {
             game.Kill(playerNo);
+            gameRepository.save(game);
             return true;
         } else {
             boolean isKill = game.processRoundResults();
@@ -241,7 +252,7 @@ public class GameService {
      * @param targetNo 보호할 대상 사용자 ID
      * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
      */
-    public void healPlayer(long gameId, Integer playerNo, Integer targetNo) {
+    public void healPlayer(long gameId, Long playerNo, Long targetNo) {
         Game game = findById(gameId);
         if (game.getPlayers().get(playerNo).getRole() != Role.PLAGUE_DOCTOR) {
             throw new BusinessException(NOT_DOCTOR_HEAL);
@@ -265,7 +276,7 @@ public class GameService {
      * @return 대상 사용자의 역할
      * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
      */
-    public Role findRole(long gameId, Integer playerNo, Integer targetNo) {
+    public Role findRole(long gameId, Long playerNo, Long targetNo) {
         Game game = findById(gameId);
         if (game.getPlayers().get(playerNo).getRole() != Role.POLICE) {
             throw new BusinessException(NOT_POLICE_FIND_ROLE);
@@ -288,7 +299,7 @@ public class GameService {
      * @param targetNo 죽일 사용자 ID
      * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
      */
-    public void setKillTarget(long gameId, Integer playerNo, Integer targetNo) {
+    public void setKillTarget(long gameId, Long playerNo, Long targetNo) {
         Game game = findById(gameId);
         Role myrole = game.getPlayers().get(playerNo).getRole();
         if (myrole != Role.ZOMBIE && myrole != Role.MUTANT) {
@@ -298,7 +309,7 @@ public class GameService {
             throw new BusinessException(TARGET_IS_DEAD);
         }
 
-        game.setKillTarget(targetNo);
+        game.setKillTarget(playerNo, targetNo);
 
         log.info("[Game{}] Player {} set the target of {}", gameId, targetNo, myrole);
         gameRepository.save(game);

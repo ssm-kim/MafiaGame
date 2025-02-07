@@ -1,11 +1,17 @@
 package com.mafia.domain.chat.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mafia.domain.chat.model.StompPrincipal;
 import com.mafia.domain.chat.model.dto.ChatMessage;
 import com.mafia.domain.chat.model.dto.GetMessageRequest;
 import com.mafia.domain.chat.service.ChatService;
+import com.mafia.global.common.model.dto.BaseResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -22,25 +28,26 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequiredArgsConstructor
+@Tag(name = "채팅 API", description = "게임 내 채팅 관련 API")
 public class ChatController {
 
     private final ChatService chatService;
 
-    /**
-     * STOMP를 통한 채팅 메시지 처리
-     */
     @MessageMapping("/chat/send")
-    public void sendMessage(ChatMessage message, @AuthenticationPrincipal StompPrincipal detail) {
-        chatService.processChatMessage(message, Long.valueOf(detail.getName()));
+    @Operation(summary = "채팅 메시지 전송", description = "STOMP를 통해 특정 채널에 채팅 메시지를 전송합니다.")
+    public ResponseEntity<BaseResponse<Void>> sendMessage(@Parameter(description = "채팅 메시지 객체") ChatMessage message,
+        @AuthenticationPrincipal @Parameter(hidden = true) StompPrincipal detail
+    ) throws JsonProcessingException {
+        chatService.sendMessage(message, Long.valueOf(detail.getName()));
+        return ResponseEntity.ok(new BaseResponse<>());
     }
 
-    /**
-     * 특정 채팅 채널의 최근 채팅 기록 가져오기
-     */
+
     @GetMapping("/chat")
-    public List<ChatMessage> getRecentMessages(
-        GetMessageRequest req,
-        @RequestParam int count, @AuthenticationPrincipal StompPrincipal detail) {
-        return chatService.getRecentMessages(req, count, Long.valueOf(detail.getName()));
+    @Operation(summary = "최근 채팅 메시지 조회", description = "특정 게임 채널의 최근 채팅 메시지를 조회합니다.")
+    public ResponseEntity<BaseResponse<List<ChatMessage>>> getRecentMessages(
+        @Parameter(description = "조회할 게임 ID와 타입") GetMessageRequest req,
+        @RequestParam @Parameter(description = "최근 메시지 개수") int count, @AuthenticationPrincipal @Parameter(hidden = true) StompPrincipal detail) {
+        return ResponseEntity.ok(new BaseResponse<>(chatService.getRecentMessages(req, count, Long.valueOf(detail.getName()))));
     }
 }

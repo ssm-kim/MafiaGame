@@ -22,11 +22,11 @@ public class ChatRepository {
     /**
      * 특정 채팅 채널에 메시지 저장 (최대 150개 유지)
      */
-    public void saveMessage(String roomId, String chatType, ChatMessage message) {
+    public void saveMessage(ChatMessage message) {
         ListOperations<String, String> listOps = redisTemplate.opsForList();
         try {
             String jsonMessage = objectMapper.writeValueAsString(message);
-            String redisKey = "chat:" + roomId + ":" + chatType; // 채널별 키 구분
+            String redisKey = "game:" + message.getGameId() + ":" + message.getChatType(); // 채널별 키 구분
             listOps.rightPush(redisKey, jsonMessage);
             listOps.trim(redisKey, -150, -1); // 150개 초과 시 오래된 메시지 삭제
         } catch (JsonProcessingException e) {
@@ -39,7 +39,7 @@ public class ChatRepository {
      */
     public List<ChatMessage> getRecentMessages(String roomId, String chatType, int count) {
         ListOperations<String, String> listOps = redisTemplate.opsForList();
-        String redisKey = "chat:" + roomId + ":" + chatType; // 채널별 키 구분
+        String redisKey = "game:" + roomId + ":" + chatType; // 채널별 키 구분
         List<String> messages = listOps.range(redisKey, -count, -1); // 최신 count개 메시지 가져오기
         return messages.stream().map(json -> {
             try {
