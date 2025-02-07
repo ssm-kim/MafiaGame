@@ -153,8 +153,10 @@ public class Game implements Serializable { // 필드정리
         long live = players.values().stream()
             .filter(player -> !player.isDead())
             .count();
-        if(final_vote > (live / 2)){
-            killTarget |= 1 <<( voteResult());
+
+        int target = voteResult();
+        if(final_vote > (live / 2) && target != -1){
+            killTarget |= 1 <<(target - 1);
             return true;
         }
         return false;
@@ -175,9 +177,9 @@ public class Game implements Serializable { // 필드정리
 
         // 치료된 플레이어 제외
         List<Integer> finalDeathList = new ArrayList<>();
-        for (int i = 1; i <= players.size(); i++){
+        for (int i = 0; i < players.size(); i++){
             if ((killTarget & (1 << i)) != 0)
-                finalDeathList.add(i);
+                finalDeathList.add(i+1);
         }
 
         if (healTarget != null && finalDeathList.contains(healTarget)) {
