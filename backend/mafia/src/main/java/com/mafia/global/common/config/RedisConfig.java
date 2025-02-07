@@ -53,8 +53,7 @@ public class RedisConfig {
 
     // 🔥 Redis 메시지 리스너 설정
     @Bean
-    public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory,
-        MessageListenerAdapter listenerAdapter) {
+    public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         return container;

@@ -1,6 +1,5 @@
 package com.mafia.domain.game.service;
 
-import static com.mafia.global.common.model.dto.BaseResponseStatus.CANNOT_KILL_ROLE;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.DEAD_CANNOT_VOTE;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_ALREADY_START;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_NOT_FOUND;
@@ -8,15 +7,14 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_TIME_OVE
 import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_PHASE;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.MEDICAL_COUNT_ZERO;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.MUTANT_CANNOT_VOTE;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_DOCTOR_HEAL;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_POLICE_FIND_ROLE;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PHASE_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.POLICE_CANNOT_VOTE;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.TARGET_IS_DEAD;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.UNKNOWN_PHASE;
 
-import com.mafia.domain.game.event.GameEventPublisher;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mafia.domain.game.event.GamePublisher;
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
 import com.mafia.domain.game.model.game.Player;
@@ -28,6 +26,9 @@ import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.service.RoomRedisService;
 import com.mafia.global.common.exception.exception.BusinessException;
 import com.mafia.global.common.service.GameSubscription;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,7 @@ public class GameService {
     private final GameRepository gameRepository; // 게임 데이터를 관리하는 리포지토리
     private final GameSeqRepository gameSeqRepository; // 게임 상태 및 시간 정보를 관리하는 리포지토리
     private final VoiceService voiceService; // 🔥 OpenVidu 연동 추가
-    private final GameEventPublisher gameEventPublisher; // Game Websocket
+    private final GamePublisher gamePublisher; // Game Websocket
     private final GameSubscription subscription;
 
     /**
@@ -79,7 +80,6 @@ public class GameService {
      * 게임 시작
      *
      * @param gameId 방 ID를 그대로 사용한다.
-     * @return 게임 시작 여부 (true: 시작됨)
      * @throws BusinessException 이미 시작된 게임이거나 플레이어가 부족할 경우 예외 발생
      */
     public void startGame(long gameId) {
@@ -166,7 +166,7 @@ public class GameService {
      * @param targetNo 투표 대상 사용자 ID
      * @throws BusinessException 유효하지 않은 투표 조건일 경우 예외 발생
      */
-    public void vote(long gameId, Long playerNo, Long targetNo) { // 투표 sync 고려
+    public void vote(long gameId, Long playerNo, Integer targetNo) { // 투표 sync 고려
         Game game = findById(gameId);
         if (game != null) {
             if (targetNo == -1) // 기권 처리
@@ -176,10 +176,6 @@ public class GameService {
             }
             if (game.getPlayers().get(playerNo).isDead()) {
                 throw new BusinessException(DEAD_CANNOT_VOTE);
-            }
-            if (game.getPlayers().get(targetNo).isDead()) {
-                game.vote(playerNo, -1L);
-                throw new BusinessException(TARGET_IS_DEAD);
             }
             if (game.getPlayers().get(playerNo).getRole() == Role.POLICE && !game.getPlayers()
                 .get(playerNo).isEnableVote()) {
@@ -202,117 +198,112 @@ public class GameService {
      * 투표 결과 반환
      *
      * @param gameId 방 ID
-     * @return 투표 결과 대상 ID
+     *
      */
-    public Long getVoteResult(long gameId) {
-        long target = findById(gameId).voteResult();
+    public int getVoteResult(long gameId) {
+        int target = findById(gameId).voteResult();
 
-        if (target == -1) {
-            gameEventPublisher.publishVoteResult(
-                "Game[" + gameId + "] VoteResult: -1");
-            log.info("[Game{}] No one is selected", gameId);
-            return -1L;
-        } else {
-            gameEventPublisher.publishVoteResult(
-                "Game[" + gameId + "] VoteResult: " + target);
-            log.info("[Game{}] Target is {}", gameId, target);
-            return target;
-        }
+        String topic = "game-"+gameId+"-system";
+        String message = "Game[" + gameId + "] VoteResult: " + target;
+        gamePublisher.publish(topic, message);
+
+        if (target == -1) log.info("[Game{}] No one is selected", gameId);
+        else log.info("[Game{}] Target is {}", gameId, target);
+
+        return target;
     }
+
+
+    /**
+     * 최종 찬반 투표: 보내는거 자체가 수락임
+     *
+     * @param gameId 방 ID
+     *
+     */
+    public void finalVote(long gameId) {
+        Game game = findById(gameId);
+        game.finalVote();
+
+        gameRepository.save(game);
+    }
+
+
+    /**
+     * 최종 찬반 투표 결과 반환
+     *
+     * @param gameId 방 ID
+     *
+     */
+    public boolean getFinalVoteResult(long gameId) {
+        boolean isKill = findById(gameId).finalvoteResult();
+
+        String topic = "game-"+gameId+"-system";
+        String message = "Game[" + gameId + "] Vote Kill: " + isKill;
+        gamePublisher.publish(topic, message);
+
+        if (isKill) log.info("[Game{}] No one is selected", gameId);
+        else log.info("[Game{}] Vote Kill!!!!!", gameId);
+
+        return isKill;
+    }
+
 
     /**
      * 플레이어 사망 처리
      *
      * @param gameId   방 ID
-     * @param playerNo 사망 처리할 사용자 ID
-     * @param isVote   투표로 사망 여부 (true: 투표로 사망, false: 밤 페이즈 사망)
      * @return 사망 여부
      */
-    public boolean killPlayer(long gameId, Long playerNo, boolean isVote) {
+    public boolean killPlayer(long gameId) throws JsonProcessingException {
         Game game = findById(gameId);
-        if (game.getPlayers().get(playerNo).isDead()) {
-            throw new BusinessException(TARGET_IS_DEAD);
-        }
-        if (isVote) {
-            game.Kill(playerNo);
+        List<Integer> killList = game.processRoundResults();
+        if(!killList.isEmpty()){
+            // JSON 형태로 메시지 구성
+            Map<String, String> death = new HashMap<>();
+            for(int death_player : killList){
+                death.put("death", String.valueOf(death_player)); // 닉네임 추가
+            }
+            // JSON 변환
+            String jsonMessage = new ObjectMapper().writeValueAsString(death);
+
+            // Redis Pub/Sub을 통해 메시지 전송
+            gamePublisher.publish("game-" + gameId + "-system", jsonMessage);
             gameRepository.save(game);
             return true;
-        } else {
-            boolean isKill = game.processRoundResults();
-            gameRepository.save(game);
-            return isKill;
         }
+        return false;
     }
 
     /**
-     * 플레이어 살리기 (의사 전용)
-     *
-     * @param gameId   방 ID
-     * @param playerNo 의사 사용자 ID
-     * @param targetNo 보호할 대상 사용자 ID
-     * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
-     */
-    public void healPlayer(long gameId, Long playerNo, Long targetNo) {
-        Game game = findById(gameId);
-        if (game.getPlayers().get(playerNo).getRole() != Role.PLAGUE_DOCTOR) {
-            throw new BusinessException(NOT_DOCTOR_HEAL);
-        }
-        if (game.getSetting().getDoctorSkillUsage() == 0) {
-            throw new BusinessException(MEDICAL_COUNT_ZERO);
-        }
-        if (game.getPlayers().get(targetNo).isDead()) {
-            throw new BusinessException(TARGET_IS_DEAD);
-        }
-        game.heal(targetNo);
-        gameRepository.save(game);
-    }
-
-    /**
-     * 플레이어 직업 찾기 (경찰 전용)
-     *
-     * @param gameId   방 ID
-     * @param playerNo 경찰 사용자 ID
-     * @param targetNo 탐색할 사용자 ID
-     * @return 대상 사용자의 역할
-     * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
-     */
-    public Role findRole(long gameId, Long playerNo, Long targetNo) {
-        Game game = findById(gameId);
-        if (game.getPlayers().get(playerNo).getRole() != Role.POLICE) {
-            throw new BusinessException(NOT_POLICE_FIND_ROLE);
-        }
-        if (game.getPlayers().get(targetNo).isDead()) {
-            throw new BusinessException(TARGET_IS_DEAD);
-        }
-        Role role = game.findRole(playerNo, targetNo);
-        log.info("[Game{}] Player {} found the role of Player {} as {}", gameId, playerNo, targetNo,
-            role);
-        gameRepository.save(game);
-        return role;
-    }
-
-    /**
-     * 죽일 사람 지정 (좀비, 돌연변이 전용)
+     * 타겟 지정(경찰, 의사, 좀비, 돌연변이)(밤에만 가능)
      *
      * @param gameId   방 ID
      * @param playerNo 사용자 ID
      * @param targetNo 죽일 사용자 ID
      * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
      */
-    public void setKillTarget(long gameId, Long playerNo, Long targetNo) {
+    public String setTarget(long gameId, Long playerNo, Integer targetNo) {
         Game game = findById(gameId);
         Role myrole = game.getPlayers().get(playerNo).getRole();
-        if (myrole != Role.ZOMBIE && myrole != Role.MUTANT) {
-            throw new BusinessException(CANNOT_KILL_ROLE);
-        }
-        if (game.getPlayers().get(targetNo).isDead()) {
-            throw new BusinessException(TARGET_IS_DEAD);
+        String result = "";
+        if (myrole == Role.ZOMBIE || myrole == Role.MUTANT) {
+            game.setKillTarget(targetNo);
+            result = targetNo + "플레이어는 감염 타겟이 되었습니다.";
+        } else if(myrole == Role.POLICE){
+            Role findrole = game.findRole(playerNo, targetNo);
+            result = targetNo + "의 직업은 " + findrole + "입니다.";
+        } else if (myrole == Role.PLAGUE_DOCTOR) {
+            if (game.getSetting().getDoctorSkillUsage() == 0) {
+                result = "남은 백신이 없습니다.";
+                throw new BusinessException(MEDICAL_COUNT_ZERO);
+            }
+            int heal_cnt = game.heal(targetNo);
+            result = targetNo + "을 살리기로 했습니다. 남은 백신은 " + heal_cnt + "개 입니다.";
         }
 
-        game.setKillTarget(playerNo, targetNo);
-
-        log.info("[Game{}] Player {} set the target of {}", gameId, targetNo, myrole);
+        log.info("[Game{}] Player{} set the target of {}", gameId, targetNo, myrole);
         gameRepository.save(game);
+        return result.isEmpty() ? "setTarget 요청 실패" : result;
     }
 
     /**
@@ -332,7 +323,7 @@ public class GameService {
      * @param gameId 방 ID
      * @throws BusinessException 유효하지 않은 페이즈일 경우 예외 발생
      */
-    public void advanceGamePhase(long gameId) {
+    public void advanceGamePhase(long gameId) throws JsonProcessingException {
         GamePhase curPhase = gameSeqRepository.getPhase(gameId);
         Game game = findById(gameId);
         if (curPhase == null) {
@@ -345,20 +336,26 @@ public class GameService {
                 gameSeqRepository.saveTimer(gameId, 20);
             }
             case DAY_VOTE -> {
-                gameSeqRepository.savePhase(gameId, GamePhase.DAY_FINAL_STATEMENT);
-                gameSeqRepository.saveTimer(gameId, 30);
+                if(getVoteResult(gameId) == -1){
+                    updateVoicePermissions(gameId, "night"); // 좀비만 음성 채팅 활성화
+                    gameSeqRepository.savePhase(gameId, GamePhase.NIGHT_ACTION);
+                    gameSeqRepository.saveTimer(gameId, game.getSetting().getNightTimeSec());
+                } else {
+                    gameSeqRepository.savePhase(gameId, GamePhase.DAY_FINAL_STATEMENT);
+                    gameSeqRepository.saveTimer(gameId, 30);
+                }
             }
             case DAY_FINAL_STATEMENT -> {
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_FINAL_VOTE);
                 gameSeqRepository.saveTimer(gameId, 20);
             }
             case DAY_FINAL_VOTE -> {
-                updateVoicePermissions(gameId, "night"); // 🔥 좀비만 음성 채팅 활성화
+                updateVoicePermissions(gameId, "night"); // 좀비만 음성 채팅 활성화
                 gameSeqRepository.savePhase(gameId, GamePhase.NIGHT_ACTION);
                 gameSeqRepository.saveTimer(gameId, game.getSetting().getNightTimeSec());
             }
             case NIGHT_ACTION -> {
-                updateVoicePermissions(gameId, "day"); // 🔥 모든 생존자 음성 채팅 활성화 (토론)
+                updateVoicePermissions(gameId, "day"); // 모든 생존자 음성 채팅 활성화 (토론)
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_DISCUSSION);
                 gameSeqRepository.saveTimer(gameId, game.getSetting().getDayDisTimeSec());
             }
