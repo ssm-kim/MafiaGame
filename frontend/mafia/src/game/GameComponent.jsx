@@ -12,7 +12,7 @@ function GameComponent() {
   const gameContainer = useRef(null);
   const gameInstance = useRef(null);
 
-  const preventClose = (e: BeforeUnloadEvent) => {
+  const preventClose = (e) => {
     e.preventDefault();
     e.returnValue = '';
   };

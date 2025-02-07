@@ -57,15 +57,16 @@
 
 // export default TestWaitingRoom;
 
-import React from 'react';
+// import React from 'react';
 import PlayerCard from './TestPlayerCard';
 import ActionButton from './TestWatingButton';
+// import { Player } from '@/types/player';
 import { Player } from '@/types/player';
 
 interface TestWaitingRoomProps {
   players: Player[];
   isHost: boolean;
-  currentPlayerId: number;
+  // currentPlayerId: number;
   maxPlayers: number;
   onReady: () => void;
   onStart: () => void;
@@ -74,7 +75,7 @@ interface TestWaitingRoomProps {
 function TestWaitingRoom({
   players,
   isHost,
-  currentPlayerId,
+  // currentPlayerId,
   maxPlayers,
   onReady,
   onStart,
@@ -103,7 +104,7 @@ function TestWaitingRoom({
           <PlayerCard
             key={index}
             player={player}
-            currentPlayerId={currentPlayerId}
+            // currentPlayerId={currentPlayerId}
           />
         ))}
       </div>

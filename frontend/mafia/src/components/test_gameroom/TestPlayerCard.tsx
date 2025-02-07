@@ -1,15 +1,15 @@
 /* eslint-disable react/require-default-props */
 
-import React from 'react';
+// import React from 'react';
 import { Player } from '@/types/player';
 
 interface TestPlayerCardProps {
   player?: Player;
 
-  currentPlayerId: number;
+  // currentPlayerId: number;
 }
 
-function TestPlayerCard({ player = undefined, currentPlayerId }: TestPlayerCardProps): JSX.Element {
+function TestPlayerCard({ player = undefined }: TestPlayerCardProps): JSX.Element {
   return (
     <div
       className={`p-4 rounded-lg border
@@ -21,7 +21,7 @@ function TestPlayerCard({ player = undefined, currentPlayerId }: TestPlayerCardP
             <span className="text-white">{player.nickname}</span>
             {player.isHost && <span className="text-xs text-red-500">[방장]</span>}
           </div>
-          {player.isHost !== currentPlayerId && (
+          {!player.isHost && (
             <span className={`text-sm ${player.isReady ? 'text-green-500' : 'text-gray-500'}`}>
               {player.isReady ? '준비 완료' : '대기 중'}
             </span>

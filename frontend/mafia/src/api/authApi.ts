@@ -1,4 +1,5 @@
-import api from '@/../frontend/mafia/src/api/axios';
+// import api from '@/../frontend/mafia/src/api/axios';
+import api from '@/api/axios';
 import { AuthRequest, AuthResponse } from '../types/auth';
 
 export const authApi = {

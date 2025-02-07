@@ -1,8 +1,9 @@
-import React from 'react';
+// import React from 'react';
+import { useEffect } from 'react';
 import { Room } from '@/types/room';
 // import { RoomCard } from '@/components/lobby/RoomCard';
 
-import RoomCard from './TestRoomCard';
+import TestRoomCard from './TestRoomCard';
 
 interface TestRoomListProps {
   rooms: Room[];
@@ -11,14 +12,22 @@ interface TestRoomListProps {
 }
 
 function TestRoomList({ rooms, searchTerm, onJoinRoom }: TestRoomListProps): JSX.Element {
+  useEffect(() => {
+    console.log(rooms);
+  }, [rooms]);
   return (
     <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
       {rooms
         .filter((room) => room.roomTitle?.toLowerCase().includes(searchTerm?.toLowerCase() || ''))
         .map((room) => (
-          <RoomCard
+          <TestRoomCard
             key={room.roomId}
-            room={room}
+            room={{
+              roomId: room.roomId,
+              roomTitle: room.roomTitle,
+              peopleCnt: room.curPlayers, // curPlayers를 peopleCnt로 변환
+              maxPlayer: room.maxPlayers,
+            }}
             onJoin={() => onJoinRoom(room.roomId)}
           />
         ))}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // import roomApi from '@/api/roomApi';
@@ -55,7 +55,7 @@ function GameLobby() {
     const fetchRoomsAndUserInfo = async () => {
       try {
         // 방 목록 가져오기
-        const roomsResponse = await TestRoomApi.getRooms();
+        const roomsResponse = await roomApi.getRooms();
         console.log('방 목록 응답:', roomsResponse.data);
         setRooms(roomsResponse.data.result);
 
@@ -77,7 +77,7 @@ function GameLobby() {
     // }, [navigate]);
     const interval = setInterval(async () => {
       try {
-        const roomsResponse = await TestRoomApi.getRooms();
+        const roomsResponse = await roomApi.getRooms();
         setRooms(roomsResponse.data.result);
       } catch (error) {
         console.error('Failed to fetch rooms:', error);
@@ -164,7 +164,7 @@ function GameLobby() {
       );
 
       // 잠시 대기 (함수를 전달하는 방식으로 수정)
-      await new Promise((resolve) => {
+      await new Promise<void>((resolve) => {
         setTimeout(() => {
           resolve();
         }, 500);
@@ -302,7 +302,7 @@ function GameLobby() {
 
         <NicknameModal
           show={showNicknameModal}
-          onClose={() => setShowNicknameModal(false)}
+          // onClose={() => setShowNicknameModal(false)}
           onSubmit={handleNicknameChange}
         />
       </div>

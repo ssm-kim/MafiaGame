@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 
 interface NicknameModalProps {
   show: boolean;
-  onClose: () => void;
+  // onClose: () => void;
   onSubmit: (nickname: string) => void;
 }
 
-function NicknameModal({ show, onClose, onSubmit }: NicknameModalProps): JSX.Element {
+function NicknameModal({ show, onSubmit }: NicknameModalProps): JSX.Element | null {
   const [nickname, setNickname] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {

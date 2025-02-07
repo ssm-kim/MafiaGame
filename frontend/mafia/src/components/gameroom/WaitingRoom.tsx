@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 import PlayerCard from './PlayerCard';
 import ActionButton from './WatingButton';
 import { Player } from '@/types/player';
@@ -14,7 +14,7 @@ interface WaitingRoomProps {
 function WaitingRoom({
   players,
   isHost,
-  currentPlayerId,
+  // currentPlayerId,
   onReady,
   onStart,
 }: WaitingRoomProps): JSX.Element {
@@ -37,7 +37,6 @@ function WaitingRoom({
           <PlayerCard
             key={index}
             player={players[index]}
-            currentPlayerId={currentPlayerId}
           />
         ))}
       </div>

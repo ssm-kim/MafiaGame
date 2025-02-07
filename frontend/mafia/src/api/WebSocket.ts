@@ -105,9 +105,8 @@
 import { ChatMessage } from '@/types/chat';
 
 export const connectWebSocket = (
-  roomId: string,
   onMessageReceived: (message: ChatMessage) => void,
-  onGameStateChanged: (gameState: any) => void,
+  // onGameStateChanged: (gameState: any) => void,
 ) => {
   // 임시로 5초마다 메시지 보내기
   const interval = setInterval(() => {
@@ -124,6 +123,6 @@ export const connectWebSocket = (
   };
 };
 
-export const sendChatMessage = (roomId: string, message: string) => {
+export const sendChatMessage = (message: string) => {
   console.log('Chat message sent:', message);
 };

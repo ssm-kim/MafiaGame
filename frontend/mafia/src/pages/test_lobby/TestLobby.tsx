@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 // import roomApi from '@/api/roomApi';
@@ -38,7 +38,7 @@ function TestLobby() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showNicknameModal, setShowNicknameModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [testMemberId, setTestMemberId] = useState<number>(1);
+  // const [testMemberId, setTestMemberId] = useState<number>(1);
   const [newRoom, setNewRoom] = useState(initialRoomState);
   const [nickname, setNickname] = useState(''); // 카카오 로그인 시 받아온 닉네임으로 초기화되어야 함
 
@@ -262,7 +262,7 @@ function TestLobby() {
 
         <NicknameModal
           show={showNicknameModal}
-          onClose={() => setShowNicknameModal(false)}
+          // onClose={() => setShowNicknameModal(false)}
           onSubmit={handleNicknameChange}
         />
       </div>

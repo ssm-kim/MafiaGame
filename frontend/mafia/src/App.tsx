@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 import './index.css';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Splash from './components/splash/Splash';

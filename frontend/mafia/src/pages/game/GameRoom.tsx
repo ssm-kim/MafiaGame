@@ -1,43 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { connectWebSocket, sendChatMessage } from '@/api/webSocket';
+import { connectWebSocket } from '@/api/webSocket';
 import roomApi from '@/api/roomApi';
-import { Room } from '@/types/room';
+
 import { ChatMessage } from '@/types/chat';
+
 import GameHeader from '@/components/gameroom/GameHeader';
 import GameStatus from '@/components/gameroom/GameStatus';
 import ChatWindow from '@/components/gameroom/ChatWindow';
 import WaitingRoom from '@/components/gameroom/WaitingRoom';
+import { Room } from '../../types/room';
+import { Player } from '../../types/player';
 
-interface Player {
-  id: number;
-  nickname: string;
-  isHost: boolean;
-  isReady: boolean;
-}
+// interface Player {
+//   id: number;
+//   nickname: string;
+//   isHost: boolean;
+//   isReady: boolean;
+// }
 
 function GameRoom(): JSX.Element {
-  const { roomId } = useParams<{ roomId: string }>();
+  const { roomId } = useParams();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [gameState, setGameState] = useState<Room | null>(null);
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [isHost, setIsHost] = useState(false);
-  const [currentPlayerId, setCurrentPlayerId] = useState<number>(0);
+  const [players] = useState<Player[]>([]);
+  const [isHost] = useState(false);
+  const [currentPlayerId] = useState<number>(0);
 
   useEffect(() => {
     if (!roomId) return () => {};
 
     const stompClient = connectWebSocket(
-      roomId,
       (message) => {
         setMessages((prev) => [...prev, message]);
       },
-      (newGameState) => {
-        setGameState(newGameState);
-      },
+      // (newGameState) => {
+      //   setGameState(newGameState);
+      // },
     );
 
     const fetchRoomInfo = async () => {
@@ -86,7 +88,7 @@ function GameRoom(): JSX.Element {
       const memberId = localStorage.getItem('memberId');
       if (!memberId) return;
 
-      await TestRoomApi.readyRoom(Number(roomId), Number(memberId));
+      await roomApi.readyRoom(Number(roomId));
     } catch (error) {
       console.error('Failed to change ready state:', error);
       if (axios.isAxiosError(error) && error.response?.status === 404) {
@@ -101,7 +103,8 @@ function GameRoom(): JSX.Element {
 
       const response = await roomApi.startGame(Number(roomId));
       if (response.data.isSuccess) {
-        setGameState(response.data.result);
+        // setGameState(response.data.result);
+        console.log(response.data.result);
       }
     } catch (error) {
       console.error('Failed to start game:', error);
@@ -115,7 +118,7 @@ function GameRoom(): JSX.Element {
     e.preventDefault();
     if (!newMessage.trim() || !roomId) return;
 
-    sendChatMessage(roomId, newMessage);
+    // sendChatMessage(roomId, newMessage);
     setMessages((prev) => [
       ...prev,
       {
@@ -140,9 +143,9 @@ function GameRoom(): JSX.Element {
           roomId={roomId || ''}
           gameState={gameState}
           onLeave={handleLeaveRoom}
-          onReady={handleReadyState}
-          onStart={handleGameStart}
-          isHost={isHost}
+          // onReady={handleReadyState}
+          // onStart={handleGameStart}
+          // isHost={isHost}
         />
 
         <div className="flex h-full gap-4 pt-16">

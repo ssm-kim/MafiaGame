@@ -1,12 +1,31 @@
-import React from 'react';
-import { Player } from '@/types/player';
+// import React from 'react';
+// import { Player } from '@/types/player';
+import { Player } from '../../types/player';
+// import { GameStartResponse } from '@/types/room';
 
 interface PlayerCardProps {
-  player?: Player;
-  currentPlayerId: number;
+  player: Player;
+  // hostId: number;
 }
 
-function PlayerCard({ player, currentPlayerId }: PlayerCardProps): JSX.Element {
+// export interface GameStartResponse {
+//   roomId: number;
+//   hostId: number;
+//   readyCnt: number;
+//   roomStatus: boolean;
+//   participant: Record<string, Participant>;
+//   gameOption: {
+//     maxPlayers: number;
+//     zombie: number;
+//     mutant: number;
+//     doctorSkillUsage: number;
+//     nightTimeSec: number;
+//     dayDisTimeSec: number;
+//     requiredPlayers: number;
+//   };
+// }
+
+function PlayerCard({ player }: PlayerCardProps): JSX.Element {
   return (
     <div
       className={`p-4 rounded-lg border
@@ -18,7 +37,7 @@ function PlayerCard({ player, currentPlayerId }: PlayerCardProps): JSX.Element {
             <span className="text-white">{player.nickname}</span>
             {player.isHost && <span className="text-xs text-red-500">[방장]</span>}
           </div>
-          {player.id !== currentPlayerId && (
+          {!player.isHost && (
             <span className={`text-sm ${player.isReady ? 'text-green-500' : 'text-gray-500'}`}>
               {player.isReady ? '준비 완료' : '대기 중'}
             </span>

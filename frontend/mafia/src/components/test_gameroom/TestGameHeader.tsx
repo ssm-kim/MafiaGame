@@ -1,10 +1,12 @@
-import React from 'react';
+// import React from 'react';
 import { Room } from '@/types/room';
 
-interface TestGameHeaderProps {
+export interface TestGameHeaderProps {
   roomId: string;
   gameState: Room | null;
-  onLeave: () => void;
+  onLeave: () => Promise<void>;
+  // onStart: () => Promise<void>;
+  // isHost: boolean;
 }
 
 function TestGameHeader({ roomId, gameState, onLeave }: TestGameHeaderProps): JSX.Element {

@@ -24,7 +24,7 @@ interface RoomLeaveResponse {
 
 const TestRoomApi = {
   getRooms: () => api.get<ApiResponse<Room[]>>('/api/room/test'),
-  getRoom: (roomId) => api.get<ApiResponse<GameStartResponse>>(`api/room/test/${roomId}`),
+  getRoom: (roomId:number) => api.get<ApiResponse<Room>>(`api/room/test/${roomId}`),
 
   // createRoom: (data: CreateRoomRequest) =>
   //   api.post<ApiResponse<RoomIdResponse>>('/api/room/test', data, {

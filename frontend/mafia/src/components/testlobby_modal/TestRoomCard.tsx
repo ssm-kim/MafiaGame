@@ -1,13 +1,16 @@
-import React from 'react';
+// import React from 'react';
 // import { Room } from '@/types/room';
+
+// import { useEffect } from 'react';
 
 interface TestRoomCardProps {
   room: {
     roomId: number;
     roomTitle: string;
+    maxPlayer: number;
     peopleCnt: number;
-    maxPlayers: number;
   };
+
   onJoin: (roomId: number) => void;
 }
 
@@ -30,7 +33,7 @@ function TestRoomCard({ room, onJoin }: TestRoomCardProps): JSX.Element {
           <div className="text-sm text-gray-400">방 번호: {room.roomId}</div>
         </div>
         <div className="bg-red-900 px-3 py-1 rounded-full text-sm">
-          {room.peopleCnt} / {room.maxPlayers}
+          {room.peopleCnt} / {room.maxPlayer || 100}
         </div>
       </div>
     </div>

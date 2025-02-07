@@ -1,11 +1,11 @@
-import React from 'react';
+// import React from 'react';
 // import { Room } from '@/types/room';
 
 interface RoomCardProps {
   room: {
     roomId: number;
     roomTitle: string;
-    peopleCnt: number;
+    curPlayers: number;
   };
   onJoin: (roomId: number) => void;
 }
@@ -28,7 +28,7 @@ function RoomCard({ room, onJoin }: RoomCardProps): JSX.Element {
           <div className="text-xl font-medium mb-1">{room.roomTitle}</div>
           <div className="text-sm text-gray-400">방 번호: {room.roomId}</div>
         </div>
-        <div className="bg-red-900 px-3 py-1 rounded-full text-sm">{room.peopleCnt} / 4</div>
+        <div className="bg-red-900 px-3 py-1 rounded-full text-sm">{room.curPlayers} / 4</div>
       </div>
     </div>
   );
