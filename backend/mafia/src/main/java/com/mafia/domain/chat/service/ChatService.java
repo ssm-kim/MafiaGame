@@ -64,7 +64,7 @@ public class ChatService {
 
         String topic ="game-" + gameId + "-" + type + "-chat";
 
-        // 🔥 플레이어가 해당 채널을 구독하고 있는지 확인
+        // 플레이어가 해당 채널을 구독하고 있는지 확인
         if (!player.isSubscribed(topic)) throw new BusinessException(NOT_PERMISSION_CHAT);
 
         return topic; // Redis Pub/Sub 채널
@@ -101,7 +101,7 @@ public class ChatService {
         String content = message.getContent();
         String topic;
 
-        if(type == ChatType.room) topic = getvalidRoomTopic(gameId, memberId); // Room
+        if(type == ChatType.ROOM) topic = getvalidRoomTopic(gameId, memberId); // Room
         else topic = getvalidGameTopic(gameId, type, memberId); //Game(day, night, dead)
         chatRepository.saveMessage(message);
 
@@ -135,8 +135,8 @@ public class ChatService {
         long gameId = req.getGameId();
         ChatType type = req.getChatType();
         String topic;
-        if(type == ChatType.room) topic = getvalidRoomTopic(gameId, memberId); // Room
+        if(type == ChatType.ROOM) topic = getvalidRoomTopic(gameId, memberId); // Room
         else topic = getvalidGameTopic(gameId, type, memberId); //Game(day, night, dead)
-        return chatRepository.getRecentMessages(String.valueOf(gameId), String.valueOf(type), count);
+        return chatRepository.getRecentMessages(String.valueOf(gameId), type.toString(), count);
     }
 }

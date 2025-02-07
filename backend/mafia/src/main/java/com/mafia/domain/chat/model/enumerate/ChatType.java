@@ -1,5 +1,10 @@
 package com.mafia.domain.chat.model.enumerate;
 
 public enum ChatType {
-    room,day,night,dead
+    ROOM, DAY, NIGHT, DEAD;
+
+    @Override
+    public String toString() {
+        return name().toLowerCase();
+    }
 }

@@ -1,5 +1,8 @@
 package com.mafia.domain.game.service;
 
+import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_FOUND_SESSION;
+
+import com.mafia.global.common.exception.exception.BusinessException;
 import io.openvidu.java.client.Connection;
 import io.openvidu.java.client.ConnectionProperties;
 import io.openvidu.java.client.ConnectionType;
@@ -40,7 +43,7 @@ public class VoiceService {
     public String generateToken(long gameId, long playerNo)
         throws OpenViduJavaClientException, OpenViduHttpException {
         if (!gameSessions.containsKey(gameId)) {
-            throw new RuntimeException("Game session not found.");
+            throw new BusinessException(NOT_FOUND_SESSION);
         }
 
         Session session = gameSessions.get(gameId);
