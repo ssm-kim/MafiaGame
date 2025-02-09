@@ -1,6 +1,4 @@
 #infra/docker/app/docker-compose.yml
-version: '3.8'
-
 services:
   blue:
     build:
@@ -8,14 +6,13 @@ services:
       dockerfile: Dockerfile
       args:
         - PROFILE=blue
+    image: blue
     container_name: blue
-    depends_on:
-      mysql:
-        condition: service_healthy
     ports:
       - "8081:8081"
     environment:
-      - SPRING_PROFILES_ACTIVE=blue;
+      - SPRING_PROFILES_ACTIVE=blue
+      - PROFILE=blue
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
       - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
@@ -30,14 +27,13 @@ services:
       dockerfile: Dockerfile
       args:
         - PROFILE=green
+    image: green
     container_name: green
-    depends_on:
-      mysql:
-        condition: service_healthy
     ports:
       - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=green
+      - PROFILE=green
       - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
       - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
       - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}

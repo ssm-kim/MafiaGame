@@ -1,6 +1,6 @@
-package com.mafia.domain.login.utils;
+package com.mafia.global.common.utils;
 
-import com.mafia.domain.login.model.dto.CustomOAuth2User;
+import com.mafia.domain.login.model.dto.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 public class AuthenticationUtil {
 
     public String getProviderId() {
-        CustomOAuth2User oAuth2User = (CustomOAuth2User) SecurityContextHolder
+        AuthenticatedUser oAuth2User = (AuthenticatedUser) SecurityContextHolder
             .getContext()
             .getAuthentication()
             .getPrincipal();
@@ -18,7 +18,7 @@ public class AuthenticationUtil {
     }
 
     public Long getMemberId() {
-        CustomOAuth2User oAuth2User = (CustomOAuth2User) SecurityContextHolder
+        AuthenticatedUser oAuth2User = (AuthenticatedUser) SecurityContextHolder
             .getContext()
             .getAuthentication()
             .getPrincipal();

@@ -1,27 +1,22 @@
 package com.mafia.domain.chat.controller;
 
-import com.mafia.domain.chat.model.dto.ChatRoom;
-import com.mafia.domain.chat.model.enumerate.ChatRoomType;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.mafia.domain.chat.model.StompPrincipal;
+import com.mafia.domain.chat.model.dto.ChatMessage;
+import com.mafia.domain.chat.model.dto.GetMessageRequest;
 import com.mafia.domain.chat.service.ChatService;
 import com.mafia.global.common.model.dto.BaseResponse;
-import java.util.ArrayList;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-@RestController
-@RequiredArgsConstructor
-@RequestMapping("/api/chat")
-public class ChatController {
-
-    private final ChatService chatService;
 
     /*
     TODO:
@@ -31,34 +26,28 @@ public class ChatController {
      4. 예외 처리
      */
 
-    //채팅방 생성
-    @PostMapping("/room")
-    public ResponseEntity<BaseResponse<ChatRoom>> createRoom(
-        @RequestParam ChatRoomType type,
-        @RequestParam Long roomId) {
-        ChatRoom chatRoom = chatService.createRoom(type, roomId);
-        return ResponseEntity.ok(new BaseResponse<>(chatRoom));
-    }
+@Controller
+@RequiredArgsConstructor
+@Tag(name = "채팅 API", description = "게임 내 채팅 관련 API")
+public class ChatController {
 
-    //채팅방 전체 조회
-    @GetMapping("/rooms")
-    public ResponseEntity<BaseResponse<List<ChatRoom>>> getRooms() {
-        List<ChatRoom> rooms = new ArrayList<>(chatService.getAllRooms().values());
-        return ResponseEntity.ok(new BaseResponse<>(rooms));
-    }
+    private final ChatService chatService;
 
-    //채팅방 입장
-    @GetMapping("/room/{chatRoomId}")
-    public ResponseEntity<BaseResponse<ChatRoom>> getRoom(@PathVariable String chatRoomId) {
-        ChatRoom room = chatService.findRoomById(chatRoomId);
-        return ResponseEntity.ok(new BaseResponse<>(room));
-    }
-
-    //채팅방 삭제
-    @DeleteMapping("/room/{chatRoomId}")
-    public ResponseEntity<BaseResponse<Void>> deleteRoom(@PathVariable String chatRoomId) {
-        chatService.removeRoom(chatRoomId);
-
+    @MessageMapping("/chat/send")
+    @Operation(summary = "채팅 메시지 전송", description = "STOMP를 통해 특정 채널에 채팅 메시지를 전송합니다.")
+    public ResponseEntity<BaseResponse<Void>> sendMessage(@Parameter(description = "채팅 메시지 객체") ChatMessage message,
+        @AuthenticationPrincipal @Parameter(hidden = true) StompPrincipal detail
+    ) throws JsonProcessingException {
+        chatService.sendMessage(message, Long.valueOf(detail.getName()));
         return ResponseEntity.ok(new BaseResponse<>());
+    }
+
+
+    @GetMapping("/chat")
+    @Operation(summary = "최근 채팅 메시지 조회", description = "특정 게임 채널의 최근 채팅 메시지를 조회합니다.")
+    public ResponseEntity<BaseResponse<List<ChatMessage>>> getRecentMessages(
+        @Parameter(description = "조회할 게임 ID와 타입") GetMessageRequest req,
+        @RequestParam @Parameter(description = "최근 메시지 개수") int count, @AuthenticationPrincipal @Parameter(hidden = true) StompPrincipal detail) {
+        return ResponseEntity.ok(new BaseResponse<>(chatService.getRecentMessages(req, count, Long.valueOf(detail.getName()))));
     }
 }

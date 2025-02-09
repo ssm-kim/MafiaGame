@@ -2,7 +2,7 @@ package com.mafia.domain.login.controller;
 
 import com.mafia.domain.login.model.dto.ReissueDto;
 import com.mafia.domain.login.service.JWTService;
-import com.mafia.domain.login.utils.CookieUtil;
+import com.mafia.global.common.utils.CookieUtil;
 import com.mafia.global.common.model.dto.BaseResponse;
 import com.mafia.global.common.model.dto.BaseResponseStatus;
 import jakarta.servlet.http.HttpServletResponse;

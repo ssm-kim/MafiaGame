@@ -4,16 +4,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mafia.domain.room.model.redis.Participant;
 import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.io.Serializable;
-import java.util.concurrent.ConcurrentHashMap;
-
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.*;
 
 @Getter
 @Setter
@@ -31,10 +33,17 @@ public class Game implements Serializable { // 필드정리
 
     @Schema(description = "게임에 참여한 플레이어 정보", example =
         "{101: {\"name\": \"Player1\"}, 102: {\"name\": \"Player2\"}}")
-    private Map<Integer, Player> players;
+    private Map<Long, Player> players;
+
+    @Schema(description = "플레이어 매핑 정보", example =
+        "{1: 10214L, 2: 2165L}")
+    private Map<Integer, Long> map_players;
 
     @Schema(description = "플레이어들의 투표 정보", example = "{101: 102, 103: 104}")
-    private Map<Integer, Integer> votes;
+    private Map<Long, Integer> votes;
+
+    @Schema(description = "최종 찬반 투표 수", example = "5")
+    private int final_vote;
 
     @Schema(description = "게임의 현재 상태", example = "STARTED",
         allowableValues = {"PLAYING", "CITIZEN_WIN", "ZOMBIE_WIN", "MUTANT_WIN"})
@@ -43,8 +52,8 @@ public class Game implements Serializable { // 필드정리
     @Schema(description = "현재 라운드에서 의사가 치료 대상으로 지정한 플레이어의 ID", example = "101")
     private Integer healTarget;
 
-    @Schema(description = "현재 라운드에서 변종이 공격 대상으로 지정한 플레이어의 ID", example = "102")
-    private Set<Integer> killTarget;
+    @Schema(description = "현재 라운드에서 공격 대상으로 지정한 플레이어의 ID", example = "102")
+    private int killTarget;
 
     @Schema(description = "게임 옵션")
     private GameOption setting;
@@ -53,10 +62,18 @@ public class Game implements Serializable { // 필드정리
     public Game(long roomId, GameOption setting) {
         this.gameId = roomId;
         this.players = new HashMap<>();
-        this.votes = new ConcurrentHashMap<>();
+        this.votes = new HashMap<>();
+        this.map_players=new HashMap<>();
         this.healTarget = null;
-        this.killTarget = new HashSet<>();
+        this.killTarget = 0;
         this.setting = setting; // <- POST CONSTRUCT
+    }
+
+    public void roundInit(){
+        votes.clear();
+        final_vote = 0;
+        healTarget = null;
+        killTarget = 0;
     }
 
     /*
@@ -72,7 +89,8 @@ public class Game implements Serializable { // 필드정리
             }
         }
         Player player = new Player(participant);
-        players.put(players.size() + 1, player);
+        players.put(participant.getMemberId(), player);
+        map_players.put(players.size(), participant.getMemberId());
     }
 
     public void startGame() {
@@ -81,11 +99,20 @@ public class Game implements Serializable { // 필드정리
         List<Role> role = new ArrayList<>();
         init_role(role);
         int rcnt = 0;
-        for (Map.Entry<Integer, Player> e : players.entrySet()) {
-            Role user_role = role.get(rcnt);
-            e.getValue().setRole(user_role);
-            if (user_role == Role.MUTANT) {
-                e.getValue().setEnableVote(false);
+        for (Map.Entry<Long, Player> entry : players.entrySet()) {
+            Player player = entry.getValue();
+            Role userRole = role.get(rcnt);
+
+            player.setRole(userRole);
+            player.subscribe("game-" + gameId + "-system");
+            player.subscribe("game-" + gameId + "-day-chat");
+
+            if (userRole == Role.ZOMBIE) {
+                player.subscribe("game-" + gameId + "-night-chat");
+            }
+
+            if (userRole == Role.MUTANT) {
+                player.setEnableVote(false);
             }
             rcnt++;
         }
@@ -110,63 +137,84 @@ public class Game implements Serializable { // 필드정리
         Collections.shuffle(role);
     }
 
-    public void vote(Integer playerNo, Integer targetNo) {
+    public void vote(Long playerNo, Integer targetNo) {
+        if(players.get(map_players.get(targetNo)).isDead()) votes.put(playerNo, -1);
         votes.put(playerNo, targetNo);
     }
 
     public Integer voteResult() {
-        Map<Integer, Integer> result = new HashMap<>();
-        votes.forEach((user, target) -> result.merge(target, 1, Integer::sum));
-        int rtn = result.entrySet().stream().max(Map.Entry.comparingByValue())
-            .map(Map.Entry::getKey).orElse(-1);
-        votes.clear();
+        Map<Integer, Long> result = votes.values().stream()
+            .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-        return rtn;
+        return result.entrySet().stream()
+            .max(Map.Entry.comparingByValue())
+            .map(Map.Entry::getKey)
+            .orElse(-1);
     }
 
-    public void Kill(Integer targetNo) {
+    public void finalVote(){
+        final_vote++;
+    }
+
+    public boolean finalvoteResult() {
+        long live = players.values().stream()
+            .filter(player -> !player.isDead())
+            .count();
+
+        int target = voteResult();
+        if(final_vote > (live / 2) && target != -1){
+            killTarget |= 1 <<(target - 1);
+            return true;
+        }
+        return false;
+    }
+
+    private void Kill(Long targetNo) {
         Player p = players.get(targetNo);
         p.setDead(true);
+        p.updateSubscriptionsOnDeath(gameId);
         isGameOver();
     }
 
-    public boolean processRoundResults() { // 밤중 킬
-        if (killTarget == null || killTarget.isEmpty()) {
-            return false; // 죽일 대상이 없으면 바로 종료
+    public List<Integer> killProcess() { // 밤중 킬
+        if (killTarget == 0) {
+            return null; // 죽일 대상이 없으면 바로 종료
         }
 
         // 치료된 플레이어 제외
-        List<Integer> finalDeathList = new ArrayList<>(killTarget);
-        if (healTarget != null) {  // 유효한 healTarget만 제거
+        List<Integer> finalDeathList = new ArrayList<>();
+        for (int i = 0; i < players.size(); i++){
+            if ((killTarget & (1 << i)) != 0)
+                finalDeathList.add(i+1);
+        }
+
+        if (healTarget != null && finalDeathList.contains(healTarget)) {
             finalDeathList.remove(healTarget);
         }
 
         // 실제 킬 처리
         for (Integer target : finalDeathList) {
-            Kill(target);
+            Kill(map_players.get(target));
         }
 
-        // 라운드가 끝나면 리스트 초기화
-        healTarget = null;
-        killTarget.clear();
-
-        return true;
+        return finalDeathList;
     }
 
-    public void heal(Integer targetNo) {
+    public int heal(Integer targetNo) {
         healTarget = targetNo;
         int cnt = setting.getDoctorSkillUsage();
         if (cnt > 0) {
             setting.setDoctorSkillUsage(cnt - 1);
         }
+        return setting.getDoctorSkillUsage();
     }
 
     public void setKillTarget(Integer targetNo) {
-        killTarget.add(targetNo);
+        killTarget |= (1 << targetNo);
     }
 
-    public Role findRole(Integer playerNo, Integer targetNo) {
-        Role find = players.get(targetNo).getRole();
+    public Role findRole(Long playerNo, Integer targetNo) {
+        Role find = players.get(map_players.get(targetNo)).getRole();
         if (find == Role.ZOMBIE) {
             players.get(playerNo).setEnableVote(false);
             return Role.ZOMBIE;
@@ -200,5 +248,27 @@ public class Game implements Serializable { // 필드정리
         if (this.status != STATUS.PLAYING) {
             log.info("[Game{}] Game over with status: {}", gameId, this.status);
         }
+    }
+
+    public void updateVoicePermissions(String phase) {
+        players.forEach((playerNo, player) -> {
+            if (player.isDead()) {
+                player.setMuteMic(true);
+                player.setMuteAudio(false); // 죽은 플레이어는 듣기만 가능
+            } else if (phase.equals("day")) {
+                // 낮 토론 시간 -> 모든 생존자 마이크+오디오 허용
+                player.setMuteMic(false);
+                player.setMuteAudio(false);
+            } else {
+                // 밤 -> 좀비만 말하기+듣기 가능, 나머지는 둘 다 음소거
+                if (player.getRole() == Role.ZOMBIE) {
+                    player.setMuteMic(false);
+                    player.setMuteAudio(false);
+                } else {
+                    player.setMuteMic(true);
+                    player.setMuteAudio(true); // 살아있는 시민 & 경찰 & 의사는 둘 다 음소거
+                }
+            }
+        });
     }
 }

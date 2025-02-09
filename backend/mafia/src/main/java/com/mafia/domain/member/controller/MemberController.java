@@ -1,6 +1,6 @@
 package com.mafia.domain.member.controller;
 
-import com.mafia.domain.login.model.dto.CustomOAuth2User;
+import com.mafia.domain.login.model.dto.AuthenticatedUser;
 import com.mafia.domain.member.model.dto.request.NicknameRequest;
 import com.mafia.domain.member.model.dto.response.MemberResponse;
 import com.mafia.domain.member.model.dto.response.NicknameResponse;
@@ -21,7 +21,7 @@ public class MemberController {
     //회원 조회
     @GetMapping
     public ResponseEntity<BaseResponse<MemberResponse>> getMemberInfo(
-            @AuthenticationPrincipal CustomOAuth2User detail) {
+            @AuthenticationPrincipal AuthenticatedUser detail) {
         MemberResponse memberResponse = memberService.getMemberInfo(detail.getMemberId());
         return ResponseEntity.ok(new BaseResponse<>(memberResponse));
     }
@@ -29,7 +29,7 @@ public class MemberController {
     //닉네임 수정
     @PatchMapping("/nickname")
     public ResponseEntity<BaseResponse<NicknameResponse>> updateNickname(
-            @AuthenticationPrincipal CustomOAuth2User detail,
+            @AuthenticationPrincipal AuthenticatedUser detail,
             @RequestBody NicknameRequest nicknameRequest) {
         NicknameResponse nicknameResponse = memberService.updateNickname(detail.getMemberId(), nicknameRequest.getNickname());
         return ResponseEntity.ok(new BaseResponse<>(nicknameResponse));
@@ -38,7 +38,7 @@ public class MemberController {
     //상태 변경
     @PatchMapping("/status")
     public ResponseEntity<BaseResponse<Void>> updateMemberStatus(
-            @AuthenticationPrincipal CustomOAuth2User detail) {
+            @AuthenticationPrincipal AuthenticatedUser detail) {
         memberService.updateStatusMember(detail.getMemberId());
         return ResponseEntity.ok(new BaseResponse<>());
     }

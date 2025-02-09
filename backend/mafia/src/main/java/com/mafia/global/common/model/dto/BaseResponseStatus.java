@@ -18,7 +18,7 @@ public enum BaseResponseStatus {
     ROOM_NOT_FOUND(false, HttpStatus.NOT_FOUND, 1001, "존재하지 않는 방입니다."),
     ROOM_TITLE_INVALID(false, HttpStatus.BAD_REQUEST, 1002, "방 제목은 비어있을 수 없습니다."),
     ROOM_TITLE_LIMIT(false, HttpStatus.BAD_REQUEST, 1003, "방 제목은 30자를 초과할 수 없습니다."),
-    INVALID_ROOM_PASSWORD(false, HttpStatus.BAD_REQUEST, 1004, "비밀번호가 일치하지 않습니다."),
+    INVALID_PASSWORD(false, HttpStatus.BAD_REQUEST, 1004, "유효하지 않은 비밀번호입니다."),
 
     // 방 입장/퇴장 관련
     ALREADY_HAS_ROOM(false, HttpStatus.BAD_REQUEST, 1005, "이미 다른 방에 참여 중입니다."),
@@ -67,6 +67,8 @@ public enum BaseResponseStatus {
 
     // Chat Error Codes (5000~)
     NOT_FOUND_CHAT(false, HttpStatus.NOT_FOUND, 5001, "채팅방을 찾을 수 없습니다."),
+    NOT_PERMISSION_CHAT(false, HttpStatus.NOT_FOUND, 5002, "해당 채팅방에 접근이 불가합니다."),
+    NOT_FOUND_SESSION(false, HttpStatus.NOT_FOUND, 5003, "해당 OpenVidu 세션이 존재하지 않습니다."),
 
     // JWT Error Codes (6000~)
     REFRESH_TOKEN_NOT_FOUND(false, HttpStatus.BAD_REQUEST, 6001, "리프레시 토큰을 찾을 수 없습니다."),

@@ -32,6 +32,36 @@ build때 -x test 옵션 추가
 
 profile blue green 고정
 
+## 열번째 배포 테스트입니다.
+
+compose 세미콜론 제거 및 withFileCredentials 이용
+
+## 열한번째 배포 테스트입니다.
+
+withCredentials 이용
+
+## 열두번째 배포 테스트입니다.
+
+## 열세번째 배포 테스트 입니다.
+
+git 브랜치가 master로 되어있는거 확인-> dev_BE로 수정
+
+## 열네번째 배포 테스트입니다.
+
+.env denied -> ㅇ chmod u+w . 추가 및 이후 600 설정
+
+## 열다섯번째 배포 테스트
+
+blue,green에 depends_on mysql 제거(이미 컨테이너 실행중)
+
+## 열여섯번째 배포 테스트
+
+컨테이너는 생성 -> 실행 에러 ARG PROFILE 인식이 안됨 -> profile
+
+## 열일곱번째 배포 테스트
+
+현재는 파일의 경로만 저장되어 있고 실제 내용이 복사되지 않음. -> pipeline 수정
+
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**

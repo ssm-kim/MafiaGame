@@ -1,25 +1,22 @@
 package com.mafia.domain.chat.model.dto;
 
-import com.mafia.domain.chat.model.enumerate.MessageType;
+import com.mafia.domain.chat.model.enumerate.ChatType;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
+@Getter
+@Setter
+@Schema(description = "채팅 메시지 DTO")
+public class ChatMessage {
 
-public record ChatMessage(
-    String chatRoomId,
-    MessageType type,
-    String sender,
-    String content,
-    LocalDateTime timestamp
-) {
+    @Schema(description = "게임 ID", example = "12345")
+    private long gameId;
 
-    // 시스템 메시지 생성을 위한 팩토리 메서드
-    public static ChatMessage systemMessage(String chatRoomId, String content) {
-        return new ChatMessage(
-            chatRoomId,
-            MessageType.SYSTEM,
-            "시스템",
-            content,
-            LocalDateTime.now()
-        );
-    }
+    @Schema(description = "메시지 내용", example = "안녕하세요!")
+    private String content;
+
+    @Schema(description = "채팅 타입 (room, day, night, dead)", example = "room")
+    private ChatType chatType;
 }
+
