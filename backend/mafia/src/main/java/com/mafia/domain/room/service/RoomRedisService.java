@@ -31,6 +31,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 
+/**
+ * 게임방 실시간 정보 관리 서비스 (Redis) - 방 참가자, 준비 상태 등 실시간으로 변경되는 정보를 관리
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -42,22 +45,19 @@ public class RoomRedisService {
     private final MemberService memberService;
     private final RoomSubscription subscription;
 
-    // Redis에서 방 정보 조회
+    /**
+     * Redis에서 방 정보 조회
+     */
     public RoomInfo findById(long roomId) {
         return Optional.ofNullable(redisRepository.findById(roomId))
             .orElseThrow(() -> new BusinessException(ROOM_NOT_FOUND));
     }
 
     /**
-     * 방 생성 시 Redis에 방 정보 저장 방장을 첫 참가자로 등록
-     *
-     * @param roomId         방 ID
-     * @param hostId         방장 ID
-     * @param requiredPlayer 게임 시작에 필요한 인원 수
+     * 방 생성 및 초기 설정 - 방장을 첫 참가자로 등록하고 방 구독 처리
      */
     public void createRoomInfo(Long roomId, Long hostId, int requiredPlayer, String title,
-        String password,
-        GameOption gameOption) {
+        String password, GameOption gameOption) {
         log.info("방 생성 시작: roomId={}, hostId={}, 필요인원={}", roomId, hostId, requiredPlayer);
 
         RoomInfo roomInfo = new RoomInfo(roomId, hostId, title, password);
@@ -66,24 +66,21 @@ public class RoomRedisService {
         roomInfo.setPassword(password);
         roomInfo.setTitle(title);
 
-        Participant host = new Participant();  // 방장을 첫 참가자로 추가
-        MemberResponse memberInfo = memberService.getMemberInfo(hostId);  // 멤버 서비스 정보에서 닉네임을 가져옴.
+        // 방장 정보 설정
+        Participant host = new Participant();
+        MemberResponse memberInfo = memberService.getMemberInfo(hostId);
         host.setMemberId(hostId);
         host.setNickName(memberInfo.getNickname());
 
         roomInfo.getParticipant().put(hostId, host);
         subscription.subscribe(roomId);
         redisRepository.save(roomId, roomInfo);
-        log.info("방 생성 완료: roomId={}, 방장닉네임={}", roomId, memberInfo.getNickname());
+
+        log.info("방 생성 완료 - 방 번호: {}, 방장: {}", roomId, memberInfo.getNickname());
     }
 
     /**
-     * 참가자 방 입장 처리
-     *
-     * @param roomId   방 ID
-     * @param memberId 참가자 ID
-     * @param password 방 비밀번호 (없는 경우 null)
-     * @throws BusinessException ALREADY_HAS_ROOM, ROOM_NOT_FOUND, INVALID_ROOM_PASSWORD, ROOM_FULL
+     * 방 입장 처리 - 중복 입장, 비밀번호, 정원 초과 등 체크 후 입장 처리
      */
     public void enterRoom(Long roomId, Long memberId, String password) {
         log.info("유저 방 입장 시도: roomId={}, memberId={}", roomId, memberId);
@@ -115,15 +112,11 @@ public class RoomRedisService {
         // 참가자 추가 및 Redis 저장
         roomInfo.getParticipant().put(memberId, participant);
         redisRepository.save(roomId, roomInfo);
-        log.info("방 입장 완료: roomId={}, memberId={}, 닉네임={}", roomId, memberId,
-            memberInfo.getNickname());
+        log.info("방 입장 완료 - 방 번호: {}, 닉네임: {}", roomId, memberInfo.getNickname());
     }
 
     /**
-     * 참가자 방 퇴장 처리
-     *
-     * @param roomId   방 ID
-     * @param memberId 참가자 ID
+     * 방 퇴장 처리 - 방장 퇴장시 방 삭제, 일반 유저는 참가자 목록에서 제거
      */
     public void leaveRoom(Long roomId, Long memberId) {
         log.info("유저 방 퇴장: roomId={}, memberId={}", roomId, memberId);
@@ -137,17 +130,12 @@ public class RoomRedisService {
         roomInfo.getParticipant().remove(memberId);
         redisRepository.save(roomId, roomInfo);
 
-        log.info("방 퇴장 완료: roomId={}, memberId={}, 남은인원={}", roomId, memberId,
-            roomInfo.getParticipant().size());
+        log.info("방 퇴장 완료 - 방 번호: {}, 유저: {}, 남은 인원: {}",
+            roomId, memberId, roomInfo.getParticipant().size());
     }
 
     /**
-     * 참가자 강퇴 처리
-     *
-     * @param roomId   방 ID
-     * @param hostId   방장 ID (강퇴를 요청한 사람)
-     * @param targetId 강퇴할 참가자 ID
-     * @throws BusinessException UNAUTHORIZED_HOST_ACTION, CANNOT_KICK_HOST, PLAYER_NOT_FOUND
+     * 강제 퇴장 처리 - 방장 권한 확인 후 강제 퇴장 진행
      */
     public void kickMember(Long roomId, Long hostId, Long targetId) {
         log.info("유저 강퇴 시도: roomId={}, hostId={}, targetId={}", roomId, hostId, targetId);
@@ -165,9 +153,7 @@ public class RoomRedisService {
     }
 
     /**
-     * 참가자 준비 상태를 토글 (호스트 불가)
-     *
-     * @throws BusinessException HOST_CANNOT_READY, PLAYER_NOT_FOUND
+     * 게임 준비 상태 토글 - 방장 제외 참가자의 준비 상태 변경
      */
     public void toggleReady(Long roomId, Long memberId) {
         log.info("준비상태 토글: roomId={}, memberId={}", roomId, memberId);
@@ -198,11 +184,13 @@ public class RoomRedisService {
 
         roomInfo.setReadyCnt(curReadyCnt);
         redisRepository.save(roomId, roomInfo);
-        log.info("준비상태 변경 완료: roomId={}, memberId={}, 준비상태={}, 총준비인원={}", roomId, memberId,
-            participant.isReady(), curReadyCnt);
+        log.info("준비 상태 변경 - 방 번호: {}, 유저: {}, 준비상태: {}, 총 준비: {}",
+            roomId, memberId, participant.isReady(), roomInfo.getReadyCnt());
     }
 
-    // 제거해도 될 듯
+    /**
+     * 게임 시작 - 방장 권한, 인원 수, 전체 준비 상태 확인 후 게임 시작
+     */
     public void startGame(Long roomId, Long memberId) {
         // 호스트 체크
         if (!isHost(roomId, memberId)) {
@@ -230,26 +218,39 @@ public class RoomRedisService {
         roomInfo.setPlaying(true);
         redisRepository.save(roomId, roomInfo);
 
-        log.info("게임 시작 완료 - 방ID: {}, 참가자 수: {}", roomId, roomInfo.getParticipant().size());
+        log.info("게임 시작 - 방 번호: {}, 참가자 수: {}", roomId, roomInfo.getParticipant().size());
     }
 
     // 유틸리티 메서드
+
+    /**
+     * 방 삭제 및 구독 해제
+     */
     public void deleteById(Long roomId) {
         log.info("방 삭제 : roomId={}", roomId);
         subscription.unsubscribe(roomId);
         redisRepository.delete(roomId);
     }
 
+    /**
+     * 전체 방의 참가자 수 조회
+     */
     public HashMap<Long, Integer> getRoomPlayerCounts() {
         return redisRepository.getRoomPlayerCounts();
     }
 
+    /**
+     * 방장 여부 확인
+     */
     public boolean isHost(Long roomId, Long memberId) {
         RoomInfo roomInfo = findById(roomId);
         System.out.println("#### " + memberId + " #### " + roomInfo.getHostId());
         return roomInfo.getHostId().equals(memberId);
     }
 
+    /**
+     * 유저의 중복 참여 확인
+     */
     public boolean isMemberInRoom(Long memberId) {
         Set<String> allRoomKeys = redisRepository.getAllRooms();
 

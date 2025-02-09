@@ -20,6 +20,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Room 관련 REST API Controller 방 생성, 조회, 삭제 등 기본적인 방 관리 기능을 담당
+ */
+
 @RestController
 @RequestMapping("/api/room")
 @RequiredArgsConstructor
@@ -28,26 +32,31 @@ public class RoomController {
     private final SimpMessageSendingOperations messagingTemplate;
     private final RoomDbService roomDbService;
 
+    /**
+     * 새로운 게임 방을 생성 방 생성 후 로비의 구독자들에게 업데이트된 방 목록을 전송
+     */
     @PostMapping
     public ResponseEntity<BaseResponse<RoomIdResponse>> createRoom(
         @RequestBody RoomRequest roomRequest,
         @AuthenticationPrincipal AuthenticatedUser detail
     ) {
-
         RoomIdResponse response = roomDbService.createRoom(roomRequest, detail.getMemberId());
-
-        // 방 생성될 때 구독자들에게 방 목록 전송
         messagingTemplate.convertAndSend("/topic/lobby", roomDbService.getAllRooms());
-
         return ResponseEntity.ok(new BaseResponse<>(response));
     }
 
+    /**
+     * 전체 방 목록 조회
+     */
     @GetMapping
     public ResponseEntity<BaseResponse<List<RoomResponse>>> getAllRooms() {
         List<RoomResponse> rooms = roomDbService.getAllRooms();
         return ResponseEntity.ok(new BaseResponse<>(rooms));
     }
 
+    /**
+     * 특정 방의 상세 정보를 조회
+     */
     @GetMapping("/{roomId}")
     public ResponseEntity<BaseResponse<RoomInfo>> getRoom(
         @PathVariable Long roomId) {
@@ -55,7 +64,9 @@ public class RoomController {
         return ResponseEntity.ok(new BaseResponse<>(room));
     }
 
-    // 필요 없을 듯
+    /**
+     * 특정 방을 삭제
+     */
     @DeleteMapping("/{roomId}")
     public ResponseEntity<BaseResponse<Void>> deleteRoom(
         @PathVariable Long roomId) {

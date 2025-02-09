@@ -5,9 +5,11 @@ import com.mafia.domain.room.model.redis.RoomInfo;
 import java.util.HashMap;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class RoomRedisRepository {
@@ -63,8 +65,8 @@ public class RoomRedisRepository {
      * 방 삭제
      */
     public void delete(Long roomId) {
-        System.out.println("🔴 방 삭제 시도 - roomId: " + roomId);
+        log.info("방 삭제 시도 - roomId ", roomId);
         redisTemplate.delete(getRoomKey(roomId));
-        System.out.println("✅ 방 삭제 완료 - roomId: " + roomId);
+        log.info("방 삭제 완료 - roomId ", roomId);
     }
 }

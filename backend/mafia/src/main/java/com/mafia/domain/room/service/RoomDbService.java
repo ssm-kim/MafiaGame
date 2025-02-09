@@ -19,6 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 게임방 DB 관리 서비스 - RDB와 Redis를 통합 관리하여 방 정보의 영속성과 실시간 처리를 담당
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -27,27 +30,14 @@ public class RoomDbService {
 
     private final RoomRepository DbRoomRepository;
     private final RoomRedisService roomRedisService;
-    // private final RoomMessageService messageService;
 
     /**
-     * 새로운 게임방 생성
-     *
-     * @param roomRequest 방 생성 요청 정보 (방 제목)
-     * @param memberId    방장 ID
-     * @return 방 생성 성공 여부
-     * @throws BusinessException INVALID_ROOM_TITLE, ROOM_TITLE_LIMIT
+     * 새로운 게임방 생성 - 방 생성 후 RDB 저장 및 Redis 캐싱
      */
     public RoomIdResponse createRoom(RoomRequest roomRequest, Long memberId) {
-        // 비밀번호 유효성 검사
-        String password = roomRequest.getPassword();
-        if (password != null && (password.length() < 4 || password.length() > 16)) {
-            throw new BusinessException(INVALID_PASSWORD);  // 에러 코드는 상황에 맞게 수정
-        }
 
-        // 유저가 이미 방을 생성하거나 참여 중인지 확인
-        if (roomRedisService.isMemberInRoom(memberId)) {
-            throw new BusinessException(ALREADY_HAS_ROOM);
-        }
+        // 유효성 검사
+        validateRoomCreation(roomRequest, memberId);
 
         // RDB 방 생성
         Room room = new Room();
@@ -58,19 +48,17 @@ public class RoomDbService {
         room.changeStatusToInActive();
         Room savedRoom = DbRoomRepository.save(room);
 
-        // Redis에 방 정보 저장
+        // Redis에 방 생성
         roomRedisService.createRoomInfo(savedRoom.getRoomId(), savedRoom.getHostId(),
             roomRequest.getRequiredPlayers(), savedRoom.getTitle(), savedRoom.getPassword(),
             roomRequest.getGameOption());
 
-        log.info("Room created - roomId: {}, hostId: {}", savedRoom.getRoomId(), memberId);
+        log.info("방 생성 완료 - 방 번호: {}, 방장: {}", savedRoom.getRoomId(), memberId);
         return new RoomIdResponse(savedRoom.getRoomId());
     }
 
     /**
-     * 모든 게임방 목록과 각 방의 현재 인원수 조회
-     *
-     * @return 방 목록 (방 제목, ID, 현재 인원수)
+     * 전체 게임방 목록 조회 - RDB의 방 정보와 Redis의 실시간 인원 정보를 조합하여 반환
      */
     public List<RoomResponse> getAllRooms() {
         List<Room> rooms = DbRoomRepository.findAll();
@@ -90,9 +78,7 @@ public class RoomDbService {
     }
 
     /**
-     * 게임방 삭제 및 Redis와 RDB에서 방 정보를 모두 삭제
-     *
-     * @param roomId 방 ID
+     * 게임방 삭제 - RDB와 Redis에서 동시 삭제
      */
     public void deleteRoom(Long roomId) {
         DbRoomRepository.deleteById(roomId);
@@ -100,13 +86,17 @@ public class RoomDbService {
         // messageService.sendRoomListToAll();
     }
 
-    // 4. 특정 방 정보 조회
+    /**
+     * 특정 방 정보 조회
+     */
     @Transactional(readOnly = true)
     public RoomInfo getRoom(Long roomId) {
         return roomRedisService.findById(roomId);
     }
 
-    // 게임 시작 활성화
+    /**
+     * 게임 시작 상태로 변경
+     */
     public void isActive(Long roomId) {
         Room room = DbRoomRepository.findById(roomId)
             .orElseThrow(() -> new BusinessException(ROOM_NOT_FOUND));
@@ -114,4 +104,19 @@ public class RoomDbService {
         room.changeStatusToActive();
     }
 
+    /**
+     * 유틸리티 메서드 방 생성 요청 유효성 검증
+     */
+    private void validateRoomCreation(RoomRequest roomRequest, Long memberId) {
+        // 비밀번호 유효성 검사
+        String password = roomRequest.getPassword();
+        if (password != null && (password.length() < 4 || password.length() > 16)) {
+            throw new BusinessException(INVALID_PASSWORD);
+        }
+
+        // 유저의 중복 참여 검사
+        if (roomRedisService.isMemberInRoom(memberId)) {
+            throw new BusinessException(ALREADY_HAS_ROOM);
+        }
+    }
 }
