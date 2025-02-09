@@ -1,24 +1,30 @@
 package com.mafia.domain.room.service;
 
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ALREADY_HAS_ROOM;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_TITLE_INVALID;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_TITLE_LIMIT;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_PASSWORD;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_NOT_FOUND;
 
-import com.mafia.domain.room.model.RoomIdResponse;
-import com.mafia.domain.room.model.RoomRequest;
-import com.mafia.domain.room.model.RoomResponse;
 import com.mafia.domain.room.model.entity.Room;
+import com.mafia.domain.room.model.redis.RoomInfo;
+import com.mafia.domain.room.model.request.RoomRequest;
+import com.mafia.domain.room.model.response.RoomIdResponse;
+import com.mafia.domain.room.model.response.RoomResponse;
 import com.mafia.domain.room.repository.RoomRepository;
 import com.mafia.global.common.exception.exception.BusinessException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 게임방 DB 관리 서비스 - RDB와 Redis를 통합 관리하여 방 정보의 영속성과 실시간 처리를 담당
+ */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Transactional
 public class RoomDbService {
 
@@ -26,62 +32,44 @@ public class RoomDbService {
     private final RoomRedisService roomRedisService;
 
     /**
-     * 새로운 게임방 생성
-     *
-     * @param roomRequest 방 생성 요청 정보 (방 제목)
-     * @param memberId    방장 ID
-     * @return 방 생성 성공 여부
-     * @throws BusinessException INVALID_ROOM_TITLE, ROOM_TITLE_LIMIT
+     * 새로운 게임방 생성 - 방 생성 후 RDB 저장 및 Redis 캐싱
      */
     public RoomIdResponse createRoom(RoomRequest roomRequest, Long memberId) {
-        // 유저가 이미 방을 생성하거나 참여 중인지 확인
-        if (roomRedisService.isMemberInRoom(memberId)) {
-            throw new BusinessException(ALREADY_HAS_ROOM);
-        }
 
-        // 방 제목 유효성 검증
-        if (roomRequest.getRoomTitle() == null || roomRequest.getRoomTitle().isEmpty()) {
-            throw new BusinessException(ROOM_TITLE_INVALID);
-        }
-
-        // 방 제목 적절한 최대 길이 설정
-        if (roomRequest.getRoomTitle().length() > 30) {
-            throw new BusinessException(ROOM_TITLE_LIMIT);
-        }
+        // 유효성 검사
+        validateRoomCreation(roomRequest, memberId);
 
         // RDB 방 생성
         Room room = new Room();
         room.setHostId(memberId);
-        room.setRoomTitle(roomRequest.getRoomTitle().trim());  // 앞뒤 공백 제거
-        room.setRoomPassword(roomRequest.getRoomPassword());   // null이면 공백
+        room.setTitle(roomRequest.getTitle().trim());
+        room.setPassword(roomRequest.getPassword());
+        room.setRequiredPlayers(roomRequest.getRequiredPlayers());
+        room.changeStatusToInActive();
         Room savedRoom = DbRoomRepository.save(room);
 
-        // Redis 방 정보 저장시 필요 인원 수 설정
+        // Redis에 방 생성
         roomRedisService.createRoomInfo(savedRoom.getRoomId(), savedRoom.getHostId(),
-            roomRequest.getRequiredPlayer());
+            roomRequest.getRequiredPlayers(), savedRoom.getTitle(), savedRoom.getPassword(),
+            roomRequest.getGameOption());
 
-        // 방 번호 객체 생성
-        RoomIdResponse response = new RoomIdResponse();
-        response.setRoomId(room.getRoomId());
-
-        return response;
+        log.info("방 생성 완료 - 방 번호: {}, 방장: {}", savedRoom.getRoomId(), memberId);
+        return new RoomIdResponse(savedRoom.getRoomId());
     }
 
     /**
-     * 모든 게임방 목록과 각 방의 현재 인원수 조회
-     *
-     * @return 방 목록 (방 제목, ID, 현재 인원수)
+     * 전체 게임방 목록 조회 - RDB의 방 정보와 Redis의 실시간 인원 정보를 조합하여 반환
      */
     public List<RoomResponse> getAllRooms() {
         List<Room> rooms = DbRoomRepository.findAll();
-        HashMap<Long, Integer> allRoomInfo = roomRedisService.roomsCount();
+        HashMap<Long, Integer> allRoomInfo = roomRedisService.getRoomPlayerCounts();
         List<RoomResponse> roomList = new ArrayList<>();
 
         // 각 방의 게임 목록 조회 (제목, 방ID, 현재 인원)
         for (Room room : rooms) {
             RoomResponse roomResponse = new RoomResponse();
-            roomResponse.setRoomTitle(room.getRoomTitle());
             roomResponse.setRoomId(room.getRoomId());
+            roomResponse.setRoomTitle(room.getTitle());
             roomResponse.setPeopleCnt(allRoomInfo.getOrDefault(room.getRoomId(), 0));
             roomList.add(roomResponse);
         }
@@ -90,12 +78,45 @@ public class RoomDbService {
     }
 
     /**
-     * 게임방 삭제 및 Redis와 RDB에서 방 정보를 모두 삭제
-     *
-     * @param roomId 방 ID
+     * 게임방 삭제 - RDB와 Redis에서 동시 삭제
      */
     public void deleteRoom(Long roomId) {
         DbRoomRepository.deleteById(roomId);
         roomRedisService.deleteById(roomId);
+        // messageService.sendRoomListToAll();
+    }
+
+    /**
+     * 특정 방 정보 조회
+     */
+    @Transactional(readOnly = true)
+    public RoomInfo getRoom(Long roomId) {
+        return roomRedisService.findById(roomId);
+    }
+
+    /**
+     * 게임 시작 상태로 변경
+     */
+    public void isActive(Long roomId) {
+        Room room = DbRoomRepository.findById(roomId)
+            .orElseThrow(() -> new BusinessException(ROOM_NOT_FOUND));
+
+        room.changeStatusToActive();
+    }
+
+    /**
+     * 유틸리티 메서드 방 생성 요청 유효성 검증
+     */
+    private void validateRoomCreation(RoomRequest roomRequest, Long memberId) {
+        // 비밀번호 유효성 검사
+        String password = roomRequest.getPassword();
+        if (password != null && (password.length() < 4 || password.length() > 16)) {
+            throw new BusinessException(INVALID_PASSWORD);
+        }
+
+        // 유저의 중복 참여 검사
+        if (roomRedisService.isMemberInRoom(memberId)) {
+            throw new BusinessException(ALREADY_HAS_ROOM);
+        }
     }
 }

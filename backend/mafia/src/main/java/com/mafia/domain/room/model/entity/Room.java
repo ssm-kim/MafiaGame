@@ -20,6 +20,7 @@ public class Room extends BaseEntity {
     private Long roomId;
     private Long hostId;
 
-    private String roomTitle;
-    private String roomPassword;
+    private int requiredPlayers;
+    private String title;
+    private String password;
 }
