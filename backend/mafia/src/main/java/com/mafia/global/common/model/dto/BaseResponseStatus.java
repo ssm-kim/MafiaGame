@@ -18,7 +18,7 @@ public enum BaseResponseStatus {
     ROOM_NOT_FOUND(false, HttpStatus.NOT_FOUND, 1001, "존재하지 않는 방입니다."),
     ROOM_TITLE_INVALID(false, HttpStatus.BAD_REQUEST, 1002, "방 제목은 비어있을 수 없습니다."),
     ROOM_TITLE_LIMIT(false, HttpStatus.BAD_REQUEST, 1003, "방 제목은 30자를 초과할 수 없습니다."),
-    INVALID_ROOM_PASSWORD(false, HttpStatus.BAD_REQUEST, 1004, "비밀번호가 일치하지 않습니다."),
+    INVALID_PASSWORD(false, HttpStatus.BAD_REQUEST, 1004, "유효하지 않은 비밀번호입니다."),
 
     // 방 입장/퇴장 관련
     ALREADY_HAS_ROOM(false, HttpStatus.BAD_REQUEST, 1005, "이미 다른 방에 참여 중입니다."),

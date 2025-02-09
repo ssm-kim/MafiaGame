@@ -2,7 +2,6 @@ package com.mafia.domain.game.service;
 
 import static com.mafia.global.common.model.dto.BaseResponseStatus.CANNOT_KILL_ROLE;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.DEAD_CANNOT_VOTE;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_ALREADY_START;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_TIME_OVER;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_PHASE;
@@ -83,39 +82,44 @@ public class GameService {
      * @throws BusinessException 이미 시작된 게임이거나 플레이어가 부족할 경우 예외 발생
      */
     public void startGame(long gameId) {
-        gameRepository.findById(gameId).ifPresent(game -> {
-            new BusinessException(GAME_ALREADY_START);
-        });
-        Game game = makeGame(gameId);
+        RoomInfo byId = roomService.findById(gameId);
+        System.out.println("#### " + byId.toString());
 
-        log.info("Game {} created.", gameId);
-        game.startGame();
-        gameSeqRepository.savePhase(gameId, GamePhase.DAY_DISCUSSION); // 낮 토론 시작
-        gameSeqRepository.saveTimer(gameId, game.getSetting().getDayDisTimeSec()); // 설정된 시간
-        log.info("Game started in Room {}: Phase set to {}, Timer set to {} seconds",
-            gameId, GamePhase.DAY_DISCUSSION, game.getSetting().getDayDisTimeSec());
+        return;
 
-        //Redis 채팅방 생성
-        subscription.subscribe(gameId);
-
-        gameRepository.save(game);
-
-        // 🔥 OpenVidu 세션 생성
-        try {
-            String sessionId = voiceService.createSession(gameId);
-            log.info("OpenVidu Session {} created for Game {}", sessionId, gameId);
-
-            // 🔥 모든 플레이어에게 토큰 발급
-            for (Long playerId : game.getPlayers().keySet()) {
-                String token = voiceService.generateToken(gameId, playerId);
-                log.info("Token issued for Player {}: {}", playerId, token);
-            }
-        } catch (Exception e) {
-            log.error("Failed to create OpenVidu session: {}", e.getMessage());
-        }
-
-
-        log.info("Game started in Room {}.", gameId);
+//        gameRepository.findById(gameId).ifPresent(game -> {
+//            new BusinessException(GAME_ALREADY_START);
+//        });
+//        Game game = makeGame(gameId);
+//
+//        log.info("Game {} created.", gameId);
+//        game.startGame();
+//        gameSeqRepository.savePhase(gameId, GamePhase.DAY_DISCUSSION); // 낮 토론 시작
+//        gameSeqRepository.saveTimer(gameId, game.getSetting().getDayDisTimeSec()); // 설정된 시간
+//        log.info("Game started in Room {}: Phase set to {}, Timer set to {} seconds",
+//            gameId, GamePhase.DAY_DISCUSSION, game.getSetting().getDayDisTimeSec());
+//
+//        //Redis 채팅방 생성
+//        subscription.subscribe(gameId);
+//
+//        gameRepository.save(game);
+//
+//        // 🔥 OpenVidu 세션 생성
+//        try {
+//            String sessionId = voiceService.createSession(gameId);
+//            log.info("OpenVidu Session {} created for Game {}", sessionId, gameId);
+//
+//            // 🔥 모든 플레이어에게 토큰 발급
+//            for (Long playerId : game.getPlayers().keySet()) {
+//                String token = voiceService.generateToken(gameId, playerId);
+//                log.info("Token issued for Player {}: {}", playerId, token);
+//            }
+//        } catch (Exception e) {
+//            log.error("Failed to create OpenVidu session: {}", e.getMessage());
+//        }
+//
+//
+//        log.info("Game started in Room {}.", gameId);
     }
 
     private Game makeGame(long roomId) {

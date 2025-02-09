@@ -63,6 +63,8 @@ public class RoomRedisRepository {
      * 방 삭제
      */
     public void delete(Long roomId) {
+        System.out.println("🔴 방 삭제 시도 - roomId: " + roomId);
         redisTemplate.delete(getRoomKey(roomId));
+        System.out.println("✅ 방 삭제 완료 - roomId: " + roomId);
     }
 }
