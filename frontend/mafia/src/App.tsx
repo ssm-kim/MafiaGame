@@ -20,7 +20,7 @@ function App(): JSX.Element {
             element={<LoginPage />}
           />
           <Route
-            path="/api/login/success"
+            path="/login/success"
             element={<LoginPage />}
           />
           <Route
