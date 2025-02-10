@@ -35,6 +35,29 @@ function LoginPage() {
   //   const KAKAO_AUTH_URL = `/oauth2/authorization/kakao`;
   //   window.location.href = KAKAO_AUTH_URL;
   // };
+  // useEffect(() => {
+  //   (async () => {
+  //     console.log('현재 경로:', location.pathname);
+  //     if (location.pathname === '/login/success') {
+  //       try {
+  //         const response = await axios.get('/api/login/success', {
+  //           withCredentials: true,
+  //         });
+
+  //         console.log('로그인 상태 확인 응답:', response.data);
+  //         if (response.data.isSuccess) {
+  //           console.log('로그인 성공 → 게임 로비로 이동');
+  //           navigate('/game-lobby', { replace: true });
+  //         }
+  //       } catch (error) {
+  //         console.error('로그인 확인 실패:', error);
+  //         navigate('/login', {
+  //           state: { error: '로그인에 실패했습니다. 다시 시도해주세요.' },
+  //         });
+  //       }
+  //     }
+  //   })();
+  // }, [location, navigate]);
   useEffect(() => {
     (async () => {
       console.log('현재 경로:', location.pathname);
@@ -46,6 +69,15 @@ function LoginPage() {
 
           console.log('로그인 상태 확인 응답:', response.data);
           if (response.data.isSuccess) {
+            // memberId 저장
+            const memberResponse = await axios.get('/api/member', {
+              withCredentials: true,
+            });
+            if (memberResponse.data.isSuccess) {
+              localStorage.setItem('memberId', memberResponse.data.result.memberId);
+              localStorage.setItem('username', memberResponse.data.result.nickname);
+            }
+
             console.log('로그인 성공 → 게임 로비로 이동');
             navigate('/game-lobby', { replace: true });
           }
