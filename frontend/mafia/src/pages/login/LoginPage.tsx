@@ -8,6 +8,7 @@ function LoginPage() {
 
   useEffect(() => {
     (async () => {
+      console.log('현재 경로:', location.pathname);
       if (location.pathname === '/api/login/success') {
         try {
           const response = await axios.get('/api/login/success', {
