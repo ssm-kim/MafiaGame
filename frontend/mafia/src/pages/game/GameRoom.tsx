@@ -53,22 +53,26 @@ function GameRoom(): JSX.Element {
       const playersList: Player[] = [];
 
       if (hostId) {
+        const hostNickname =
+          participant[hostId]?.nickName ||
+          localStorage.getItem('username') ||
+          `테스트유저${hostId}`;
         playersList.push({
           id: hostId,
           hostId,
-          nickname: `테스트유저${hostId}`,
+          nickname: hostNickname,
           isHost: true,
           isReady: false,
         });
       }
 
-      if (currentUserId !== hostId) {
+      if (currentUserId !== hostId && participant[currentUserId]) {
         playersList.push({
           id: currentUserId,
           hostId,
-          nickname: localStorage.getItem('username') || `테스트유저${currentUserId}`,
+          nickname: participant[currentUserId].nickName,
           isHost: false,
-          isReady: participant?.[currentPlayerId]?.ready || false,
+          isReady: participant[currentUserId].ready || false,
         });
       }
 
@@ -85,7 +89,6 @@ function GameRoom(): JSX.Element {
           }
         });
       }
-
       setPlayers(playersList);
       setIsHost(hostId === currentUserId);
     }
