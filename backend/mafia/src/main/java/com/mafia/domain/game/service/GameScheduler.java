@@ -12,6 +12,7 @@ import com.mafia.domain.game.model.game.GamePhase;
 import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
 import com.mafia.global.common.exception.exception.BusinessException;
+import com.mafia.global.common.service.GameSubscription;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +38,7 @@ public class GameScheduler {
     private final GameService gameService;
     private final GamePublisher gamePublisher;
     private final ObjectMapper objectMapper;
+    private final GameSubscription subscription;
 
 
     /**
@@ -64,6 +66,8 @@ public class GameScheduler {
 
         if (lastPhase != null && lastTimer != null) {
             log.info("[GameScheduler] 서버 재시작 - 게임 {} 복원 (Phase: {}, Timer: {}초)", gameId, lastPhase, lastTimer);
+            subscription.subscribe(gameId);
+
             // 게임 스케줄러 다시 시작
             startGameScheduler(new GameStartEvent(gameId));
         }
