@@ -218,9 +218,24 @@ let stompClient: any = null;
 const roomApi = {
   getRooms: () => api.get<ApiResponse<Room[]>>('/api/room'),
   getRoom: (roomId: number) => api.get<ApiResponse<Room>>(`/api/room/${roomId}`),
-  createRoom: (roomData: CreateRoomRequest) => {
-    console.log(roomData);
-    return api.post<ApiResponse<RoomIdResponse>>('/api/room', roomData);
+  createRoom: async (roomData: CreateRoomRequest) => {
+    console.log('요청 데이터:', JSON.stringify(roomData, null, 2));
+    const response = await api.post<ApiResponse<RoomIdResponse>>('/api/room', roomData);
+
+    if (response.data.isSuccess) {
+      const { roomId } = response.data.result;
+      // 방 생성 후 자동으로 호스트로 입장
+      await stompClient.send(
+        `/app/room/enter/${roomId}`,
+        {},
+        JSON.stringify({
+          memberId: Number(localStorage.getItem('memberId')),
+          isHost: true, // 호스트 표시 추가
+        }),
+      );
+    }
+
+    return response;
   },
   deleteRoom: (roomId: number) => api.delete<ApiResponse<void>>(`/api/room/${roomId}`),
 
@@ -278,13 +293,40 @@ const roomApi = {
     });
   },
 
+  // leaveRoom: async (roomId: number): Promise<WebSocketResponse> => {
+  //   if (!stompClient) {
+  //     await roomApi.initializeWebSocket();
+  //   }
+
+  //   return new Promise((resolve, reject) => {
+  //     try {
+  //       stompClient.send(
+  //         `/app/room/leave/${roomId}`,
+  //         {},
+  //         JSON.stringify({
+  //           memberId: Number(localStorage.getItem('memberId')),
+  //         }),
+  //       );
+  //       resolve({ data: { isSuccess: true, result: { host: false } } });
+  //     } catch (error) {
+  //       reject(error);
+  //     }
+  //   });
+  // },
   leaveRoom: async (roomId: number): Promise<WebSocketResponse> => {
     if (!stompClient) {
       await roomApi.initializeWebSocket();
     }
 
-    return new Promise((resolve, reject) => {
-      try {
+    const currentRoom = await api.get<ApiResponse<Room>>(`/api/room/${roomId}`);
+    const isHost = currentRoom.data.result.hostId === Number(localStorage.getItem('memberId'));
+
+    try {
+      if (isHost) {
+        // 호스트인 경우 방 삭제
+        await api.delete<ApiResponse<void>>(`/api/room/${roomId}`);
+      } else {
+        // 일반 참가자인 경우 방 나가기
         stompClient.send(
           `/app/room/leave/${roomId}`,
           {},
@@ -292,11 +334,13 @@ const roomApi = {
             memberId: Number(localStorage.getItem('memberId')),
           }),
         );
-        resolve({ data: { isSuccess: true, result: { host: false } } });
-      } catch (error) {
-        reject(error);
       }
-    });
+
+      return { data: { isSuccess: true, result: { host: isHost } } };
+    } catch (error) {
+      console.error('방 나가기/삭제 실패:', error);
+      throw error;
+    }
   },
 
   readyRoom: async (roomId: number): Promise<WebSocketResponse> => {
