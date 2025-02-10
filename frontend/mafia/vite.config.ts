@@ -53,6 +53,11 @@ export default defineConfig({
         target: 'https://i12d101.p.ssafy.io',
         changeOrigin: true,
         secure: true
+      },
+      '/login': {
+        target: 'https://i12d101.p.ssafy.io',
+        changeOrigin: true,
+        secure: true
       }
     }
   }
