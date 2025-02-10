@@ -318,10 +318,11 @@ const roomApi = {
       await roomApi.initializeWebSocket();
     }
 
-    const currentRoom = await api.get<ApiResponse<Room>>(`/api/room/${roomId}`);
-    const isHost = currentRoom.data.result.hostId === Number(localStorage.getItem('memberId'));
-
     try {
+      const currentRoom = await api.get<ApiResponse<Room>>(`/api/room/${roomId}`);
+      const myId = Number(localStorage.getItem('memberId'));
+      const isHost = currentRoom.data.result.hostId === myId;
+
       if (isHost) {
         // 호스트인 경우 방 삭제
         await api.delete<ApiResponse<void>>(`/api/room/${roomId}`);
@@ -331,7 +332,7 @@ const roomApi = {
           `/app/room/leave/${roomId}`,
           {},
           JSON.stringify({
-            memberId: Number(localStorage.getItem('memberId')),
+            memberId: myId,
           }),
         );
       }
