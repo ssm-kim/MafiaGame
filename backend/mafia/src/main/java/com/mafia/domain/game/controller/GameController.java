@@ -115,9 +115,9 @@ public class GameController {
     public ResponseEntity<BaseResponse<String>> setTarget(@PathVariable Long roomId,
         @AuthenticationPrincipal AuthenticatedUser detail, @RequestParam Integer targetNo) {
         gameService.validatePhase(roomId, GamePhase.NIGHT_ACTION);
-        gameService.setTarget(roomId, detail.getMemberId(), targetNo);
+        String result = gameService.setTarget(roomId, detail.getMemberId(), targetNo);
         return ResponseEntity.ok(
-            new BaseResponse<>("User " + targetNo + " set as target in Room " + roomId + "."));
+            new BaseResponse<>(result));
     }
 
     @GetMapping("/{roomId}/isEnd")

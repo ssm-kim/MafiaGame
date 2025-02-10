@@ -24,8 +24,8 @@ public class GameOption {
         this.zombie = 2;
         this.mutant = 1;
         this.doctorSkillUsage = 2;
-        this.nightTimeSec = 30;
-        this.dayDisTimeSec = 5;
+        this.nightTimeSec = 20;
+        this.dayDisTimeSec = 60;
     }
 
     public GameOption(int preset) {
