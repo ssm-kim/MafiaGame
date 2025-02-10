@@ -222,6 +222,7 @@ const roomApi = {
     console.log(roomData);
     return api.post<ApiResponse<RoomIdResponse>>('/api/room', roomData);
   },
+  deleteRoom: (roomId: number) => api.delete<ApiResponse<void>>(`/api/room/${roomId}`),
 
   initializeWebSocket: async () => {
     const socket = new WebSocket('wss://i12d101.p.ssafy.io/ws-mafia');

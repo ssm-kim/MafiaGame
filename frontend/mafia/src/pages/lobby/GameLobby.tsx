@@ -144,13 +144,29 @@ function GameLobby() {
           dayDisTimeSec: newRoom.gameOption.dayDisTimeSec,
         },
       };
-
+      console.log('요청 데이터:', JSON.stringify(createRoomData, null, 2));
       const response = await roomApi.createRoom(createRoomData);
       const roomId = response.data.result?.roomId;
+
       navigate(`/game/${roomId}`);
     } catch (error) {
       console.error('방 생성 에러:', error);
       alert('방 생성에 실패했습니다.');
+    }
+  };
+
+  const handleDeleteMyRoom = async () => {
+    try {
+      const myId = Number(localStorage.getItem('memberId'));
+      const myRoom = rooms.find((room) => room.hostId === myId);
+
+      if (myRoom) {
+        await roomApi.deleteRoom(myRoom.roomId);
+        const response = await roomApi.getRooms();
+        setRooms(response.data.result);
+      }
+    } catch (error) {
+      console.error('방 삭제 실패:', error);
     }
   };
 
@@ -216,6 +232,13 @@ function GameLobby() {
             style={{ fontFamily: 'BMEuljiro10yearslater' }}
           >
             탈출하기
+          </button>
+          <button
+            type="button"
+            onClick={handleDeleteMyRoom}
+            className="px-4 py-2 bg-red-900 text-gray-300 rounded-md hover:bg-red-800"
+          >
+            내 방 삭제
           </button>
         </div>
 
