@@ -48,6 +48,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
         ws: true
+      },
+      '/oauth2': {
+        target: 'https://i12d101.p.ssafy.io',
+        changeOrigin: true,
+        secure: true
       }
     }
   }

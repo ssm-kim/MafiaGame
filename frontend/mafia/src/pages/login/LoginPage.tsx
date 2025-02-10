@@ -34,7 +34,7 @@ function LoginPage() {
   }, [useNavigate, useLocation]);
 
   const handleKakaoLogin = () => {
-    const KAKAO_AUTH_URL = `api/oauth2/authorization/kakao`;
+    const KAKAO_AUTH_URL = `oauth2/authorization/kakao`;
     window.location.href = KAKAO_AUTH_URL;
   };
 
