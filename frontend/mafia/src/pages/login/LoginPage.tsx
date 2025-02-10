@@ -69,17 +69,26 @@ function LoginPage() {
 
           console.log('로그인 상태 확인 응답:', response.data);
           console.log('로그인 성공 응답:', response.data.result);
+
           if (response.data.isSuccess) {
-            // memberId 저장
             const memberResponse = await axios.get('/api/member', {
               withCredentials: true,
             });
-            console.log('멤버 정보 응답:', memberResponse.data);
+            console.log(
+              '멤버 정보 전체 result:',
+              JSON.stringify(memberResponse.data.result, null, 2),
+            );
+
             if (memberResponse.data.isSuccess) {
-              console.log('저장할 memberId:', memberResponse.data.result.memberId);
-              console.log('저장할 username:', memberResponse.data.result.nickname);
-              localStorage.setItem('memberId', memberResponse.data.result.memberId);
-              localStorage.setItem('username', memberResponse.data.result.nickname);
+              const memberId = memberResponse.data.result.id || memberResponse.data.result.memberId;
+              console.log('찾은 memberId:', memberId);
+
+              if (memberId) {
+                localStorage.setItem('memberId', memberId);
+                localStorage.setItem('username', memberResponse.data.result.nickname);
+                console.log('저장된 memberId:', localStorage.getItem('memberId'));
+                console.log('저장된 username:', localStorage.getItem('username'));
+              }
             }
 
             console.log('로그인 성공 → 게임 로비로 이동');
