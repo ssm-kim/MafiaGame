@@ -7,34 +7,30 @@ function LoginPage() {
   const location = useLocation();
 
   useEffect(() => {
-    const checkLoginStatus = async () => {
-      try {
-        let response;
-        if (location.pathname === 'http://localhost:8080/api/login/success') {
-          // 백엔드에 로그인 확인 요청 (쿠키 포함)
-          response = await axios.get('http://localhost:8080/api/login/success', {
+    (async () => {
+      if (location.pathname === '/api/login/success') {
+        try {
+          const response = await axios.get('/api/login/success', {
             withCredentials: true,
           });
 
           console.log('로그인 상태 확인 응답:', response.data);
+          if (response.data.data) {
+            console.log('로그인 성공 → 게임 로비로 이동');
+            navigate('/game-lobby', {replace: true});
+          }
+        } catch (error) {
+          console.error('로그인 확인 실패:', error);
+          navigate('/login', {
+            state: {error: '로그인에 실패했습니다. 다시 시도해주세요.'},
+          });
         }
-        if (response?.data?.isSuccess) {
-          console.log('로그인 성공 → 게임 로비로 이동');
-          navigate('/game-lobby', {replace: true});
-        }
-      } catch (error) {
-        // console.error('로그인 확인 실패:', error);
-        // navigate('/login', {
-        //   state: { error: '로그인에 실패했습니다. 다시 시도해주세요.' },
-        // });
       }
-    };
-
-    checkLoginStatus();
-  }, [useNavigate, useLocation]);
+    })();
+  }, [location, navigate]);
 
   const handleKakaoLogin = () => {
-    const KAKAO_AUTH_URL = `oauth2/authorization/kakao`;
+    const KAKAO_AUTH_URL = `/oauth2/authorization/kakao`;
     window.location.href = KAKAO_AUTH_URL;
   };
 
