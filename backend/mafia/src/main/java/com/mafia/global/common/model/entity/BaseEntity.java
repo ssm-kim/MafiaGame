@@ -36,4 +36,8 @@ public abstract class BaseEntity {
     public void changeStatusToInActive() {
         this.status = Status.INACTIVE;
     }
+
+    public void changeStatusToActive() {
+        this.status = Status.ACTIVE;
+    }
 }

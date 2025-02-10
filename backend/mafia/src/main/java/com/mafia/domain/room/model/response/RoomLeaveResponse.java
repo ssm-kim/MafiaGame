@@ -1,4 +1,4 @@
-package com.mafia.domain.room.model;
+package com.mafia.domain.room.model.response;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

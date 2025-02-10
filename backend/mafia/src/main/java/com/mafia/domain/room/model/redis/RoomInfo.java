@@ -16,17 +16,21 @@ public class RoomInfo {
 
     private Long roomId;
     private Long hostId;
-    private int readyCnt;
-    private boolean roomStatus = false;
-    private Map<Long, Participant> participant;  // key: member_id, value: 해당방에 들어간 참가자들
-    private int requiredPlayers;
-    private  String chat;
-    private GameOption gameOption;
+    private String title;
+    private String password;
 
-    public RoomInfo(Long roomId, Long hostId) {
-        this.hostId = hostId;
+    private int readyCnt;
+    private int requiredPlayers;
+    private boolean isPlaying = false;
+    private String chat;
+    private GameOption gameOption;
+    private Map<Long, Participant> participant;  // key: member_id, value: 해당방에 들어간 참가자들
+
+    public RoomInfo(Long roomId, Long hostId, String title, String password) {
         this.roomId = roomId;
-        this.readyCnt = 0;
+        this.hostId = hostId;
+        this.title = title;
+        this.password = password;
         this.requiredPlayers = 4;
         this.chat = "room-" + roomId + "-chat";
         this.participant = new HashMap<>();

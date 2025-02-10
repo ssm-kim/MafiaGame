@@ -53,12 +53,14 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests((auth) -> auth
                 .requestMatchers("/api/login/**", "/", "/error", "/swagger-ui/**", "/oauth2/**")
-                    .permitAll()
+                .permitAll()
                 .requestMatchers("/reissue")
-                    .permitAll()
-                .requestMatchers("/ws-mafia").authenticated()
+                .permitAll()
+                .requestMatchers("/ws-mafia")
+                .permitAll()
+                // .authenticated()) //TODO : 푸쉬 전에 제거
                 .anyRequest().permitAll());
-                    //.anyRequest().authenticated()); //TODO : 개발 완료 시 처리
+        //.anyRequest().authenticated()); //TODO : 개발 완료 시 처리
 
         //세션 설정 : STATELESS
         http
