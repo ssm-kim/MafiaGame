@@ -131,18 +131,12 @@ function GameLobby() {
         },
       };
 
-      console.log('방 생성 요청 데이터:', createRoomData);
       const response = await roomApi.createRoom(createRoomData);
-
-      if (response.data.isSuccess) {
-        const roomId = response.data.result?.roomId;
-        navigate(`/game/${roomId}`);
-      } else {
-        throw new Error(response.data.message);
-      }
+      const roomId = response.data.result?.roomId;
+      navigate(`/game/${roomId}`);
     } catch (error) {
       console.error('방 생성 에러:', error);
-      alert('방 생성에 실패했습니다. 모든 필드를 올바르게 입력했는지 확인해주세요.');
+      alert('방 생성에 실패했습니다.');
     }
   };
 

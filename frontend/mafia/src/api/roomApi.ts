@@ -193,7 +193,14 @@ interface CreateRoomRequest {
   title: string;
   requiredPlayers: number;
   password?: string;
-  gameOption: {};
+  gameOption: {
+    mafia: number;
+    police: number;
+    doctor: number;
+    dayTime: number;
+    nightTime: number;
+    voteTime: number;
+  };
 }
 
 interface RoomIdResponse {
