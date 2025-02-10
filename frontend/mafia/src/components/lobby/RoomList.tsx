@@ -18,7 +18,11 @@ export function RoomList({ rooms, searchTerm, onJoinRoom }: RoomListProps): JSX.
         .map((room) => (
           <RoomCard
             key={room.roomId}
-            room={room}
+            room={{
+              roomId: room.roomId,
+              roomTitle: room.roomTitle,
+              curPlayers: room.peopleCnt || 0,
+            }}
             onJoin={() => onJoinRoom(room.roomId)}
           />
         ))}

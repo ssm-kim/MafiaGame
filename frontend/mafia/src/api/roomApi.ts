@@ -8,10 +8,16 @@ interface ApiResponse<T> {
   result: T;
 }
 
+// interface CreateRoomRequest {
+//   roomTitle: string;
+//   requiredPlayer: number;
+//   roomPassword?: string;
+// }
 interface CreateRoomRequest {
-  roomTitle: string;
-  requiredPlayer: number;
-  roomPassword?: string;
+  title: string;
+  requiredPlayers: number;
+  password?: string;
+  gameOption: {};
 }
 
 interface RoomIdResponse {
@@ -25,10 +31,12 @@ interface RoomLeaveResponse {
 const roomApi = {
   // 게임방 조회
   getRooms: () => api.get<ApiResponse<Room[]>>('/api/room'),
-
+  getRoom: (roomId: number) => api.get<ApiResponse<Room>>(`/api/room/${roomId}`),
   // 게임방 생성
-  createRoom: (roomData: CreateRoomRequest) =>
-    api.post<ApiResponse<RoomIdResponse>>('/api/room', roomData),
+  createRoom: (roomData: CreateRoomRequest) => {
+    console.log(roomData);
+    return api.post<ApiResponse<RoomIdResponse>>('/api/room', roomData);
+  },
 
   // 게임방 삭제
   deleteRoom: (roomId: number) => api.delete<ApiResponse<[]>>(`/api/room/${roomId}`),

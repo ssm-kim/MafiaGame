@@ -20,6 +20,7 @@ export function SearchBar({ searchTerm, onSearchChange, onCreateRoom }: SearchBa
         type="button"
         className="px-6 py-3 bg-red-800 text-white rounded-lg hover:bg-red-900 transition-colors duration-200 font-medium"
         onClick={onCreateRoom}
+        style={{ fontFamily: 'BMEuljiro10yearslater' }}
       >
         대피소 생성
       </button>

@@ -3,7 +3,11 @@ import { Room } from '@/types/room';
 interface GameHeaderProps {
   roomId: string;
   gameState: Room | null;
-  onLeave: () => void;
+  // onLeave: () => void;
+  onLeave: () => Promise<void>;
+  onReady: () => Promise<void>;
+  onStart: () => Promise<void>;
+  isHost: boolean;
 }
 
 const GameHeader: React.FC<GameHeaderProps> = ({ roomId, gameState, onLeave }) => (
@@ -23,12 +27,13 @@ const GameHeader: React.FC<GameHeaderProps> = ({ roomId, gameState, onLeave }) =
       )}
     </div>
     <div className="flex items-center gap-4">
-      <div className="text-gray-400 text-sm">
-        생존자: {gameState?.curPlayers ?? 0} / {gameState?.maxPlayers ?? 0}
-      </div>
+      {/* <div className="text-gray-400 text-sm">
+        생존자: {gameState?.peopleCnt ?? 0} / {gameState?.maxPlayer ?? 0}
+      </div> */}
       <button
         className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded transition-colors duration-200"
         onClick={onLeave}
+        style={{ fontFamily: 'BMEuljiro10yearslater' }}
       >
         대피소 나가기
       </button>

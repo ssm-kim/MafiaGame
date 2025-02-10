@@ -1,20 +1,24 @@
 export interface Room {
   roomId: number;
   roomTitle: string;
-  roomStatus: boolean; // false(대기방), true(게임 진행 중)
+  // roomStatus: boolean; // false(대기방), true(게임 진행 중)
+  roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
   roomOption: string;
-  maxPlayers: number;
+  maxPlayer: number;
   isVoice: boolean;
   createdAt: string;
-  curPlayers: number;
+  peopleCnt: number;
   hostId: number;
   participant: Record<string, Participant>;
+  isNight?: boolean;
 }
 
 export interface Participant {
   memberId: number;
   nickName: string;
   ready: boolean;
+  subscriptions?: string[];
+  isDead?: boolean;
 }
 
 export interface GameStartResponse {
@@ -24,7 +28,7 @@ export interface GameStartResponse {
   roomStatus: boolean;
   participant: Record<string, Participant>;
   gameOption: {
-    maxPlayers: number;
+    maxPlayer: number;
     zombie: number;
     mutant: number;
     doctorSkillUsage: number;
