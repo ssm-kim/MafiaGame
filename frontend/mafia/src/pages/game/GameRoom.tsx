@@ -118,7 +118,7 @@ function GameRoom(): JSX.Element {
 
   useEffect(() => {
     // 웹소켓 연결 설정
-    const socket = new WebSocket('ws://localhost:8080/ws-mafia');
+    const socket = new WebSocket('ws://i12d101.p.ssafy.io/ws-mafia');
     const stomp = Stomp.over(socket);
 
     stomp.connect({}, () => {

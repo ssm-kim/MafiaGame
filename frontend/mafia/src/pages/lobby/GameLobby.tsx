@@ -74,7 +74,7 @@ function GameLobby() {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.post('/api/logout');
+      const response = await api.post('/api/logout');
       if (response.data.isSuccess) {
         navigate('/login', { replace: true });
       }

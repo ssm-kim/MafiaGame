@@ -56,7 +56,7 @@ export const connectWebSocket = (
 ) => {
   try {
     // 웹소켓 연결
-    const socket = new WebSocket('ws://localhost:8080/ws-mafia');
+    const socket = new WebSocket('ws://i12d101.p.ssafy.io/ws-mafia');
     stompClient = Stomp.over(socket);
 
     const onConnect = () => {
@@ -119,7 +119,6 @@ export const disconnectWebSocket = () => {
   }
 };
 
-// 구독 상태 체크
 // 구독 상태 체크
 export const isSubscribed = (chatType: ChatType, roomId: string): boolean => {
   if (!stompClient) return false;
