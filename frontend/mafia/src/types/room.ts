@@ -38,14 +38,6 @@ export interface GameStartResponse {
   };
 }
 
-export interface TestGameHeaderProps {
-  roomId: string;
-  gameState: Room | null;
-  onLeave: () => Promise<void>;
-  onReady: () => Promise<void>;
-  onStart: () => Promise<void>;
-  isHost: boolean;
-}
 // export interface Room {
 //     id: string;
 //     name: string;

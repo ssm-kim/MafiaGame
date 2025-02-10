@@ -194,12 +194,11 @@ interface CreateRoomRequest {
   requiredPlayers: number;
   password?: string;
   gameOption: {
-    mafia: number;
-    police: number;
-    doctor: number;
-    dayTime: number;
-    nightTime: number;
-    voteTime: number;
+    zombie: number;
+    mutant: number;
+    doctorSkillUsage: number;
+    nightTimeSec: number;
+    dayDisTimeSec: number;
   };
 }
 

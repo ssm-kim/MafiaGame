@@ -33,12 +33,11 @@ const initialRoomState = {
   requiredPlayers: 8,
   password: '',
   gameOption: {
-    mafia: 2,
-    police: 1,
-    doctor: 1,
-    dayTime: 180,
-    nightTime: 180,
-    voteTime: 60,
+    zombie: 2,
+    mutant: 1,
+    doctorSkillUsage: 2,
+    nightTimeSec: 30,
+    dayDisTimeSec: 60,
   },
 };
 
@@ -138,12 +137,11 @@ function GameLobby() {
         requiredPlayers: newRoom.requiredPlayers,
         password: newRoom.password || undefined,
         gameOption: {
-          mafia: newRoom.gameOption.mafia,
-          police: newRoom.gameOption.police,
-          doctor: newRoom.gameOption.doctor,
-          dayTime: newRoom.gameOption.dayTime,
-          nightTime: newRoom.gameOption.nightTime,
-          voteTime: newRoom.gameOption.voteTime,
+          zombie: newRoom.gameOption.zombie,
+          mutant: newRoom.gameOption.mutant,
+          doctorSkillUsage: newRoom.gameOption.doctorSkillUsage,
+          nightTimeSec: newRoom.gameOption.nightTimeSec,
+          dayDisTimeSec: newRoom.gameOption.dayDisTimeSec,
         },
       };
 
