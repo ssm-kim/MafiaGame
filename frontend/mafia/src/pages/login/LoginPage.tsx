@@ -68,7 +68,7 @@ function LoginPage() {
           });
 
           console.log('로그인 상태 확인 응답:', response.data);
-          console.log('로그인 성공 응답:', response.data);
+          console.log('로그인 성공 응답:', response.data.result);
           if (response.data.isSuccess) {
             // memberId 저장
             const memberResponse = await axios.get('/api/member', {
@@ -76,6 +76,8 @@ function LoginPage() {
             });
             console.log('멤버 정보 응답:', memberResponse.data);
             if (memberResponse.data.isSuccess) {
+              console.log('저장할 memberId:', memberResponse.data.result.memberId);
+              console.log('저장할 username:', memberResponse.data.result.nickname);
               localStorage.setItem('memberId', memberResponse.data.result.memberId);
               localStorage.setItem('username', memberResponse.data.result.nickname);
             }
