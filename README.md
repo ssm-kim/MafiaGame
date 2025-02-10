@@ -21,6 +21,10 @@ error : 위와 동일
 ->
 CI=false npm run build
 
+# 5번째 배포 테스트
+
+error : docker not found / jenkins 재설치 문제 안에 docker 설치
+
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**
