@@ -15,16 +15,31 @@ export interface LoginResponse {
   nickname: string;
 }
 
+// const initialRoomState = {
+//   title: '',
+//   requiredPlayers: 8,
+//   password: '',
+//   gameOption: {
+//     mafia: 2,
+//     police: 1,
+//     doctor: 1,
+//     dayTime: 180,
+//     nightTime: 180,
+//     voteTime: 60,
+//   },
+// };
 const initialRoomState = {
-  name: '',
-  maxPlayers: 8,
+  title: '',
+  requiredPlayers: 8,
   password: '',
-  mafia: 2,
-  police: 1,
-  doctor: 1,
-  dayTime: 180,
-  nightTime: 180,
-  voteTime: 60,
+  gameOption: {
+    mafia: 2,
+    police: 1,
+    doctor: 1,
+    dayTime: 180,
+    nightTime: 180,
+    voteTime: 60,
+  },
 };
 
 function GameLobby() {
@@ -115,19 +130,20 @@ function GameLobby() {
   //     alert('방 생성에 실패했습니다.');
   //   }
   // };
+
   const handleCreateRoom = async () => {
     try {
       const createRoomData = {
-        title: newRoom.name || '테스트방',
-        requiredPlayers: newRoom.maxPlayers,
+        title: newRoom.title || '테스트방',
+        requiredPlayers: newRoom.requiredPlayers,
         password: newRoom.password || undefined,
         gameOption: {
-          mafia: newRoom.mafia,
-          police: newRoom.police,
-          doctor: newRoom.doctor,
-          dayTime: newRoom.dayTime,
-          nightTime: newRoom.nightTime,
-          voteTime: newRoom.voteTime,
+          mafia: newRoom.gameOption.mafia,
+          police: newRoom.gameOption.police,
+          doctor: newRoom.gameOption.doctor,
+          dayTime: newRoom.gameOption.dayTime,
+          nightTime: newRoom.gameOption.nightTime,
+          voteTime: newRoom.gameOption.voteTime,
         },
       };
 
