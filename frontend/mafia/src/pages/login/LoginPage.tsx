@@ -16,7 +16,7 @@ function LoginPage() {
           });
 
           console.log('로그인 상태 확인 응답:', response.data);
-          if (response.data.data) {
+          if (response.data.isSuccess) {
             console.log('로그인 성공 → 게임 로비로 이동');
             navigate('/game-lobby', {replace: true});
           }
