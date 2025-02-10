@@ -8,6 +8,12 @@ spring:
       blue: blue, secret, prod
       green: green, secret, prod
 
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: "prometheus"
+
   jpa:
     generate-ddl: true
     hibernate:

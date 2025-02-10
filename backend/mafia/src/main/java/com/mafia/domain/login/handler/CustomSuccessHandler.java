@@ -1,11 +1,12 @@
 package com.mafia.domain.login.handler;
 
+import com.mafia.global.common.service.RedisService;
 import com.mafia.global.common.utils.AuthenticationUtil;
 import com.mafia.global.common.utils.CookieUtil;
 import com.mafia.global.common.utils.JWTUtil;
-import com.mafia.global.common.service.RedisService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,8 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
 
 @Slf4j
 @Component
@@ -28,7 +27,7 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     @Value("${app.baseUrl}")
     private String baseUrl;
-    private static final String LOGIN_SUCCESS_URI = "/api/login/success";
+    private static final String LOGIN_SUCCESS_URI = "/login/success";
 
     @Override
     @Transactional

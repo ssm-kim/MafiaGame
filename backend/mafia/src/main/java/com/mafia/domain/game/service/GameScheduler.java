@@ -12,16 +12,16 @@ import com.mafia.domain.game.model.game.GamePhase;
 import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
 import com.mafia.global.common.exception.exception.BusinessException;
+import com.mafia.global.common.service.GameSubscription;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 /**
@@ -38,41 +38,60 @@ public class GameScheduler {
     private final GameService gameService;
     private final GamePublisher gamePublisher;
     private final ObjectMapper objectMapper;
+    private final GameSubscription subscription;
+
 
     /**
-     * 게임별 개별 스케줄러를 관리하는 맵.
+     * 서버가 재시작될 때 실행 중이던 게임을 복원
      */
-    private final Map<Long, ScheduledFuture<?>> gameSchedulers = new ConcurrentHashMap<>();
+    @Bean
+    public ApplicationRunner recoverActiveGames() {
+        return args -> {
+            Set<String> activeGameIds = gameSeqRepository.getActiveGames();
+            if (activeGameIds != null) {
+                for (String gameIdStr : activeGameIds) {
+                    Long gameId = Long.parseLong(gameIdStr);
+                    restoreGame(gameId);
+                }
+            }
+        };
+    }
 
     /**
-     * 스케줄링을 수행하는 스레드 풀.
+     * 게임을 Redis에서 복원하여 다시 실행
      */
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(8);
-    // CPU 코어 개수를 모르겠네요...
+    private void restoreGame(Long gameId) {
+        GamePhase lastPhase = gameSeqRepository.getPhase(gameId);
+        Long lastTimer = gameSeqRepository.getTimer(gameId);
+
+        if (lastPhase != null && lastTimer != null) {
+            log.info("[GameScheduler] 서버 재시작 - 게임 {} 복원 (Phase: {}, Timer: {}초)", gameId, lastPhase, lastTimer);
+            subscription.subscribe(gameId);
+
+            // 게임 스케줄러 다시 시작
+            startGameScheduler(new GameStartEvent(gameId));
+        }
+    }
+
 
     /**
-     * 특정 게임(gameId)에 대한 스케줄러를 시작한다.
-     *
-     * @param event 게임 시작 이벤트 (GameStartEvent)
+     * 특정 게임 스케줄러 시작 (각 게임이 독립적으로 실행됨)
      */
     @EventListener
+    @Async("gameTaskExecutor") // 멀티 쓰레드로 실행
     public void startGameScheduler(GameStartEvent event) {
         Long gameId = event.getGameId();
-        if (gameSchedulers.containsKey(gameId)) {
-            log.info("[GameScheduler] 게임 " + gameId + "의 스케줄러가 이미 실행 중입니다.");
-            return;
-        }
+        gameSeqRepository.setActiveGame(gameId);
+        log.info("[GameScheduler] 게임 {} 스케줄러 시작", gameId);
 
-        ScheduledFuture<?> scheduledTask = scheduler.scheduleAtFixedRate(() -> {
+        while (gameSeqRepository.isGameActive(gameId)) { // 게임이 활성화되어 있으면 실행
             try {
                 processTimers(gameId);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
+                TimeUnit.SECONDS.sleep(1); // 1초마다 실행
+            } catch (InterruptedException | JsonProcessingException e) {
+                Thread.currentThread().interrupt();
             }
-        }, 0, 1, TimeUnit.SECONDS);
-
-        gameSchedulers.put(gameId, scheduledTask);
-        System.out.println("[GameScheduler] 게임 " + gameId + "의 스케줄러가 시작되었습니다.");
+        }
     }
 
     /**
@@ -83,11 +102,10 @@ public class GameScheduler {
     @EventListener
     public void stopGameScheduler(GameEndEvent event) {
         Long gameId = event.getGameId();
-        ScheduledFuture<?> scheduledTask = gameSchedulers.remove(gameId);
-        if (scheduledTask != null) {
-            scheduledTask.cancel(true);
-            System.out.println("[GameScheduler] 게임 " + gameId + "의 스케줄러가 종료되었습니다.");
-        }
+
+        // Redis에서 게임 실행 정보 삭제
+        gameSeqRepository.removeActiveGame(gameId);
+        log.info("[GameScheduler] 게임 {}의 스케줄러가 종료되었습니다.", gameId);
     }
 
     /**
@@ -103,24 +121,21 @@ public class GameScheduler {
         if(remainingTime == 5 && phase == GamePhase.DAY_FINAL_STATEMENT){
             gameService.getFinalVoteResult(gameId);
         }
-        
-        if (remainingTime < 0) {
+
+        if (remainingTime <= 0) {
             advanceGamePhase(gameId);
         } else {
             gameSeqRepository.decrementTimer(gameId, 1);
         }
 
-        // JSON 메시지 생성
-        Map<String, String> timer = Map.of(
-            "time", String.valueOf(remainingTime),
-            "phase", String.valueOf(phase)
+        // JSON 메시지 생성 및 publish
+        String jsonMessage = objectMapper.writeValueAsString(
+            Map.of("time", String.valueOf(remainingTime), "phase", String.valueOf(phase))
         );
 
-        // JSON 변환
-        String jsonMessage = objectMapper.writeValueAsString(timer);
-
-        gamePublisher.publish("game-"+gameId+"-system", jsonMessage);
+        gamePublisher.publish("game-" + gameId + "-system", jsonMessage);
     }
+
 
     /**
      * 게임의 페이즈를 전환한다.
@@ -140,7 +155,7 @@ public class GameScheduler {
         switch (curPhase) {
             case DAY_DISCUSSION -> {
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_VOTE);
-                gameSeqRepository.saveTimer(gameId, 60);
+                gameSeqRepository.saveTimer(gameId, 20);
             }
             case DAY_VOTE -> {
                 if(game.voteResult() == -1){
@@ -149,7 +164,7 @@ public class GameScheduler {
                     gameSeqRepository.saveTimer(gameId, game.getSetting().getNightTimeSec());
                 } else {
                     gameSeqRepository.savePhase(gameId, GamePhase.DAY_FINAL_STATEMENT);
-                    gameSeqRepository.saveTimer(gameId, 30);
+                    gameSeqRepository.saveTimer(gameId, 20);
                 }
             }
             case DAY_FINAL_STATEMENT -> {
@@ -163,7 +178,6 @@ public class GameScheduler {
                 gameSeqRepository.saveTimer(gameId, game.getSetting().getNightTimeSec());
             }
             case NIGHT_ACTION -> {
-                game.getVotes().clear();
                 gameService.killPlayer(gameId);
                 game.roundInit();
                 game.updateVoicePermissions("day"); // 모든 생존자 음성 채팅 활성화 (토론)
