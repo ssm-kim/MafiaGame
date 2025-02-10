@@ -160,10 +160,17 @@ function GameLobby() {
       const myId = Number(localStorage.getItem('memberId'));
       const myRoom = rooms.find((room) => room.hostId === myId);
 
+      console.log('내 ID:', myId);
+      console.log('찾은 방:', myRoom);
+
       if (myRoom) {
-        await roomApi.deleteRoom(myRoom.roomId);
-        const response = await roomApi.getRooms();
-        setRooms(response.data.result);
+        const response = await roomApi.deleteRoom(myRoom.roomId);
+        console.log('삭제 응답:', response);
+
+        const roomsResponse = await roomApi.getRooms();
+        setRooms(roomsResponse.data.result);
+      } else {
+        console.log('삭제할 방을 찾을 수 없습니다');
       }
     } catch (error) {
       console.error('방 삭제 실패:', error);
