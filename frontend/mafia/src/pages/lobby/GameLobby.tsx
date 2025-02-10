@@ -84,35 +84,65 @@ function GameLobby() {
     }
   };
 
+  // const handleCreateRoom = async () => {
+  //   try {
+  //     const createRoomData = {
+  //       title: newRoom.name || '테스트방',
+  //       requiredPlayers: newRoom.maxPlayers,
+  //       password: newRoom.password || undefined,
+  //       gameOption: {},
+  //     };
+
+  //     console.log('방 생성 요청 데이터:', createRoomData);
+  //     const response = await roomApi.createRoom(createRoomData);
+  //     console.log('방 생성 응답:', response.data);
+
+  //     const roomId = response.data.result?.roomId;
+  //     console.log('생성된 방 ID:', roomId);
+
+  //     if (!roomId) {
+  //       throw new Error('방 ID를 받지 못했습니다');
+  //     }
+
+  //     console.log(`이동할 경로: /game/${roomId}`);
+  //     navigate(`/game/${roomId}`);
+  //   } catch (error) {
+  //     console.error('방 생성 에러:', error);
+  //     if (axios.isAxiosError(error) && error.response?.status === 404) {
+  //       alert('API 경로를 찾을 수 없습니다. 서버가 실행 중인지 확인해주세요.');
+  //       return;
+  //     }
+  //     alert('방 생성에 실패했습니다.');
+  //   }
+  // };
   const handleCreateRoom = async () => {
     try {
       const createRoomData = {
         title: newRoom.name || '테스트방',
         requiredPlayers: newRoom.maxPlayers,
         password: newRoom.password || undefined,
-        gameOption: {},
+        gameOption: {
+          mafia: newRoom.mafia,
+          police: newRoom.police,
+          doctor: newRoom.doctor,
+          dayTime: newRoom.dayTime,
+          nightTime: newRoom.nightTime,
+          voteTime: newRoom.voteTime,
+        },
       };
 
       console.log('방 생성 요청 데이터:', createRoomData);
       const response = await roomApi.createRoom(createRoomData);
-      console.log('방 생성 응답:', response.data);
 
-      const roomId = response.data.result?.roomId;
-      console.log('생성된 방 ID:', roomId);
-
-      if (!roomId) {
-        throw new Error('방 ID를 받지 못했습니다');
+      if (response.data.isSuccess) {
+        const roomId = response.data.result?.roomId;
+        navigate(`/game/${roomId}`);
+      } else {
+        throw new Error(response.data.message);
       }
-
-      console.log(`이동할 경로: /game/${roomId}`);
-      navigate(`/game/${roomId}`);
     } catch (error) {
       console.error('방 생성 에러:', error);
-      if (axios.isAxiosError(error) && error.response?.status === 404) {
-        alert('API 경로를 찾을 수 없습니다. 서버가 실행 중인지 확인해주세요.');
-        return;
-      }
-      alert('방 생성에 실패했습니다.');
+      alert('방 생성에 실패했습니다. 모든 필드를 올바르게 입력했는지 확인해주세요.');
     }
   };
 
