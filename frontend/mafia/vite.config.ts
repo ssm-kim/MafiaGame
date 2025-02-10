@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
@@ -23,19 +23,31 @@ export default defineConfig({
   //     }
   //   }
   // }
+  //로컬용
+  // server: {
+  //   port: 3000,
+  //   proxy: {
+  //     '/api': {
+  //       target: 'http://localhost:8080',
+  //       changeOrigin: true,
+  //       secure: false,
+  //       ws: true
+  //     },
+  //     '/oauth2': {  // 카카오 로그인을 위한 프록시 설정 추가
+  //       target: 'http://localhost:8080',
+  //       changeOrigin: true,
+  //       secure: false
+  //     }
+  //   }
+  // }
   server: {
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://i12d101.p.ssafy.io',
         changeOrigin: true,
-        secure: false,
+        secure: true,
         ws: true
-      },
-      '/oauth2': {  // 카카오 로그인을 위한 프록시 설정 추가
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        secure: false
       }
     }
   }
