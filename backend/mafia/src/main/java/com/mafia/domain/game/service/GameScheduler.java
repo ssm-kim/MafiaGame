@@ -122,7 +122,7 @@ public class GameScheduler {
             gameService.getFinalVoteResult(gameId);
         }
 
-        if (remainingTime < 0) {
+        if (remainingTime <= 0) {
             advanceGamePhase(gameId);
         } else {
             gameSeqRepository.decrementTimer(gameId, 1);
@@ -155,7 +155,7 @@ public class GameScheduler {
         switch (curPhase) {
             case DAY_DISCUSSION -> {
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_VOTE);
-                gameSeqRepository.saveTimer(gameId, 60);
+                gameSeqRepository.saveTimer(gameId, 20);
             }
             case DAY_VOTE -> {
                 if(game.voteResult() == -1){
@@ -164,7 +164,7 @@ public class GameScheduler {
                     gameSeqRepository.saveTimer(gameId, game.getSetting().getNightTimeSec());
                 } else {
                     gameSeqRepository.savePhase(gameId, GamePhase.DAY_FINAL_STATEMENT);
-                    gameSeqRepository.saveTimer(gameId, 30);
+                    gameSeqRepository.saveTimer(gameId, 20);
                 }
             }
             case DAY_FINAL_STATEMENT -> {
