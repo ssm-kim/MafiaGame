@@ -1,0 +1,16 @@
+#infra/docker/frontend/docker-compose.yml
+services:
+  react:
+    build:
+      context: ../../../frontend/mafia
+      dockerfile: Dockerfile
+    container_name: react
+    ports:
+      - "3000:80"
+    networks:
+      - app-network
+    restart: always
+
+networks:
+  app-network:
+    external: true
