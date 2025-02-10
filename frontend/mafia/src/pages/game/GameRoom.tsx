@@ -68,7 +68,7 @@ function GameRoom(): JSX.Element {
           hostId,
           nickname: localStorage.getItem('username') || `테스트유저${currentUserId}`,
           isHost: false,
-          isReady: participant ? participant[currentPlayerId].ready : false,
+          isReady: participant?.[currentPlayerId]?.ready || false,
         });
       }
 
