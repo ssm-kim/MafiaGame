@@ -319,8 +319,11 @@ const roomApi = {
     }
 
     try {
+      // 먼저 현재 사용자의 memberId를 가져옴
+      const userResponse = await api.get('/api/member');
+      const myId = userResponse.data.result.memberId;
+
       const currentRoom = await api.get<ApiResponse<Room>>(`/api/room/${roomId}`);
-      const myId = Number(localStorage.getItem('memberId'));
       const isHost = currentRoom.data.result.hostId === myId;
 
       console.log('=== 방 나가기 디버깅 ===');
