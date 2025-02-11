@@ -303,7 +303,8 @@ public class GameService {
      * @param targetNo 죽일 사용자 ID
      * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
      */
-    public String setTarget(long gameId, Long playerNo, Integer targetNo) {
+    public String setTarget(long gameId, Long playerNo, Integer targetNo)
+        throws JsonProcessingException {
         Game game = findById(gameId);
         Role myrole = game.getPlayers().get(playerNo).getRole();
         log.info("Service set Target 실행");
@@ -311,9 +312,15 @@ public class GameService {
         if (myrole == Role.ZOMBIE) {
             game.specifyTarget(Role.ZOMBIE, targetNo);
             result = targetNo + "플레이어는 감염 타겟이 되었습니다.";
+            String topic = "game-"+gameId+"-maifa-system";
+            // JSON 메시지 생성 및 publish
+            String message = objectMapper.writeValueAsString(
+                Map.of("zombiepick", targetNo)
+            );
+            gamePublisher.publish(topic, message);
         } else if(myrole == Role.MUTANT){
             game.specifyTarget(Role.MUTANT, targetNo);
-            result = targetNo + "플레이어는 감염 타겟이 되었습니다.";
+            result = targetNo + "플레이어는 돌연변이 타겟이 되었습니다.";
         } else if(myrole == Role.POLICE){
             Role findrole = game.findRole(targetNo);
             result = targetNo + "의 직업은 " + findrole + "입니다.";
