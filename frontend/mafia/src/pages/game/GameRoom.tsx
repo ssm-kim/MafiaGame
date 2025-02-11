@@ -65,48 +65,75 @@ function GameRoom(): JSX.Element {
     ]);
   };
 
-  const findCurrentParticipant = (participant: Record<string, Participant>, nickname: string) => {
-    const entry = Object.entries(participant).find(([_, p]) => p.nickName === nickname);
-    return entry ? { ...entry[1], memberId: Number(entry[0]) } : null;
-  };
+  // const findCurrentParticipant = (participant: Record<string, Participant>, nickname: string) => {
+  //   const entry = Object.entries(participant).find(([_, p]) => p.nickName === nickname);
+  //   return entry ? { ...entry[1], memberId: Number(entry[0]) } : null;
+  // };
 
+  // useEffect(() => {
+  //   if (gameState) {
+  //     const { hostId, participant } = gameState;
+  //     const playersList: Player[] = [];
+
+  //     // 현재 닉네임 가져오기
+  //     const currentNickname = localStorage.getItem('username');
+  //     const currentParticipant = currentNickname
+  //       ? findCurrentParticipant(participant, currentNickname)
+  //       : null;
+
+  //     if (currentParticipant) {
+  //       setCurrentPlayerId(currentParticipant.memberId);
+  //     }
+
+  //     console.log('=== 참가자 정보 ===');
+  //     console.log('현재 게임 상태:', gameState);
+  //     console.log('참가자 목록:', participant);
+  //     console.log('현재 사용자:', currentParticipant?.memberId);
+  //     console.log('호스트:', hostId);
+
+  //     // participant 객체의 각 엔트리를 순회
+  //     Object.entries(participant).forEach(([id, p]) => {
+  //       const playerId = Number(id);
+  //       playersList.push({
+  //         id: playerId,
+  //         hostId,
+  //         nickname: p.nickName,
+  //         isHost: playerId === hostId,
+  //         isReady: p.ready || false,
+  //       });
+  //     });
+
+  //     setPlayers(playersList);
+  //     setIsHost(currentParticipant?.memberId === hostId);
+  //   }
+  // }, [gameState]);
   useEffect(() => {
     if (gameState) {
       const { hostId, participant } = gameState;
       const playersList: Player[] = [];
 
-      // 현재 닉네임 가져오기
-      const currentNickname = localStorage.getItem('username');
-      const currentParticipant = currentNickname
-        ? findCurrentParticipant(participant, currentNickname)
-        : null;
-
-      if (currentParticipant) {
-        setCurrentPlayerId(currentParticipant.memberId);
-      }
-
-      console.log('=== 참가자 정보 ===');
-      console.log('현재 게임 상태:', gameState);
-      console.log('참가자 목록:', participant);
-      console.log('현재 사용자:', currentParticipant?.memberId);
-      console.log('호스트:', hostId);
-
-      // participant 객체의 각 엔트리를 순회
+      // participant 객체에 있는 플레이어만 표시
       Object.entries(participant).forEach(([id, p]) => {
         const playerId = Number(id);
-        playersList.push({
-          id: playerId,
-          hostId,
-          nickname: p.nickName,
-          isHost: playerId === hostId,
-          isReady: p.ready || false,
-        });
+        // 실제 participant에 있는 플레이어만 추가
+        if (p && p.nickName) {
+          playersList.push({
+            id: playerId,
+            hostId,
+            nickname: p.nickName,
+            isHost: playerId === hostId,
+            isReady: p.ready || false,
+          });
+        }
       });
 
       setPlayers(playersList);
-      setIsHost(currentParticipant?.memberId === hostId);
+
+      // 현재 플레이어가 호스트인지 확인
+      const currentUserIsHost = currentPlayerId === hostId;
+      setIsHost(currentUserIsHost);
     }
-  }, [gameState]);
+  }, [gameState, currentPlayerId]);
 
   useEffect(() => {
     const initializeRoom = async () => {
