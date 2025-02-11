@@ -115,9 +115,8 @@ function GameRoom(): JSX.Element {
       // participant 객체에 있는 플레이어만 표시
       Object.entries(participant).forEach(([id, p]) => {
         const playerId = Number(id);
-        // null check 추가
-        if (p && p.nickName && p.memberId) {
-          // memberId 체크 추가
+        // 실제 participant에 있는 플레이어만 추가
+        if (p && p.nickName) {
           playersList.push({
             id: playerId,
             hostId,
@@ -128,7 +127,6 @@ function GameRoom(): JSX.Element {
         }
       });
 
-      console.log('Updated players list:', playersList); // 디버깅용
       setPlayers(playersList);
 
       // 현재 플레이어가 호스트인지 확인
@@ -1333,4 +1331,3 @@ export default GameRoom;
 // }
 
 // export default GameRoom;
-// 콘솔 추가가
