@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -36,6 +37,17 @@ public class GlobalExceptionHandler {
             .body(new BaseResponse<>(e.getBaseResponseStatus()));
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<BaseResponse<BaseResponseStatus>> handleHttpMessageNotReadableException(
+        HttpMessageNotReadableException e, HttpServletRequest req) {
+        LOG.error("JSON Parse error occurred: {}", e.getMessage());
+
+        notificationManager.sendNotification(e, req.getRequestURI(), getParams(req));
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(new BaseResponse<>(BaseResponseStatus.INVALID_JSON_FORMAT));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception e, HttpServletRequest req) {
         LOG.error("Exception occurred: {}", e.getMessage());
@@ -52,4 +64,5 @@ public class GlobalExceptionHandler {
         }
         return params.toString();
     }
+
 }
