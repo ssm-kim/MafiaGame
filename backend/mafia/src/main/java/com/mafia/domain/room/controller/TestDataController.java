@@ -1,6 +1,7 @@
 package com.mafia.domain.room.controller;
 
 import com.mafia.domain.game.model.game.GameOption;
+import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.room.service.RoomDbService;
 import com.mafia.domain.room.service.RoomRedisService;
 import lombok.RequiredArgsConstructor;
@@ -19,17 +20,30 @@ public class TestDataController {
 
     private final RoomDbService roomDbService;
     private final RoomRedisService roomRedisService;
+    private final GameService gameService;
 
     @PostMapping("/init-dummy-data")
     public ResponseEntity<String> initDummyData() {
         try {
             // 각 방마다 Redis 데이터 초기화
             // 각 방마다 Redis 데이터 초기화
-            roomRedisService.createRoomInfo(1L, 1L, 3, "테스트방 1", null, new GameOption());
-            roomRedisService.createRoomInfo(2L, 2L, 3, "테스트방 2", null, new GameOption());
-            roomRedisService.createRoomInfo(3L, 3L, 2, "비밀방 테스트", "1234", new GameOption());
-            roomRedisService.createRoomInfo(4L, 4L, 8, "테스트방 4", null, new GameOption());
+            roomRedisService.createRoomInfo(1L, 1L, 8, "테스트방 1", null, new GameOption());
+            //roomRedisService.createRoomInfo(2L, 2L, 3, "테스트방 2", null, new GameOption());
+            //roomRedisService.createRoomInfo(3L, 3L, 2, "비밀방 테스트", "1234", new GameOption());
+            //roomRedisService.createRoomInfo(4L, 4L, 8, "테스트방 4", null, new GameOption());
+//            roomRedisService.enterRoom(1L, 2L, "");
+//            roomRedisService.toggleReady(1L, 2L);
+//            roomRedisService.enterRoom(1L, 3L, "");
+//            roomRedisService.toggleReady(1L, 3L);
+//            roomRedisService.enterRoom(1L, 4L, "");
+//            roomRedisService.toggleReady(1L, 4L);
+//            roomRedisService.enterRoom(1L, 5L, "");
+//            roomRedisService.toggleReady(1L, 5L);
+//            roomRedisService.enterRoom(1L, 6L, "");
+//            roomRedisService.toggleReady(1L, 6L);
 
+            // 게임 서비스로 방 정보 전달 (주석 해제)
+            gameService.startGame(1L);
             log.info("더미 데이터 초기화 완료");
 
             return ResponseEntity.ok("더미 데이터 초기화 완료");

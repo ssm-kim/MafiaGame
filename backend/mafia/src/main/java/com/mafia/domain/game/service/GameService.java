@@ -5,11 +5,9 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_ALREADY_
 import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_TIME_OVER;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_PHASE;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.MEDICAL_COUNT_ZERO;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.MUTANT_CANNOT_VOTE;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PHASE_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_NOT_FOUND;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.POLICE_CANNOT_VOTE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,7 +33,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 /**
@@ -187,10 +184,6 @@ public class GameService {
             if (game.getPlayers().get(playerNo).isDead()) {
                 throw new BusinessException(DEAD_CANNOT_VOTE);
             }
-            if (game.getPlayers().get(playerNo).getRole() == Role.POLICE && !game.getPlayers()
-                .get(playerNo).isEnableVote()) {
-                throw new BusinessException(POLICE_CANNOT_VOTE);
-            }
             if (game.getPlayers().get(playerNo).getRole() == Role.MUTANT) {
                 throw new BusinessException(MUTANT_CANNOT_VOTE);
             }
@@ -244,17 +237,19 @@ public class GameService {
      * @param gameId 방 ID
      *
      */
-    public boolean getFinalVoteResult(long gameId) {
-        boolean isKill = findById(gameId).finalvoteResult();
+    public void getFinalVoteResult(long gameId) {
+        Game game = findById(gameId);
+        boolean isKill = game.finalvoteResult();
 
         String topic = "game-"+gameId+"-system";
         String message = "Game[" + gameId + "] Vote Kill: " + isKill;
         gamePublisher.publish(topic, message);
 
-        if (isKill) log.info("[Game{}] No one is selected", gameId);
-        else log.info("[Game{}] Vote Kill!!!!!", gameId);
-
-        return isKill;
+        if (isKill) {
+            log.info("[Game{}] Vote Kill!!!!!", gameId);
+            gameRepository.save(game);
+        }
+        else log.info("[Game{}] No one is selected", gameId);
     }
 
 
@@ -263,23 +258,20 @@ public class GameService {
      * 실 배포 시, param으로 Game객체만 사용 후 Scheduler에서만 이를 호출
      * Controller 제거
      *
-     * @param gameId  방 ID가 있는 이벤트 객체
-     * @return 사망 여부
+     * @param game  방 ID가 있는 이벤트 객체
      */
-    @EventListener
-    public boolean killPlayer(Long gameId) throws JsonProcessingException {
-        Game game = findById(gameId);
+    public void killPlayer(Game game) throws JsonProcessingException {
         Integer healedPlayer = game.getHealTarget();
         List<Integer> killList = game.killProcess();
 
         Map<String, String> message = new HashMap<>();
         //의사
-        if (healedPlayer != null && (killList.isEmpty() || !killList.contains(healedPlayer))) {
-            message.put("healed", String.valueOf(healedPlayer));
+        if (healedPlayer != 0 && killList != null && (killList.isEmpty() || !killList.contains(healedPlayer))) {
+            message.put("heal", String.valueOf(healedPlayer));
             log.info("Game[{}] 플레이어 " + healedPlayer + " 이(가) 의사의 치료로 살아남았습니다!", healedPlayer);
         }
         // 좀비
-        if(!killList.isEmpty()) {
+        if(killList != null && !killList.isEmpty()) {
             // JSON 형태로 메시지 구성
             String deaths = killList.stream()
                 .map(String::valueOf)
@@ -289,13 +281,10 @@ public class GameService {
 
         if (!message.isEmpty()) {
             String jsonMessage = objectMapper.writeValueAsString(message);
-
             // Redis Pub/Sub 전송
-            gamePublisher.publish("game-" + gameId + "-system", jsonMessage);
-            gameRepository.save(game);
-            return true;
+            gamePublisher.publish("game-" + game.getGameId() + "-system", jsonMessage);
         }
-        return false;
+        gameRepository.save(game);
     }
 
     /**
@@ -309,20 +298,24 @@ public class GameService {
     public String setTarget(long gameId, Long playerNo, Integer targetNo) {
         Game game = findById(gameId);
         Role myrole = game.getPlayers().get(playerNo).getRole();
+        log.info("Service set Target 실행");
         String result = "";
-        if (myrole == Role.ZOMBIE || myrole == Role.MUTANT) {
-            game.setKillTarget(targetNo);
+        if (myrole == Role.ZOMBIE) {
+            game.specifyTarget(Role.ZOMBIE, targetNo);
+            result = targetNo + "플레이어는 감염 타겟이 되었습니다.";
+        } else if(myrole == Role.MUTANT){
+            game.specifyTarget(Role.MUTANT, targetNo);
             result = targetNo + "플레이어는 감염 타겟이 되었습니다.";
         } else if(myrole == Role.POLICE){
-            Role findrole = game.findRole(playerNo, targetNo);
+            Role findrole = game.findRole(targetNo);
             result = targetNo + "의 직업은 " + findrole + "입니다.";
         } else if (myrole == Role.PLAGUE_DOCTOR) {
             if (game.getSetting().getDoctorSkillUsage() == 0) {
                 result = "남은 백신이 없습니다.";
-                throw new BusinessException(MEDICAL_COUNT_ZERO);
+            } else{
+                int heal_cnt = game.heal(targetNo);
+                result = targetNo + "을 살리기로 했습니다. 남은 백신은 " + heal_cnt + "개 입니다.";
             }
-            int heal_cnt = game.heal(targetNo);
-            result = targetNo + "을 살리기로 했습니다. 남은 백신은 " + heal_cnt + "개 입니다.";
         }
 
         log.info("[Game{}] Player{} set the target of {}", gameId, targetNo, myrole);
