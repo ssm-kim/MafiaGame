@@ -38,29 +38,41 @@ public class RoomWebSocketController {
     /**
      * 방 입장 처리 및 참가자 정보 업데이트
      */
+//    @MessageMapping("/room/enter/{roomId}")
+//    public void handleRoomEnter(
+//        @DestinationVariable(value = "roomId") Long roomId,
+//        @Payload RoomMessages.EnterMessage message
+//    ) {
+//        log.info("방 입장 요청 - 방 번호: {}, 참가자 번호: {}", roomId, message.getParticipantNo());
+//
+//        roomRedisService.enterRoom(roomId, message.getParticipantNo(), message.getPassword());
+//        messageService.sendRoomUpdate(roomId);
+//        messageService.sendRoomListToAll();
+//    }
     @MessageMapping("/room/enter/{roomId}")
     public void handleRoomEnter(
-        @DestinationVariable Long roomId,
+        @DestinationVariable("roomId") Long roomId,
         @Payload RoomMessages.EnterMessage message
     ) {
-        log.info("방 입장 요청 - 방 번호: {}, 유저: {}", roomId, message.getMemberId());
-        roomRedisService.enterRoom(roomId, message.getMemberId(), message.getPassword());
+        log.info("방 입장 요청 - 방 번호: {}", roomId);
+        roomRedisService.enterRoom(roomId, message.getPassword());
         messageService.sendRoomUpdate(roomId);
         messageService.sendRoomListToAll();
     }
+
 
     /**
      * 방 퇴장 처리 (방장 퇴장 시 방 삭제)
      */
     @MessageMapping("/room/leave/{roomId}")
     public void handleRoomLeave(
-        @DestinationVariable Long roomId,
+        @DestinationVariable("roomId") Long roomId,
         @Payload RoomMessages.LeaveMessage message
     ) {
-        log.info("방 퇴장 요청 - 방 번호: {}, 유저: {}", roomId, message.getMemberId());
-        boolean isHost = roomRedisService.isHost(roomId, message.getMemberId());
+        log.info("방 퇴장 요청 - 방 번호: {}, 참가자 번호: {}", roomId, message.getParticipantNo());
+        boolean isHost = roomRedisService.isHost(roomId, message.getParticipantNo());
 
-        roomRedisService.leaveRoom(roomId, message.getMemberId());
+        roomRedisService.leaveRoom(roomId, message.getParticipantNo());
         if (isHost) {
             roomDbService.deleteRoom(roomId);
         } else {
@@ -74,12 +86,14 @@ public class RoomWebSocketController {
      */
     @MessageMapping("/room/kick/{roomId}")
     public void handleKickMember(
-        @DestinationVariable Long roomId,
+        @DestinationVariable("roomId") Long roomId,
         @Payload RoomMessages.KickMessage message
     ) {
         log.info("강제 퇴장 요청 - 방 번호: {}, 방장: {}, 대상: {}",
-            roomId, message.getHostId(), message.getTargetId());
-        roomRedisService.kickMember(roomId, message.getHostId(), message.getTargetId());
+            roomId, message.getHostParticipantNo(), message.getTargetParticipantNo());
+
+        roomRedisService.kickMember(roomId, message.getHostParticipantNo(),
+            message.getTargetParticipantNo());
         messageService.sendRoomUpdate(roomId);
         messageService.sendRoomListToAll();
     }
@@ -89,11 +103,11 @@ public class RoomWebSocketController {
      */
     @MessageMapping("/room/ready/{roomId}")
     public void handleReadyToggle(
-        @DestinationVariable Long roomId,
+        @DestinationVariable("roomId") Long roomId,
         @Payload RoomMessages.ReadyMessage message
     ) {
-        log.info("준비 상태 변경 - 방 번호: {}, 유저: {}", roomId, message.getMemberId());
-        roomRedisService.toggleReady(roomId, message.getMemberId());
+        log.info("준비 상태 변경 - 방 번호: {}, 참가자 번호: {}", roomId, message.getParticipantNo());
+        roomRedisService.toggleReady(roomId, message.getParticipantNo());
         messageService.sendRoomUpdate(roomId);
     }
 
@@ -102,11 +116,12 @@ public class RoomWebSocketController {
      */
     @MessageMapping("/room/start/{roomId}")
     public void handleGameStart(
-        @DestinationVariable Long roomId,
+        @DestinationVariable("roomId") Long roomId,
         @Payload RoomMessages.StartGameMessage message
     ) {
-        log.info("게임 시작 - 방 번호: {}, 방장: {}", roomId, message.getMemberId());
-        roomRedisService.startGame(roomId, message.getMemberId());
+        log.info("게임 시작 요청 - 방 번호: {}, 방장: {}", roomId, message.getParticipantNo());
+
+        roomRedisService.startGame(roomId, message.getParticipantNo());
 
         // 방 정보 업데이트 (방 안의 유저들에게 전송)
         messageService.sendRoomUpdate(roomId);
@@ -117,7 +132,7 @@ public class RoomWebSocketController {
         // 방 게임 시작 활성화
         roomDbService.isActive(roomId);
 
-        // 게임 서비스로 방 정보 전달 (주석 해제)
+        // 게임 서비스로 방 정보 전달
         gameService.startGame(roomId);
     }
 

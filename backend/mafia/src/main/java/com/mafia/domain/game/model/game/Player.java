@@ -1,8 +1,6 @@
 package com.mafia.domain.game.model.game;
 
-import com.mafia.domain.room.model.redis.Participant;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,16 +37,16 @@ public class Player {
     @Schema(description = "마이크 음소거 여부", example = "true")
     private boolean muteMic;
 
-    public Player(Participant participant) {
-        this.memberId = participant.getMemberId();
-        this.nickname = participant.getNickName();
-        this.role = Role.CITIZEN;
-        this.subscriptions = new HashSet<>();
-        this.isDead = false;
-        this.enableVote = true;
-        this.muteAudio = false;
-        this.muteMic = false;
-    }
+//    public Player(Participant participant) {
+//        this.memberId = participant.getMemberId();
+//        this.nickname = participant.getNickName();
+//        this.role = Role.CITIZEN;
+//        this.subscriptions = new HashSet<>();
+//        this.isDead = false;
+//        this.enableVote = true;
+//        this.muteAudio = false;
+//        this.muteMic = false;
+//    }
 
     public void subscribe(String channel) {
         subscriptions.add(channel);

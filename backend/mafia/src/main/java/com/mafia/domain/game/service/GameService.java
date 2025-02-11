@@ -13,7 +13,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mafia.domain.game.event.GamePublisher;
 import com.mafia.domain.game.model.dto.GameEndEvent;
-import com.mafia.domain.game.model.dto.GameStartEvent;
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
 import com.mafia.domain.game.model.game.Player;
@@ -21,7 +20,6 @@ import com.mafia.domain.game.model.game.Role;
 import com.mafia.domain.game.model.game.STATUS;
 import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
-import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.service.RoomRedisService;
 import com.mafia.global.common.exception.exception.BusinessException;
 import com.mafia.global.common.service.GameSubscription;
@@ -91,49 +89,54 @@ public class GameService {
         gameRepository.findById(gameId).ifPresent(game -> {
             new BusinessException(GAME_ALREADY_START);
         });
-        Game game = makeGame(gameId);
 
         log.info("Game {} created.", gameId);
-        game.startGame();
-        gameSeqRepository.savePhase(gameId, GamePhase.DAY_DISCUSSION); // 낮 토론 시작
-        gameSeqRepository.saveTimer(gameId, game.getSetting().getDayDisTimeSec()); // 설정된 시간
-        log.info("Game started in Room {}: Phase set to {}, Timer set to {} seconds",
-            gameId, GamePhase.DAY_DISCUSSION, game.getSetting().getDayDisTimeSec());
-
-        //Redis 채팅방 생성
-        subscription.subscribe(gameId);
-
-        gameRepository.save(game);
-
-        // 🔥 OpenVidu 세션 생성
-        try {
-            String sessionId = voiceService.createSession(gameId);
-            log.info("OpenVidu Session {} created for Game {}", sessionId, gameId);
-
-            // 🔥 모든 플레이어에게 토큰 발급
-            for (Long playerId : game.getPlayers().keySet()) {
-                String token = voiceService.generateToken(gameId, playerId);
-                log.info("Token issued for Player {}: {}", playerId, token);
-            }
-        } catch (Exception e) {
-            log.error("Failed to create OpenVidu session: {}", e.getMessage());
-        }
-
-
-        log.info("Game started in Room {}.", gameId);
-        applicationEventPublisher.publishEvent(new GameStartEvent(gameId));
+        log.info("Game {} created.", gameId);
+        log.info("Game {} created.", gameId);
+        log.info("Game {} created.", gameId);
+//        Game game = makeGame(gameId);
+//
+//        log.info("Game {} created.", gameId);
+//        game.startGame();
+//        gameSeqRepository.savePhase(gameId, GamePhase.DAY_DISCUSSION); // 낮 토론 시작
+//        gameSeqRepository.saveTimer(gameId, game.getSetting().getDayDisTimeSec()); // 설정된 시간
+//        log.info("Game started in Room {}: Phase set to {}, Timer set to {} seconds",
+//            gameId, GamePhase.DAY_DISCUSSION, game.getSetting().getDayDisTimeSec());
+//
+//        //Redis 채팅방 생성
+//        subscription.subscribe(gameId);
+//
+//        gameRepository.save(game);
+//
+//        // 🔥 OpenVidu 세션 생성
+//        try {
+//            String sessionId = voiceService.createSession(gameId);
+//            log.info("OpenVidu Session {} created for Game {}", sessionId, gameId);
+//
+//            // 🔥 모든 플레이어에게 토큰 발급
+//            for (Long playerId : game.getPlayers().keySet()) {
+//                String token = voiceService.generateToken(gameId, playerId);
+//                log.info("Token issued for Player {}: {}", playerId, token);
+//            }
+//        } catch (Exception e) {
+//            log.error("Failed to create OpenVidu session: {}", e.getMessage());
+//        }
+//
+//
+//        log.info("Game started in Room {}.", gameId);
+//        applicationEventPublisher.publishEvent(new GameStartEvent(gameId));
     }
 
-    private Game makeGame(long roomId) {
-        RoomInfo roominfo = roomService.findById(roomId);
-
-        Game game = new Game(roomId, roominfo.getGameOption());
-
-        // 게임에 참가할 플레이어를 추가한다.
-        roominfo.getParticipant().values().forEach(game::addPlayer);
-
-        return game;
-    }
+//    private Game makeGame(long roomId) {
+//        RoomInfo roominfo = roomService.findById(roomId);
+//
+//        Game game = new Game(roomId, roominfo.getGameOption());
+//
+//        // 게임에 참가할 플레이어를 추가한다.
+//        roominfo.getParticipant().values().forEach(game::addPlayer);
+//
+//        return game;
+//    }
 
 
     /**
@@ -203,20 +206,22 @@ public class GameService {
      * 투표 결과 반환
      *
      * @param gameId 방 ID
-     *
      */
     public int getVoteResult(long gameId) throws JsonProcessingException {
         int target = findById(gameId).voteResult();
 
-        String topic = "game-"+gameId+"-system";
+        String topic = "game-" + gameId + "-system";
         // JSON 메시지 생성 및 publish
         String message = objectMapper.writeValueAsString(
             Map.of("voteresult", String.valueOf(target))
         );
         gamePublisher.publish(topic, message);
 
-        if (target == -1) log.info("[Game{}] No one is selected", gameId);
-        else log.info("[Game{}] Target is {}", gameId, target);
+        if (target == -1) {
+            log.info("[Game{}] No one is selected", gameId);
+        } else {
+            log.info("[Game{}] Target is {}", gameId, target);
+        }
 
         return target;
     }
@@ -226,7 +231,6 @@ public class GameService {
      * 최종 찬반 투표: 보내는거 자체가 수락임
      *
      * @param gameId 방 ID
-     *
      */
     public void finalVote(long gameId) {
         Game game = findById(gameId);
@@ -237,16 +241,15 @@ public class GameService {
 
 
     /**
-     * 최종 찬반 투표 결과 반환
-     * -> GameScheduler로 옮기기
-     * @param gameId 방 ID
+     * 최종 찬반 투표 결과 반환 -> GameScheduler로 옮기기
      *
+     * @param gameId 방 ID
      */
     public void getFinalVoteResult(long gameId) throws JsonProcessingException {
         Game game = findById(gameId);
         boolean isKill = game.finalvoteResult();
 
-        String topic = "game-"+gameId+"-system";
+        String topic = "game-" + gameId + "-system";
         // JSON 메시지 생성 및 publish
         String message = objectMapper.writeValueAsString(
             Map.of("votekill", isKill)
@@ -256,17 +259,16 @@ public class GameService {
         if (isKill) {
             log.info("[Game{}] Vote Kill!!!!!", gameId);
             gameRepository.save(game);
+        } else {
+            log.info("[Game{}] No one is selected", gameId);
         }
-        else log.info("[Game{}] No one is selected", gameId);
     }
 
 
     /**
-     * 플레이어 사망 처리 - 테스트는 이렇게 냅두고
-     * 실 배포 시, param으로 Game객체만 사용 후 Scheduler에서만 이를 호출
-     * Controller 제거
+     * 플레이어 사망 처리 - 테스트는 이렇게 냅두고 실 배포 시, param으로 Game객체만 사용 후 Scheduler에서만 이를 호출 Controller 제거
      *
-     * @param game  방 ID가 있는 이벤트 객체
+     * @param game 방 ID가 있는 이벤트 객체
      */
     public void killPlayer(Game game) throws JsonProcessingException {
         Integer healedPlayer = game.getHealTarget();
@@ -274,12 +276,13 @@ public class GameService {
 
         Map<String, String> message = new HashMap<>();
         //의사
-        if (healedPlayer != 0 && killList != null && (killList.isEmpty() || !killList.contains(healedPlayer))) {
+        if (healedPlayer != 0 && killList != null && (killList.isEmpty() || !killList.contains(
+            healedPlayer))) {
             message.put("heal", String.valueOf(healedPlayer));
             log.info("Game[{}] 플레이어 " + healedPlayer + " 이(가) 의사의 치료로 살아남았습니다!", healedPlayer);
         }
         // 좀비
-        if(killList != null && !killList.isEmpty()) {
+        if (killList != null && !killList.isEmpty()) {
             // JSON 형태로 메시지 구성
             String deaths = killList.stream()
                 .map(String::valueOf)
@@ -312,22 +315,22 @@ public class GameService {
         if (myrole == Role.ZOMBIE) {
             game.specifyTarget(Role.ZOMBIE, targetNo);
             result = targetNo + "플레이어는 감염 타겟이 되었습니다.";
-            String topic = "game-"+gameId+"-maifa-system";
+            String topic = "game-" + gameId + "-maifa-system";
             // JSON 메시지 생성 및 publish
             String message = objectMapper.writeValueAsString(
                 Map.of("zombiepick", targetNo)
             );
             gamePublisher.publish(topic, message);
-        } else if(myrole == Role.MUTANT){
+        } else if (myrole == Role.MUTANT) {
             game.specifyTarget(Role.MUTANT, targetNo);
             result = targetNo + "플레이어는 돌연변이 타겟이 되었습니다.";
-        } else if(myrole == Role.POLICE){
+        } else if (myrole == Role.POLICE) {
             Role findrole = game.findRole(targetNo);
             result = targetNo + "의 직업은 " + findrole + "입니다.";
         } else if (myrole == Role.PLAGUE_DOCTOR) {
             if (game.getSetting().getDoctorSkillUsage() == 0) {
                 result = "남은 백신이 없습니다.";
-            } else{
+            } else {
                 int heal_cnt = game.heal(targetNo);
                 result = targetNo + "을 살리기로 했습니다. 남은 백신은 " + heal_cnt + "개 입니다.";
             }
