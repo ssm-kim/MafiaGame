@@ -8,7 +8,8 @@ import GameHeader from '@/components/gameroom/GameHeader';
 import GameStatus from '@/components/gameroom/GameStatus';
 import ChatWindow from '@/components/gameroom/ChatWindow';
 import WaitingRoom from '@/components/gameroom/WaitingRoom';
-import { Player } from '../../types/player';
+import { Player } from '@/types/player';
+import GameComponent from '@/game/GameComponent';
 
 export interface Participant {
   memberId: number;
@@ -287,7 +288,7 @@ function GameRoom(): JSX.Element {
 
         <div className="flex h-full gap-4 pt-16">
           <div className="flex-1">
-            {!gameState?.roomStatus ? (
+            {gameState?.roomStatus ? (
               <WaitingRoom
                 players={players}
                 isHost={isHost}
@@ -297,7 +298,8 @@ function GameRoom(): JSX.Element {
               />
             ) : (
               <div className="w-full h-full bg-gray-900 bg-opacity-80 rounded-lg border border-gray-800">
-                <GameStatus gameState={gameState} />
+                {/* <GameStatus gameState={gameState} /> */}
+                <GameComponent />
               </div>
             )}
           </div>

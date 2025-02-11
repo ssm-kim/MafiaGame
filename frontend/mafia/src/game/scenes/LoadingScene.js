@@ -1,5 +1,5 @@
 import BaseScene from '@/game/scenes/BaseScene';
-import { GamePhases } from '@/game/constants/game';
+import GamePhases from '@/types/game';
 
 export default class LoadingScene extends BaseScene {
   constructor() {

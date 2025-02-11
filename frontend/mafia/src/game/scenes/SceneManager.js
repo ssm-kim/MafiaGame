@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import PlayerRole from '@/game/constants/role';
+import PlayerRole from '@/types/role';
 import getRandomCharacter from '@/game/utils/character';
 
 export default class SceneManager extends Phaser.Scene {
