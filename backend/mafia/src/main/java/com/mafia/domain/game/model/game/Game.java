@@ -1,6 +1,5 @@
 package com.mafia.domain.game.model.game;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mafia.domain.room.model.redis.Participant;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.Getter;
@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Setter
 @NoArgsConstructor
 @Slf4j
-@JsonIgnoreProperties(ignoreUnknown = true)
+//@JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "게임의 상태와 관련된 정보를 포함하는 클래스")
 public class Game implements Serializable { // 필드정리
 
@@ -50,10 +50,10 @@ public class Game implements Serializable { // 필드정리
     private STATUS status;
 
     @Schema(description = "현재 라운드에서 의사가 치료 대상으로 지정한 플레이어의 ID", example = "101")
-    private Integer healTarget;
+    private Integer healTarget = 0;
 
-    @Schema(description = "현재 라운드에서 공격 대상으로 지정한 플레이어의 ID", example = "102")
-    private int killTarget;
+    @Schema(description = "각 직업 별 kill 타겟 매핑", example = "102")
+    private Map<String, Integer> killTarget;
 
     @Schema(description = "게임 옵션")
     private GameOption setting;
@@ -64,16 +64,17 @@ public class Game implements Serializable { // 필드정리
         this.players = new HashMap<>();
         this.votes = new HashMap<>();
         this.map_players=new HashMap<>();
-        this.healTarget = null;
-        this.killTarget = 0;
+        this.healTarget = 0;
+        this.killTarget = new HashMap<>();
         this.setting = setting; // <- POST CONSTRUCT
     }
 
     public void roundInit(){
-        votes.clear();
-        final_vote = 0;
-        healTarget = null;
-        killTarget = 0;
+        this.votes.clear();
+        this.final_vote = 0;
+        this.healTarget = 0;
+        this.killTarget.clear();
+        log.info("round 진행- 초기화완료");
     }
 
     /*
@@ -138,19 +139,41 @@ public class Game implements Serializable { // 필드정리
     }
 
     public void vote(Long playerNo, Integer targetNo) {
-        if(players.get(map_players.get(targetNo)).isDead()) votes.put(playerNo, -1);
         votes.put(playerNo, targetNo);
     }
 
     public Integer voteResult() {
+        int vote_cnt = votes.size();
+        long live = players.values().stream()
+            .filter(player -> !player.isDead()) // 살아있는 플레이어 수 계산
+            .count();
+
+        // 투표하지 않은 플레이어의 투표를 -1로 처리
+        for (int i = 0; i < live - vote_cnt; i++) {
+            votes.put(0L, -1);
+        }
+
+        // 투표 결과 집계 (누가 몇 표 받았는지)
         Map<Integer, Long> result = votes.values().stream()
             .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
 
-        return result.entrySet().stream()
-            .max(Map.Entry.comparingByValue())
-            .map(Map.Entry::getKey)
-            .orElse(-1);
+        // 가장 많이 득표한 플레이어 찾기
+        Optional<Long> maxVotes = result.values().stream().max(Long::compare);
+
+        if (maxVotes.isPresent()) {
+            // 최다 득표를 받은 모든 플레이어 찾기
+            List<Integer> topPlayers = result.entrySet().stream()
+                .filter(entry -> entry.getValue().equals(maxVotes.get()))
+                .map(Map.Entry::getKey)
+                .toList();
+
+            // 동점이면 -1 반환
+            return (topPlayers.size() > 1) ? -1 : topPlayers.get(0);
+        }
+
+        return -1; // 투표가 없으면 -1 반환
     }
+
 
     public void finalVote(){
         final_vote++;
@@ -163,7 +186,7 @@ public class Game implements Serializable { // 필드정리
 
         int target = voteResult();
         if(final_vote > (live / 2) && target != -1){
-            killTarget |= 1 <<(players.size() - target);
+            killTarget.put("VOTE", target);
             return true;
         }
         return false;
@@ -173,22 +196,16 @@ public class Game implements Serializable { // 필드정리
         Player p = players.get(targetNo);
         p.setDead(true);
         p.updateSubscriptionsOnDeath(gameId);
-        isGameOver();
+        log.info(targetNo + "플레이어 사망 처리");
     }
 
     public List<Integer> killProcess() { // 밤중 킬
-        if (killTarget == 0) {
+        if (killTarget.size() == 0) {
             return null; // 죽일 대상이 없으면 바로 종료
         }
 
         // 치료된 플레이어 제외
-        List<Integer> finalDeathList = new ArrayList<>();
-        for (int i = 0; i < players.size(); i++) {
-            if ((killTarget & (1 << (players.size() - i - 1))) != 0) {
-                finalDeathList.add(i + 1); // 1부터 시작하는 번호로 변환
-            }
-        }
-        System.out.println();
+        List<Integer> finalDeathList = new ArrayList<>(killTarget.values());
         if (healTarget != null && finalDeathList.contains(healTarget)) {
             finalDeathList.remove(healTarget);
         }
@@ -197,7 +214,7 @@ public class Game implements Serializable { // 필드정리
         for (Integer target : finalDeathList) {
             Kill(map_players.get(target));
         }
-
+        log.warn("Final Kill List: " + finalDeathList);
         return finalDeathList;
     }
 
@@ -210,14 +227,13 @@ public class Game implements Serializable { // 필드정리
         return setting.getDoctorSkillUsage();
     }
 
-    public void setKillTarget(Integer targetNo) {
-        killTarget |= (1 << (players.size() - targetNo));
+    public void specifyTarget(Role role, Integer targetNo) {
+        killTarget.put(role.toString(), targetNo);
     }
 
-    public Role findRole(Long playerNo, Integer targetNo) {
+    public Role findRole(Integer targetNo) {
         Role find = players.get(map_players.get(targetNo)).getRole();
         if (find == Role.ZOMBIE) {
-            players.get(playerNo).setEnableVote(false);
             return Role.ZOMBIE;
         } else {
             return Role.CITIZEN;
