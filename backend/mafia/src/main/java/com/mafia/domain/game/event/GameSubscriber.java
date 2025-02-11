@@ -26,7 +26,7 @@ public class GameSubscriber implements MessageListener {
         // WebSocket을 통해 클라이언트에게 메시지 전달
         messagingTemplate.convertAndSend("/topic/" + channel, msg);
 
-        log.info("📩 Redis Message Send: channel={}, message={}", channel, msg);
+        //log.info("📩 Redis Message Send: channel={}, message={}", channel, msg);
     }
 }
 
