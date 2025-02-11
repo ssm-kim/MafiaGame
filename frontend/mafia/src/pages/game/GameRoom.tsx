@@ -98,6 +98,45 @@ function GameRoom(): JSX.Element {
     }
   }, [gameState, currentPlayerId]);
 
+  // useEffect(() => {
+  //   const initializeRoom = async () => {
+  //     try {
+  //       if (!roomId) return;
+
+  //       await roomApi.initializeWebSocket();
+  //       const stompClient = roomApi.getStompClient();
+  //       stompClientRef.current = stompClient;
+
+  //       if (stompClient) {
+  //         roomApi.subscribeRoom(Number(roomId), (roomInfo) => {
+  //           setGameState(roomInfo);
+  //         });
+
+  //         stompClient.subscribe(`/topic/room-${roomId}-chat`, (msg: { body: string }) =>
+  //           handleMessage('ROOM', msg.body),
+  //         );
+  //       }
+
+  //       const response = await roomApi.getRoom(Number(roomId));
+  //       if (response.data.isSuccess) {
+  //         const room = response.data.result;
+  //         if (room) {
+  //           setGameState(room);
+  //         } else {
+  //           navigate('/game-lobby');
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error('Failed to initialize room:', error);
+  //     }
+  //   };
+
+  //   initializeRoom();
+
+  //   return () => {
+  //     roomApi.disconnect();
+  //   };
+  // }, [roomId, navigate]);
   useEffect(() => {
     const initializeRoom = async () => {
       try {
@@ -122,6 +161,12 @@ function GameRoom(): JSX.Element {
           const room = response.data.result;
           if (room) {
             setGameState(room);
+
+            // 이전 채팅 기록 가져오기 //새로고침해도 그대로인지 테스트 필요
+            const chatResponse = await axios.get(`/chat?gameId=${roomId}&chatType=ROOM&count=50`);
+            if (chatResponse.data.isSuccess) {
+              setMessages(chatResponse.data.result);
+            }
           } else {
             navigate('/game-lobby');
           }

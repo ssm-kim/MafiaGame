@@ -239,12 +239,32 @@ const roomApi = {
   },
   deleteRoom: (roomId: number) => api.delete<ApiResponse<void>>(`/api/room/${roomId}`),
 
+  // initializeWebSocket: async () => {
+  //   const socket = new WebSocket('wss://i12d101.p.ssafy.io/ws-mafia');
+  //   stompClient = Stomp.over(socket);
+  //   return new Promise<any>((resolve, reject) => {
+  //     stompClient.connect({}, () => resolve(stompClient), reject);
+  //   });
+  // },
   initializeWebSocket: async () => {
-    const socket = new WebSocket('wss://i12d101.p.ssafy.io/ws-mafia');
-    stompClient = Stomp.over(socket);
-    return new Promise<any>((resolve, reject) => {
-      stompClient.connect({}, () => resolve(stompClient), reject);
-    });
+    try {
+      const socket = new WebSocket('wss://i12d101.p.ssafy.io/ws-mafia');
+      stompClient = Stomp.over(socket);
+
+      return await new Promise<any>((resolve, reject) => {
+        // await 추가
+        const connectCallback = () => resolve(stompClient);
+        const errorCallback = (error: any) => {
+          console.error('WebSocket connection error:', error);
+          reject(error);
+        };
+
+        stompClient.connect({}, connectCallback, errorCallback);
+      });
+    } catch (error) {
+      console.error('Failed to initialize WebSocket:', error);
+      throw error;
+    }
   },
 
   subscribeLobby: (onRoomsUpdate: (rooms: Room[]) => void) => {
