@@ -57,6 +57,7 @@ public class RoomMessageService {
 
         // 해당 방을 구독 중인 유저들에게만 전송
         messagingTemplate.convertAndSend("/topic/room/" + roomId, responseInfo);
+//        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomInfo);
     }
 
     private RoomInfo deepCopy(RoomInfo roomInfo) {

@@ -59,6 +59,11 @@ dependencies {
     //Monitoring
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
+    //Mattermost
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+    implementation 'org.apache.httpcomponents:httpcore:4.4.15'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
 }
 
 tasks.named('test') {

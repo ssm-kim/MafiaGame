@@ -17,7 +17,7 @@ spring:
   jpa:
     generate-ddl: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
@@ -27,6 +27,16 @@ spring:
     redis:
       repositories:
         enabled: true
+
+notification:
+  mattermost:
+    mmEnabled: true
+    channel: "#alerts"
+    pretext: "🚨 서버 에러 발생!"
+    color: "#ff5d52"
+    authorName: "Mafia Server"
+    title: "백엔드 에러 로그"
+    text: ""
 
 ---
 spring:
