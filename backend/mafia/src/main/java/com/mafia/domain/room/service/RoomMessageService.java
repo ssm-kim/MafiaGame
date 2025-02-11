@@ -34,6 +34,8 @@ public class RoomMessageService {
         }
 
         log.info("로비 방 목록 전송 - 총 {}개 방", rooms.size());
+
+        // 로비 유저들은 방 목록만 받음 (준비 상태 등 상세 정보 제외)
         messagingTemplate.convertAndSend("/topic/lobby", rooms);
     }
 
@@ -42,7 +44,36 @@ public class RoomMessageService {
      */
     public void sendRoomUpdate(Long roomId) {
         RoomInfo roomInfo = roomRedisService.findById(roomId);
+
+        // 깊은 복사로 새로운 RoomInfo 객체 생성
+        RoomInfo responseInfo = deepCopy(roomInfo);  // or 직접 새로운 객체 생성
+
+        // 복사된 객체에서만 memberId 숨기기
+        responseInfo.getParticipant().forEach((id, participant) -> {
+            participant.setMemberId(null);
+        });
+
         log.info("방 정보 업데이트 - 방 번호: {}", roomId);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomInfo);
+
+        // 해당 방을 구독 중인 유저들에게만 전송
+        messagingTemplate.convertAndSend("/topic/room/" + roomId, responseInfo);
+    }
+
+    private RoomInfo deepCopy(RoomInfo roomInfo) {
+        RoomInfo copy = new RoomInfo();
+
+        // 모든 필드 복사
+        copy.setRoomId(roomInfo.getRoomId());
+        copy.setHostId(roomInfo.getHostId());
+        copy.setTitle(roomInfo.getTitle());
+        copy.setPassword(roomInfo.getPassword());
+        copy.setReadyCnt(roomInfo.getReadyCnt());
+        copy.setRequiredPlayers(roomInfo.getRequiredPlayers());
+        copy.setActive(roomInfo.isActive());
+        copy.setChat(roomInfo.getChat());
+        copy.setGameOption(roomInfo.getGameOption());
+        copy.setParticipant(new HashMap<>(roomInfo.getParticipant()));
+
+        return copy;
     }
 }
