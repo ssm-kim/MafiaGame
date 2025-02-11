@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
 /**
@@ -27,7 +28,7 @@ public class RoomWebSocketController {
     private final GameService gameService;
 
     /**
-     * 로비 입장 - 현재 방 목록 전송
+     * 로비 입장 시 방 목록 전송
      */
     @MessageMapping("/lobby/enter")
     public void handleLobbyEnter() {
@@ -36,36 +37,64 @@ public class RoomWebSocketController {
     }
 
     /**
-     * 방 입장 처리 및 정보 업데이트
+     * 방 입장 처리 및 참가자 정보 업데이트
      */
     @MessageMapping("/room/enter/{roomId}")
     public void handleRoomEnter(
         @DestinationVariable Long roomId,
-        @Payload RoomMessages.EnterMessage message
+        @Payload RoomMessages.EnterMessage message,
+        SimpMessageHeaderAccessor headerAccessor
+        // ,  @AuthenticationPrincipal AuthenticatedUser detail
     ) {
-        log.info("방 입장 요청 - 방 번호: {}, 유저: {}", roomId, message.getMemberId());
-        roomRedisService.enterRoom(roomId, message.getMemberId(), message.getPassword());
+        String sessionId = headerAccessor.getSessionId();
+        log.info("방 입장 요청 - 방 번호: {}, 유저: {}, 세션: {}", roomId, message.getMemberId(), sessionId);
+
+        // 세션ID-멤버ID 매핑 저장
+        // roomRedisService.saveSession(sessionId, message.getMemberId());
+
+        roomRedisService.enterRoom(roomId, message.getMemberId(), message.getPassword(), sessionId);
         messageService.sendRoomUpdate(roomId);
         messageService.sendRoomListToAll();
     }
 
     /**
-     * 방 퇴장 처리 - 방장 퇴장시 방 삭제, 일반 유저는 정보 업데이트
+     * 방 퇴장 처리 (방장 퇴장 시 방 삭제)
      */
     @MessageMapping("/room/leave/{roomId}")
     public void handleRoomLeave(
         @DestinationVariable Long roomId,
         @Payload RoomMessages.LeaveMessage message
+        // ,  @AuthenticationPrincipal AuthenticatedUser detail
     ) {
-        log.info("방 퇴장 요청 - 방 번호: {}, 유저: {}", roomId, message.getMemberId());
+        String targetSessionId = message.getTargetSessionId();
+        log.info("방 퇴장 요청 - 방 번호: {}, 유저: {}, 세션: {}", roomId, message.getMemberId(),
+            targetSessionId);
         boolean isHost = roomRedisService.isHost(roomId, message.getMemberId());
 
-        roomRedisService.leaveRoom(roomId, message.getMemberId());
+        roomRedisService.leaveRoom(roomId, message.getMemberId(), targetSessionId);
         if (isHost) {
             roomDbService.deleteRoom(roomId);
         } else {
             messageService.sendRoomUpdate(roomId);
         }
+        messageService.sendRoomListToAll();
+    }
+
+    /**
+     * 강제 퇴장 처리 (방장 권한 확인)
+     */
+    @MessageMapping("/room/kick/{roomId}")
+    public void handleKickMember(
+        @DestinationVariable Long roomId,
+        @Payload RoomMessages.KickMessage message
+        // ,  @AuthenticationPrincipal AuthenticatedUser detail
+    ) {
+        String targetSessionId = message.getTargetSessionId();
+        log.info("강제 퇴장 요청 - 방 번호: {}, 방장: {}, 대상 세션: {}",
+            roomId, message.getHostId(), targetSessionId);
+
+        roomRedisService.kickMember(roomId, message.getHostId(), targetSessionId);
+        messageService.sendRoomUpdate(roomId);
         messageService.sendRoomListToAll();
     }
 
@@ -76,6 +105,7 @@ public class RoomWebSocketController {
     public void handleReadyToggle(
         @DestinationVariable Long roomId,
         @Payload RoomMessages.ReadyMessage message
+        // ,  @AuthenticationPrincipal AuthenticatedUser detail
     ) {
         log.info("준비 상태 변경 - 방 번호: {}, 유저: {}", roomId, message.getMemberId());
         roomRedisService.toggleReady(roomId, message.getMemberId());
@@ -83,12 +113,13 @@ public class RoomWebSocketController {
     }
 
     /**
-     * 게임 시작
+     * 게임 시작 처리
      */
     @MessageMapping("/room/start/{roomId}")
     public void handleGameStart(
         @DestinationVariable Long roomId,
         @Payload RoomMessages.StartGameMessage message
+        // ,  @AuthenticationPrincipal AuthenticatedUser detail
     ) {
         log.info("게임 시작 - 방 번호: {}, 방장: {}", roomId, message.getMemberId());
         roomRedisService.startGame(roomId, message.getMemberId());
@@ -104,20 +135,5 @@ public class RoomWebSocketController {
 
         // 게임 서비스로 방 정보 전달 (주석 해제)
         gameService.startGame(roomId);
-    }
-
-    /**
-     * 강제 퇴장 처리
-     */
-    @MessageMapping("/room/kick/{roomId}")
-    public void handleKickMember(
-        @DestinationVariable Long roomId,
-        @Payload RoomMessages.KickMessage message
-    ) {
-        log.info("강제 퇴장 요청 - 방 번호: {}, 방장: {}, 대상: {}",
-            roomId, message.getHostId(), message.getTargetId());
-        roomRedisService.kickMember(roomId, message.getHostId(), message.getTargetId());
-        messageService.sendRoomUpdate(roomId);
-        messageService.sendRoomListToAll();
     }
 }

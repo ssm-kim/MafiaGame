@@ -33,7 +33,7 @@ public class RoomController {
     private final RoomDbService roomDbService;
 
     /**
-     * 새로운 게임 방을 생성 방 생성 후 로비의 구독자들에게 업데이트된 방 목록을 전송
+     * 방 생성 - RDB에 기본 정보 저장 & Redis에 실시간 정보 요청 값으로 설정
      */
     @PostMapping
     public ResponseEntity<BaseResponse<RoomIdResponse>> createRoom(
@@ -41,12 +41,13 @@ public class RoomController {
         @AuthenticationPrincipal AuthenticatedUser detail
     ) {
         RoomIdResponse response = roomDbService.createRoom(roomRequest, detail.getMemberId());
+        // 새로운 게임방 생성 후 로비의 구독자들에게 업데이트된 방 목록을 전송
         messagingTemplate.convertAndSend("/topic/lobby", roomDbService.getAllRooms());
         return ResponseEntity.ok(new BaseResponse<>(response));
     }
 
     /**
-     * 전체 방 목록 조회
+     * 전체 방 목록 조회 - RDB와 Redis 데이터 조합하여 반환
      */
     @GetMapping
     public ResponseEntity<BaseResponse<List<RoomResponse>>> getAllRooms() {
@@ -55,7 +56,7 @@ public class RoomController {
     }
 
     /**
-     * 특정 방의 상세 정보를 조회
+     * 특정 방의 상세 정보를 조회 - Redis에서 실시간 정보 조회
      */
     @GetMapping("/{roomId}")
     public ResponseEntity<BaseResponse<RoomInfo>> getRoom(
@@ -65,7 +66,7 @@ public class RoomController {
     }
 
     /**
-     * 특정 방을 삭제
+     * RDB와 Redis에서 동시 방 삭제 (실제론 쓰이지 않음 테스트용)
      */
     @DeleteMapping("/{roomId}")
     public ResponseEntity<BaseResponse<Void>> deleteRoom(

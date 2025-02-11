@@ -15,6 +15,7 @@ public class RoomMessages {
     public static class LeaveMessage {
 
         private Long memberId;
+        private String targetSessionId;  // 강퇴할 유저의 세션 ID
     }
 
     @Data
@@ -33,6 +34,7 @@ public class RoomMessages {
     public static class KickMessage {
 
         private Long hostId;    // 방장 ID
-        private Long targetId;  // 강퇴할 유저 ID
+        // private Long targetId;  // 강퇴할 유저 ID
+        private String targetSessionId;  // 강퇴할 유저의 세션 ID
     }
 }
