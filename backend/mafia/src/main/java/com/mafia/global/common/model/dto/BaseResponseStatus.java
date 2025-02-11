@@ -34,6 +34,8 @@ public enum BaseResponseStatus {
 
     // Member Error Codes (2000~)
     MEMBER_NOT_FOUND(false, HttpStatus.NOT_FOUND, 2001, "존재하지 않는 회원입니다."),
+    NOT_GUEST_ACCOUNT(false, HttpStatus.FORBIDDEN, 2002, "게스트 계정만 삭제할 수 있습니다."),
+    INVALID_JSON_FORMAT(false, HttpStatus.BAD_REQUEST, 3001, "잘못된 JSON 형식입니다."),
 
     // Game Error Codes (4001~4100)
 
