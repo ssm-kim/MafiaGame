@@ -58,7 +58,6 @@ public class Game implements Serializable { // 필드정리
     @Schema(description = "게임 옵션")
     private GameOption setting;
 
-    // @PostConstruct <- 이후 알아봄
     public Game(long roomId, GameOption setting) {
         this.gameId = roomId;
         this.players = new HashMap<>();
@@ -77,10 +76,6 @@ public class Game implements Serializable { // 필드정리
         log.info("round 진행- 초기화완료");
     }
 
-    /*
-     * 플레이어 추가
-     * - 게임에 참가할 플레이어를 추가한다.
-     * */
     public void addPlayer(Participant participant) {
         for (Player p : players.values()) {
             if (p.getMemberId().equals(participant.getMemberId())) {
@@ -215,6 +210,7 @@ public class Game implements Serializable { // 필드정리
             Kill(map_players.get(target));
         }
         log.warn("Final Kill List: " + finalDeathList);
+        isGameOver();
         return finalDeathList;
     }
 

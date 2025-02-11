@@ -64,6 +64,7 @@ public class GameService {
             .orElseThrow(() -> new BusinessException(GAME_NOT_FOUND));
     }
 
+
     /**
      * 게임 조회
      *
@@ -78,6 +79,7 @@ public class GameService {
             .findFirst()
             .orElseThrow(() -> new BusinessException(PLAYER_NOT_FOUND));
     }
+
 
     /**
      * 게임 시작
@@ -391,5 +393,4 @@ public class GameService {
             throw new BusinessException(INVALID_PHASE);
         }
     }
-
 }
