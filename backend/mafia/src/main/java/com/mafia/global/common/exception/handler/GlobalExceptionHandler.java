@@ -27,8 +27,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<BaseResponse<BaseResponseStatus>> handleBusinessException(
-        BusinessException e) {
+        BusinessException e, HttpServletRequest req) {
         LOG.error("BusinessException occurred: {}", e.getMessage());
+
+        notificationManager.sendNotification(e, req.getRequestURI(), getParams(req));
+
         return ResponseEntity.status(e.getBaseResponseStatus().getHttpStatus())
             .body(new BaseResponse<>(e.getBaseResponseStatus()));
     }
