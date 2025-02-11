@@ -18,7 +18,6 @@ public class RoomInfo {
     private Long hostId;
     private String title;
     private String password;
-    private String sessionId;
 
     private int readyCnt;
     private int requiredPlayers;

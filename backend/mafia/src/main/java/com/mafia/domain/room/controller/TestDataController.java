@@ -25,7 +25,7 @@ public class TestDataController {
         try {
             // 각 방마다 Redis 데이터 초기화
             // 각 방마다 Redis 데이터 초기화
-            // roomRedisService.createRoomInfo(1L, 1L, 3, "테스트방 1", null, new GameOption());
+            roomRedisService.createRoomInfo(1L, 1L, 3, "테스트방 1", null, new GameOption());
             roomRedisService.createRoomInfo(2L, 2L, 3, "테스트방 2", null, new GameOption());
             roomRedisService.createRoomInfo(3L, 3L, 2, "비밀방 테스트", "1234", new GameOption());
             roomRedisService.createRoomInfo(4L, 4L, 8, "테스트방 4", null, new GameOption());

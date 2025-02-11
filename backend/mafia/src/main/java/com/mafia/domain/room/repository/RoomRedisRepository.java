@@ -16,8 +16,6 @@ public class RoomRedisRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
     private static final String ROOM_KEY_PREFIX = "room:list:";  // 상수로 분리
-    private static final String ROOM_SESSION_PREFIX = "room:session:";  // 상수로 분리
-    private static final String ROOM_MEMBER_PREFIX = "room:member:";
 
     /**
      * Redis key 생성
@@ -65,51 +63,8 @@ public class RoomRedisRepository {
      * 방 삭제
      */
     public void delete(Long roomId) {
-        log.info("방 삭제 시도 - roomId: {} ", roomId);
+        log.info("방 삭제 시도 - roomId {}", roomId);
         redisTemplate.delete(getRoomKey(roomId));
-        log.info("방 삭제 완료 - roomId: {} ", roomId);
-    }
-
-    // 세션 관리
-    private String getSessionKey(String sessionId) {
-        return ROOM_SESSION_PREFIX + sessionId;
-    }
-
-    public void saveSession(String sessionId, Long memberId) {
-        redisTemplate.opsForValue().set(getSessionKey(sessionId), memberId);
-    }
-
-    public Long findBySessionId(String sessionId) {
-        Object value = redisTemplate.opsForValue().get(getSessionKey(sessionId));
-        return Long.valueOf(value.toString());
-    }
-
-    public void deleteSession(String sessionId) {
-        redisTemplate.delete(getSessionKey(sessionId));
-    }
-
-
-    // 유저가 다른 방에 이미 참여한지 여부 파악
-    public void saveMemberRoom(Long memberId, Long roomId) {
-        redisTemplate.opsForValue().set(ROOM_MEMBER_PREFIX + memberId, roomId);
-    }
-
-    /**
-     * room:member:1 -> "2"  (멤버1이 2번방에 있다) room:member:5 -> "2"  (멤버5도 2번방에 있다) room:member:8 ->
-     * "3"  (멤버8은 3번방에 있다)
-     */
-    public Long findRoomByMemberId(Long memberId) {
-        Object value = redisTemplate.opsForValue().get(ROOM_MEMBER_PREFIX + memberId);
-
-        // null이면 바로 null 반환
-        if (value == null) {
-            return null;
-        }
-
-        return Long.valueOf(value.toString());
-    }
-
-    public void deleteMemberRoom(Long memberId) {
-        redisTemplate.delete(ROOM_MEMBER_PREFIX + memberId);
+        log.info("방 삭제 완료 - roomId {}", roomId);
     }
 }
