@@ -163,7 +163,7 @@ public class Game implements Serializable { // 필드정리
 
         int target = voteResult();
         if(final_vote > (live / 2) && target != -1){
-            killTarget |= 1 <<(target - 1);
+            killTarget |= 1 <<(players.size() - target);
             return true;
         }
         return false;
@@ -183,11 +183,12 @@ public class Game implements Serializable { // 필드정리
 
         // 치료된 플레이어 제외
         List<Integer> finalDeathList = new ArrayList<>();
-        for (int i = 0; i < players.size(); i++){
-            if ((killTarget & (1 << i)) != 0)
-                finalDeathList.add(i+1);
+        for (int i = 0; i < players.size(); i++) {
+            if ((killTarget & (1 << (players.size() - i - 1))) != 0) {
+                finalDeathList.add(i + 1); // 1부터 시작하는 번호로 변환
+            }
         }
-
+        System.out.println();
         if (healTarget != null && finalDeathList.contains(healTarget)) {
             finalDeathList.remove(healTarget);
         }
@@ -210,7 +211,7 @@ public class Game implements Serializable { // 필드정리
     }
 
     public void setKillTarget(Integer targetNo) {
-        killTarget |= (1 << targetNo);
+        killTarget |= (1 << (players.size() - targetNo));
     }
 
     public Role findRole(Long playerNo, Integer targetNo) {

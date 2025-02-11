@@ -56,6 +56,10 @@ dependencies {
     //openvidu
     implementation 'io.openvidu:openvidu-java-client:2.31.0'
 
+    //Monitoring
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
     //Mattermost
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     implementation 'org.apache.httpcomponents:httpcore:4.4.15'
