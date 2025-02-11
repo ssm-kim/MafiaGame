@@ -1,5 +1,6 @@
 // import React from 'react';
 
+// import { useEffect } from 'react';
 import PlayerCard from './PlayerCard';
 import ActionButton from './WatingButton';
 import { Player } from '@/types/player';
@@ -29,7 +30,11 @@ function WaitingRoom({
   onStart,
 }: WaitingRoomProps): JSX.Element {
   // 빈 자리를 포함한 전체 플레이어 배열 생성
-  const paddedPlayers = [...players, ...Array(maxPlayers - players.length).fill(undefined)];
+
+  const paddedPlayers = [
+    ...players,
+    ...Array(Math.max(0, maxPlayers - players.length)).fill(undefined),
+  ];
 
   return (
     <div className="w-full h-full bg-gray-900 bg-opacity-80 p-6">
