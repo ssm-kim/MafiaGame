@@ -1,5 +1,6 @@
 package com.mafia.domain.game.service;
 
+import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.UNKNOWN_PHASE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -115,10 +116,10 @@ public class GameScheduler {
      * @throws JsonProcessingException JSON 변환 오류 발생 시 예외 처리
      */
     public void processTimers(long gameId) throws JsonProcessingException {
-        Long remainingTime = gameService.getTime(gameId);
-        GamePhase phase = gameService.getPhase(gameId);
+        Long remainingTime = gameSeqRepository.getTimer(gameId);
+        GamePhase phase = gameSeqRepository.getPhase(gameId);
 
-        if(remainingTime == 5 && phase == GamePhase.DAY_FINAL_STATEMENT){
+        if(remainingTime == 5 && phase == GamePhase.DAY_FINAL_VOTE){
             gameService.getFinalVoteResult(gameId);
         }
 
@@ -145,48 +146,46 @@ public class GameScheduler {
      * @throws JsonProcessingException JSON 변환 오류 발생 시 예외 처리
      */
     public void advanceGamePhase(long gameId) throws JsonProcessingException {
-        GamePhase curPhase = gameService.getPhase(gameId);
-        Game game = gameService.findById(gameId);
-        if (game == null || curPhase == null) {
-            log.error("Game[{}] not found", gameId);
-            return;
-        }
+        Game game = gameRepository.findById(gameId)
+            .orElseThrow(() -> new BusinessException(GAME_NOT_FOUND));
+
+
+        GamePhase curPhase = gameSeqRepository.getPhase(gameId);
 
         switch (curPhase) {
             case DAY_DISCUSSION -> {
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_VOTE);
-                gameSeqRepository.saveTimer(gameId, 20);
+                gameSeqRepository.saveTimer(gameId, 15);
             }
             case DAY_VOTE -> {
                 if(game.voteResult() == -1){
                     game.updateVoicePermissions("night"); // 좀비만 음성 채팅 활성화
                     gameSeqRepository.savePhase(gameId, GamePhase.NIGHT_ACTION);
-                    gameSeqRepository.saveTimer(gameId, game.getSetting().getNightTimeSec());
+                    gameSeqRepository.saveTimer(gameId, 20);
                 } else {
                     gameSeqRepository.savePhase(gameId, GamePhase.DAY_FINAL_STATEMENT);
-                    gameSeqRepository.saveTimer(gameId, 20);
+                    gameSeqRepository.saveTimer(gameId, 10);
                 }
             }
             case DAY_FINAL_STATEMENT -> {
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_FINAL_VOTE);
-                gameSeqRepository.saveTimer(gameId, 20);
+                gameSeqRepository.saveTimer(gameId, 10);
             }
             case DAY_FINAL_VOTE -> {
-                gameService.killPlayer(gameId);
+                gameService.killPlayer(game);
                 game.updateVoicePermissions("night"); // 좀비만 음성 채팅 활성화
                 gameSeqRepository.savePhase(gameId, GamePhase.NIGHT_ACTION);
-                gameSeqRepository.saveTimer(gameId, game.getSetting().getNightTimeSec());
+                gameSeqRepository.saveTimer(gameId, 20);
             }
             case NIGHT_ACTION -> {
-                gameService.killPlayer(gameId);
+                gameService.killPlayer(game);
                 game.roundInit();
                 game.updateVoicePermissions("day"); // 모든 생존자 음성 채팅 활성화 (토론)
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_DISCUSSION);
-                gameSeqRepository.saveTimer(gameId, game.getSetting().getDayDisTimeSec());
+                gameSeqRepository.saveTimer(gameId, 10);
             }
             default -> throw new BusinessException(UNKNOWN_PHASE);
         }
-
         gameRepository.save(game);
         log.info("Game phase advanced in Room {}: New Phase = {}, Timer = {} seconds",
             gameId, gameSeqRepository.getPhase(gameId), gameSeqRepository.getTimer(gameId));
