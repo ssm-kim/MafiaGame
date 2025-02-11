@@ -9,4 +9,4 @@ spring:
       port: 6379
 
 app:
-  baseUrl: http://i12d101.p.ssafy.io
+  baseUrl: https://i12d101.p.ssafy.io
