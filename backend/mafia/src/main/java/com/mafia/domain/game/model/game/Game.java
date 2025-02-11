@@ -105,6 +105,7 @@ public class Game implements Serializable { // 필드정리
 
             if (userRole == Role.ZOMBIE) {
                 player.subscribe("game-" + gameId + "-night-chat");
+                player.subscribe("game-" + gameId + "-mafia-system");
             }
 
             if (userRole == Role.MUTANT) {

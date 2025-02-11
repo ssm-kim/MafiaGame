@@ -45,6 +45,15 @@ public class GameSubscription implements Subscription{
             activeTopics.put(topicName, topic);
             log.info("✅ Redis 게임 System 채널 구독 시작: {}", topicName);
         }
+
+        topicName = "game-" + gameId + "-mafia-system";
+        topic = new ChannelTopic(topicName);
+
+        if (!activeTopics.containsKey(topicName)) {
+            redisMessageListenerContainer.addMessageListener(gameSubscriber, topic);
+            activeTopics.put(topicName, topic);
+            log.info("✅ Redis 게임 System 채널 구독 시작: {}", topicName);
+        }
     }
 
     /**
@@ -64,6 +73,14 @@ public class GameSubscription implements Subscription{
         }
         String topicName = "game-" + gameId + "-system";
         ChannelTopic topic = activeTopics.remove(topicName);
+
+        if (topic != null) {
+            redisMessageListenerContainer.removeMessageListener(gameSubscriber, topic);
+            log.info("❌ Redis 게임 System 채널 구독 제거: {}", topicName);
+        }
+
+        topicName = "game-" + gameId + "-mafia-system";
+        topic = activeTopics.remove(topicName);
 
         if (topic != null) {
             redisMessageListenerContainer.removeMessageListener(gameSubscriber, topic);
