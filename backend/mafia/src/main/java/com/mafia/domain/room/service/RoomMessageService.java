@@ -45,19 +45,19 @@ public class RoomMessageService {
     public void sendRoomUpdate(Long roomId) {
         RoomInfo roomInfo = roomRedisService.findById(roomId);
 
-//        // 깊은 복사로 새로운 RoomInfo 객체 생성
-//        RoomInfo responseInfo = deepCopy(roomInfo);  // or 직접 새로운 객체 생성
-//
-//        // 복사된 객체에서만 memberId 숨기기
-//        responseInfo.getParticipant().forEach((id, participant) -> {
-//            participant.setMemberId(null);
-//        });
+        // 깊은 복사로 새로운 RoomInfo 객체 생성
+        RoomInfo responseInfo = deepCopy(roomInfo);  // or 직접 새로운 객체 생성
+
+        // 복사된 객체에서만 memberId 숨기기
+        responseInfo.getParticipant().forEach((id, participant) -> {
+            participant.setMemberId(null);
+        });
 
         log.info("방 정보 업데이트 - 방 번호: {}", roomId);
 
         // 해당 방을 구독 중인 유저들에게만 전송
-//        messagingTemplate.convertAndSend("/topic/room/" + roomId, responseInfo);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomInfo);
+        messagingTemplate.convertAndSend("/topic/room/" + roomId, responseInfo);
+//        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomInfo);
     }
 
     private RoomInfo deepCopy(RoomInfo roomInfo) {
