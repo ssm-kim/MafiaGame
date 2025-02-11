@@ -31,16 +31,16 @@ public class TestDataController {
             //roomRedisService.createRoomInfo(2L, 2L, 3, "테스트방 2", null, new GameOption());
             //roomRedisService.createRoomInfo(3L, 3L, 2, "비밀방 테스트", "1234", new GameOption());
             //roomRedisService.createRoomInfo(4L, 4L, 8, "테스트방 4", null, new GameOption());
-            roomRedisService.enterRoom(1L, 2L, "");
-            roomRedisService.toggleReady(1L, 2L);
-            roomRedisService.enterRoom(1L, 3L, "");
-            roomRedisService.toggleReady(1L, 3L);
-            roomRedisService.enterRoom(1L, 4L, "");
-            roomRedisService.toggleReady(1L, 4L);
-            roomRedisService.enterRoom(1L, 5L, "");
-            roomRedisService.toggleReady(1L, 5L);
-            roomRedisService.enterRoom(1L, 6L, "");
-            roomRedisService.toggleReady(1L, 6L);
+//            roomRedisService.enterRoom(1L, 2L, "");
+//            roomRedisService.toggleReady(1L, 2L);
+//            roomRedisService.enterRoom(1L, 3L, "");
+//            roomRedisService.toggleReady(1L, 3L);
+//            roomRedisService.enterRoom(1L, 4L, "");
+//            roomRedisService.toggleReady(1L, 4L);
+//            roomRedisService.enterRoom(1L, 5L, "");
+//            roomRedisService.toggleReady(1L, 5L);
+//            roomRedisService.enterRoom(1L, 6L, "");
+//            roomRedisService.toggleReady(1L, 6L);
 
             // 게임 서비스로 방 정보 전달 (주석 해제)
             gameService.startGame(1L);
