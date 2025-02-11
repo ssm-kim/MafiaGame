@@ -49,7 +49,7 @@ public class RoomWebSocketController {
         String sessionId = headerAccessor.getSessionId();
         log.info("방 입장 요청 - 방 번호: {}, 유저: {}, 세션: {}", roomId, message.getMemberId(), sessionId);
 
-        // 세션ID-멤버ID 매핑 저장
+        // 세션ID-멤버ID 매핑 저장 s
         // roomRedisService.saveSession(sessionId, message.getMemberId());
 
         roomRedisService.enterRoom(roomId, message.getMemberId(), message.getPassword(), sessionId);
