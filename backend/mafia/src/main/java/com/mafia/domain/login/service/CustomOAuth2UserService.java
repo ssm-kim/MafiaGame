@@ -8,6 +8,7 @@ import com.mafia.domain.member.model.dto.MemberDTO;
 import com.mafia.domain.member.model.entity.Member;
 import com.mafia.domain.member.repository.MemberRepository;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -54,4 +55,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
         return new AuthenticatedUser(MemberDTO.from(member));
     }
+
+    public AuthenticatedUser createGuestUser() {
+        String uuid = UUID.randomUUID().toString();
+        String guestProviderId = "guest_" + uuid.substring(0, 8);
+        String guestEmail = "guest_" + uuid.substring(0, 5) + "@guest.com";
+        String guestNickname = "생존자_" + uuid.substring(0, 5);
+
+        Member guestMember = Member.of(guestProviderId, guestNickname, guestEmail);
+        Member savedMember = memberRepository.save(guestMember);
+
+        return new AuthenticatedUser(MemberDTO.from(savedMember));
+    }
+
 }
