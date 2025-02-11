@@ -2,46 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
-interface LoginFormData {
-  nickname: string;
-  password: string;
-}
-
 function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [flicker] = useState(false);
   const [textGlitch] = useState(false);
-  const [loginForm, setLoginForm] = useState<LoginFormData>({
-    nickname: '',
-    password: '',
-  });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setLoginForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleGuestLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post('/api/login/guest', loginForm);
-      if (response.data.isSuccess) {
-        const memberResponse = await axios.get('/api/member');
-        if (memberResponse.data.isSuccess) {
-          localStorage.setItem('memberId', memberResponse.data.result.id);
-          localStorage.setItem('username', memberResponse.data.result.nickname);
-        }
-        navigate('/game-lobby', { replace: true });
-      }
-    } catch (error) {
-      console.error('게스트 로그인 실패:', error);
-      alert('로그인에 실패했습니다. 다시 시도해주세요.');
-    }
-  };
 
   useEffect(() => {
     (async () => {
@@ -72,6 +37,27 @@ function LoginPage() {
       }
     })();
   }, [location, navigate]);
+
+  const handleGuestLogin = async () => {
+    try {
+      const response = await axios.post(
+        '/api/login/guest',
+        {},
+        {
+          withCredentials: true,
+        },
+      );
+
+      if (response.data.isSuccess) {
+        localStorage.setItem('memberId', response.data.result.memberId);
+        localStorage.setItem('username', response.data.result.nickname);
+        navigate('/game-lobby', { replace: true });
+      }
+    } catch (error) {
+      console.error('게스트 로그인 실패:', error);
+      alert('로그인에 실패했습니다. 다시 시도해주세요.');
+    }
+  };
 
   const handleKakaoLogin = () => {
     const KAKAO_AUTH_URL = `/oauth2/authorization/kakao`;
@@ -113,41 +99,15 @@ function LoginPage() {
             </p>
           </div>
 
-          <form
-            onSubmit={handleGuestLogin}
-            className="mt-6 space-y-4"
-          >
-            <div>
-              <label className="block text-gray-300 text-sm mb-1">생존자 이름</label>
-              <input
-                type="text"
-                name="nickname"
-                value={loginForm.nickname}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-red-500 text-gray-100"
-                placeholder="이름을 입력하세요"
-              />
-            </div>
-            <div>
-              <label className="block text-gray-300 text-sm mb-1">비밀번호</label>
-              <input
-                type="password"
-                name="password"
-                value={loginForm.password}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded focus:outline-none focus:border-red-500 text-gray-100"
-                placeholder="비밀번호를 입력하세요"
-              />
-            </div>
+          <div className="mt-8 space-y-4">
             <button
-              type="submit"
+              onClick={handleGuestLogin}
               className="w-full py-3 bg-red-600 text-white font-medium rounded hover:bg-red-700 transition-colors duration-200"
+              style={{ fontFamily: 'BMEuljiro10yearslater' }}
             >
-              입장하기
+              게스트로 시작하기
             </button>
-          </form>
 
-          <div className="mt-4">
             <button
               type="button"
               onClick={handleKakaoLogin}
@@ -155,6 +115,7 @@ function LoginPage() {
                hover:bg-[#FDD800] transition-all duration-200 flex items-center justify-center gap-2`}
               style={{
                 boxShadow: flicker ? '0 0 8px rgba(255, 0, 0, 0.2)' : 'none',
+                fontFamily: 'BMEuljiro10yearslater',
               }}
             >
               <svg
@@ -167,7 +128,7 @@ function LoginPage() {
                   d="M9 0.5C4.03125 0.5 0 3.75 0 7.78125C0 10.3438 1.625 12.5938 4.09375 13.9375L3.0625 17.2188C3 17.4375 3.125 17.6875 3.34375 17.7812C3.4375 17.8125 3.53125 17.8438 3.625 17.8438C3.78125 17.8438 3.90625 17.7812 4 17.6875L7.90625 15.0625C8.25 15.0938 8.625 15.125 9 15.125C13.9688 15.125 18 11.875 18 7.84375C18 3.75 13.9688 0.5 9 0.5Z"
                 />
               </svg>
-              <span style={{ fontFamily: 'BMEuljiro10yearslater' }}>Kakao로 시작하기</span>
+              Kakao로 시작하기
             </button>
           </div>
         </div>
