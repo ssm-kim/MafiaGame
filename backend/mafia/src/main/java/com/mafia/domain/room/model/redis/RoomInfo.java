@@ -18,10 +18,11 @@ public class RoomInfo {
     private Long hostId;
     private String title;
     private String password;
+    private String sessionId;
 
     private int readyCnt;
     private int requiredPlayers;
-    private boolean isPlaying = false;
+    private boolean isActive = false;
     private String chat;
     private GameOption gameOption;
     private Map<Long, Participant> participant;  // key: member_id, value: 해당방에 들어간 참가자들

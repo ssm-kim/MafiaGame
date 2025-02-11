@@ -118,5 +118,7 @@ public class RoomDbService {
         if (roomRedisService.isMemberInRoom(memberId)) {
             throw new BusinessException(ALREADY_HAS_ROOM);
         }
+
+        // GameOption 검증 추가 검토?
     }
 }
