@@ -51,7 +51,11 @@ function GameRoom(): JSX.Element {
       const currentUserId = Number(localStorage.getItem('memberId'));
       const { hostId, participant } = gameState;
       const playersList: Player[] = [];
-
+      console.log('=== 참가자 정보 ===');
+      console.log('현재 게임 상태:', gameState);
+      console.log('참가자 목록:', participant);
+      console.log('현재 사용자:', currentUserId);
+      console.log('호스트:', hostId);
       if (hostId) {
         const hostNickname =
           participant[hostId]?.nickName ||
