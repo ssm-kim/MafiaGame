@@ -1,5 +1,6 @@
 package com.mafia.domain.game.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
 import com.mafia.domain.game.model.game.Player;
@@ -92,7 +93,8 @@ public class GameController {
     @PostMapping("/{roomId}/target/set")
     @Operation(summary = "set target player", description = "타겟을 설정합니다.(밤 페이즈)")
     public ResponseEntity<BaseResponse<String>> setTarget(@PathVariable Long roomId,
-        @AuthenticationPrincipal AuthenticatedUser detail, @RequestParam Integer targetNo) {
+        @AuthenticationPrincipal AuthenticatedUser detail, @RequestParam Integer targetNo)
+        throws JsonProcessingException {
         gameService.validatePhase(roomId, GamePhase.NIGHT_ACTION);
         String result = gameService.setTarget(roomId, detail.getMemberId(), targetNo);
         return ResponseEntity.ok(
@@ -102,7 +104,8 @@ public class GameController {
     @PostMapping("/{roomId}/test/target/set")
     @Operation(summary = "set target player", description = "타겟을 설정합니다.(밤 페이즈)")
     public ResponseEntity<BaseResponse<String>> setTarget(@PathVariable Long roomId,
-        @RequestParam long playerNo, @RequestParam Integer targetNo) {
+        @RequestParam long playerNo, @RequestParam Integer targetNo)
+        throws JsonProcessingException {
         gameService.validatePhase(roomId, GamePhase.NIGHT_ACTION);
         String result = gameService.setTarget(roomId, playerNo, targetNo);
         return ResponseEntity.ok(
