@@ -1,10 +1,14 @@
-import getRandomCharacter from '@/game/utils/character';
-import getRandomRole from '@/game/utils/testRole';
 import BaseScene from '@/game/scenes/BaseScene';
+import { GamePhases } from '@/game/constants/game';
 
-export default class PreLoaderScene extends BaseScene {
+export default class LoadingScene extends BaseScene {
   constructor() {
     super({ key: 'LoadingScene' });
+  }
+
+  init() {
+    this.gameData = this.registry.get('gameData');
+    this.gameStatus = this.registry.get('gameStatus');
   }
 
   preload() {
@@ -68,16 +72,32 @@ export default class PreLoaderScene extends BaseScene {
   create() {
     this.createAnims();
 
-    this.registry.set('playerInfo', {
-      nickname: 'user1',
-      role: getRandomRole(),
-      enableVote: true,
-      dead: false,
-      character: getRandomCharacter(),
+    const socketService = this.registry.get('socketService');
+    const eventEmitter = this.registry.get('eventEmitter');
+
+    this.roomId = this.registry.get('roomId');
+
+    // this.scene.get('SceneManager').loadSceneData('StartScene');
+    socketService.subscribeToRoom((positions) => {
+      eventEmitter.emit('PLAYER_DATA_UPDATED', positions);
     });
 
-    this.registry.set('roomId', 'room1');
-
-    this.scene.start('MainScene');
+    switch (this.gameStatus.result.currentphase) {
+      case GamePhases.DAY_DISCUSSION:
+        if (false) {
+          this.scene.start('StartScene');
+          break;
+        }
+        this.scene.start('MainScene');
+        break;
+      case GamePhases.DAY_VOTE:
+        this.scene.start('VoteScene');
+        break;
+      case GamePhases.NIGHT_ACTION:
+        this.scene.start('NightScene');
+        break;
+      default:
+        console.error('GamePhase Not Found!');
+    }
   }
 }
