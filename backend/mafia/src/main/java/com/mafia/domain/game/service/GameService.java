@@ -203,11 +203,14 @@ public class GameService {
      * @param gameId 방 ID
      *
      */
-    public int getVoteResult(long gameId) {
+    public int getVoteResult(long gameId) throws JsonProcessingException {
         int target = findById(gameId).voteResult();
 
         String topic = "game-"+gameId+"-system";
-        String message = "Game[" + gameId + "] VoteResult: " + target;
+        // JSON 메시지 생성 및 publish
+        String message = objectMapper.writeValueAsString(
+            Map.of("voteresult", String.valueOf(target))
+        );
         gamePublisher.publish(topic, message);
 
         if (target == -1) log.info("[Game{}] No one is selected", gameId);
@@ -237,12 +240,15 @@ public class GameService {
      * @param gameId 방 ID
      *
      */
-    public void getFinalVoteResult(long gameId) {
+    public void getFinalVoteResult(long gameId) throws JsonProcessingException {
         Game game = findById(gameId);
         boolean isKill = game.finalvoteResult();
 
         String topic = "game-"+gameId+"-system";
-        String message = "Game[" + gameId + "] Vote Kill: " + isKill;
+        // JSON 메시지 생성 및 publish
+        String message = objectMapper.writeValueAsString(
+            Map.of("votekill", isKill)
+        );
         gamePublisher.publish(topic, message);
 
         if (isKill) {
