@@ -26,7 +26,7 @@ public class VoiceService {
     private final Map<Long, Map<Long, String>> playerTokens = new HashMap<>(); // 게임 내 플레이어별 토큰 저장
 
     // OpenVidu 객체를 생성자에서 초기화
-    public VoiceService(@Value("${openvidu.url}") String openviduUrl,
+    public VoiceService(@Value("${openvidu.url}") String openviduUrl, // secret 참조 Value 생성자 주입
         @Value("${openvidu.secret}") String secret) {
         this.openviduUrl = openviduUrl;
         this.secret = secret;
