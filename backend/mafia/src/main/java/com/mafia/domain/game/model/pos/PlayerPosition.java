@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PlayerPosition {
 
-    private Long memberId;
+    private Integer playerNo;
     private String character;
     private double x;
     private double y;

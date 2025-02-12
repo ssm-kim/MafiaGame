@@ -57,6 +57,14 @@ public class Game implements Serializable { // 필드정리
     @Schema(description = "게임 옵션")
     private GameOption setting;
 
+    public Integer getPlayerNoByMemberId(Long memberId) {
+        return map_players.entrySet().stream()
+            .filter(entry -> entry.getValue().equals(memberId)) // memberId와 일치하는 값 찾기
+            .map(Map.Entry::getKey) // 해당 키(플레이어 번호) 가져오기
+            .findFirst()
+            .orElse(null); // 없으면 null 반환
+    }
+
     public Game(long roomId, GameOption setting) {
         this.gameId = roomId;
         this.players = new HashMap<>();

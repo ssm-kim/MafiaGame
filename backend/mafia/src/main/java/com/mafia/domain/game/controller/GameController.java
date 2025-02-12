@@ -1,7 +1,7 @@
 package com.mafia.domain.game.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.mafia.domain.game.model.game.Game;
+import com.mafia.domain.game.model.dto.GameInfoDto;
 import com.mafia.domain.game.model.game.GamePhase;
 import com.mafia.domain.game.model.game.Player;
 import com.mafia.domain.game.model.game.STATUS;
@@ -44,9 +44,10 @@ public class GameController {
 
     @GetMapping("/{roomId}")
     @Operation(summary = "Get game", description = "방 ID로 게임 정보를 가져옵니다.")
-    public ResponseEntity<BaseResponse<Game>> getGame(@PathVariable Long roomId) {
-        Game game = gameService.findById(roomId);
-        return ResponseEntity.ok(new BaseResponse<>(game));
+    public ResponseEntity<BaseResponse<GameInfoDto>> getGame(@AuthenticationPrincipal AuthenticatedUser detail,
+        @PathVariable Long roomId) {
+        GameInfoDto gameInfo = gameService.getGameInfo(detail.getMemberId(), roomId);
+        return ResponseEntity.ok(new BaseResponse<>(gameInfo));
     }
 
     @GetMapping("/{roomId}/player")
