@@ -1,7 +1,6 @@
 package com.mafia.domain.game.model.game;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mafia.domain.room.model.redis.Participant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -70,13 +69,13 @@ public class Game implements Serializable { // 필드정리
         this.gameId = roomId;
         this.players = new HashMap<>();
         this.votes = new HashMap<>();
-        this.map_players=new HashMap<>();
+        this.map_players = new HashMap<>();
         this.healTarget = 0;
         this.killTarget = new HashMap<>();
         this.setting = setting; // <- POST CONSTRUCT
     }
 
-    public void roundInit(){
+    public void roundInit() {
         this.votes.clear();
         this.final_vote = 0;
         this.healTarget = 0;
@@ -84,18 +83,18 @@ public class Game implements Serializable { // 필드정리
         log.info("round 진행- 초기화완료");
     }
 
-    public void addPlayer(Participant participant) {
-        for (Player p : players.values()) {
-            if (p.getMemberId().equals(participant.getMemberId())) {
-                log.info("[Game{}] User {} is already in the game", gameId,
-                    participant.getMemberId());
-                return;
-            }
-        }
-        Player player = new Player(participant);
-        players.put(participant.getMemberId(), player);
-        map_players.put(players.size(), participant.getMemberId());
-    }
+//    public void addPlayer(Participant participant) {
+//        for (Player p : players.values()) {
+//            if (p.getMemberId().equals(participant.getMemberId())) {
+//                log.info("[Game{}] User {} is already in the game", gameId,
+//                    participant.getMemberId());
+//                return;
+//            }
+//        }
+//        Player player = new Player(participant);
+//        players.put(participant.getMemberId(), player);
+//        map_players.put(players.size(), participant.getMemberId());
+//    }
 
     public void startGame() {
         this.status = STATUS.PLAYING;
@@ -179,7 +178,7 @@ public class Game implements Serializable { // 필드정리
     }
 
 
-    public void finalVote(){
+    public void finalVote() {
         final_vote++;
     }
 
@@ -189,7 +188,7 @@ public class Game implements Serializable { // 필드정리
             .count();
 
         int target = voteResult();
-        if(final_vote > (live / 2) && target != -1){
+        if (final_vote > (live / 2) && target != -1) {
             killTarget.put("VOTE", target);
             return true;
         }
