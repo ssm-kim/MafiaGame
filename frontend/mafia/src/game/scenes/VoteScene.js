@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import axios from 'axios';
 import setBackground from '@/game/utils/map';
 import { resetVoteSelection, highlightVoteSelection } from '@/game/utils/voteUtils';
 import createVoteContainer from '@/game/ui/vote/VoteContainer';
@@ -7,6 +8,20 @@ import { sceneTimeout } from '@/game/utils/time';
 export default class VoteScene extends Phaser.Scene {
   constructor() {
     super({ key: 'VoteScene' });
+
+    async function vote() {
+      try {
+        // 응답 성공
+        const response = await axios.post('http://localhost:8080/api/game/1/vote', {
+          // 보내고자 하는 데이터
+          targetNumber: `${targetNumber}`,
+        });
+        console.log(response);
+      } catch (error) {
+        // 응답 실패
+        console.error(error);
+      }
+    }
   }
 
   init() {
@@ -135,7 +150,8 @@ export default class VoteScene extends Phaser.Scene {
           this.timerEvent.destroy();
           this.cameras.main.fade(800, 0, 0, 0);
           this.cameras.main.once('camerafadeoutcomplete', () => {
-            this.scene.get('SceneManager').loadSceneData('LastVoteScene');
+            this.scene.get('SceneManager').loadSceneData('StatementScene');
+            this.scene.stop('VoteScene');
 
             // this.scene.start('LastVoteScene', {
             //   voteResults: this.voteResults,

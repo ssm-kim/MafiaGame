@@ -4,13 +4,13 @@ import { sceneTimeout } from '@/game/utils/time';
 
 export default class LastVoteScene extends Phaser.Scene {
   constructor() {
-    super({ key: 'LastVoteScene' });
+    super({ key: 'StatementScene' });
   }
 
   init(data) {
-    this.voteResults = data.voteResults || this.registry.get('VoteResults') || {};
+    this.voteResults = data.voteResults || this.registry.get('voteResults') || {};
     // this.socketService = this.registry.get('socketService');
-    this.sceneTime = sceneTimeout.DAY_FINAL_VOTE;
+    this.sceneTime = sceneTimeout.DAY_FINAL_STATEMENT;
     this.remainingTime = this.sceneTime / 1000;
     this.hasVoted = false;
     this.finalVote = null;
@@ -60,7 +60,7 @@ export default class LastVoteScene extends Phaser.Scene {
 
     // 처형 확인 메시지 (떨림 효과 추가)
     const messageText = this.add
-      .text(width / 2, height * 0.45, `생존자${this.votedPlayer}를 처형 시키겠습니까?`, {
+      .text(width / 2, height * 0.45, `생존자${this.votedPlayer}의 최후 변론`, {
         fontSize: '32px',
         fill: '#ff0000',
         fontFamily: 'Arial Black',
@@ -87,98 +87,6 @@ export default class LastVoteScene extends Phaser.Scene {
       repeat: -1,
       ease: 'Sine.easeInOut',
     });
-
-    // 버튼 생성
-    this.createVoteButtons(width, height);
-  }
-
-  createVoteButtons(width, height) {
-    // 찬성 버튼
-    this.confirmButton = this.add
-      .rectangle(width / 2 - 80, height * 0.55, 120, 45, 0x1a1a1a)
-      .setStrokeStyle(2, 0x8b0000)
-      .setInteractive({ useHandCursor: true });
-
-    this.confirmText = this.add
-      .text(width / 2 - 80, height * 0.55, '처형', {
-        fontSize: '24px',
-        fill: '#ffffff',
-        fontFamily: 'Arial Black',
-        stroke: '#000000',
-        strokeThickness: 2,
-      })
-      .setOrigin(0.5);
-
-    // 반대 버튼
-    this.cancelButton = this.add
-      .rectangle(width / 2 + 80, height * 0.55, 120, 45, 0x8b0000)
-      .setStrokeStyle(2, 0xff0000)
-      .setInteractive({ useHandCursor: true });
-
-    this.cancelText = this.add
-      .text(width / 2 + 80, height * 0.55, '무죄', {
-        fontSize: '24px',
-        fill: '#ffffff',
-        fontFamily: 'Arial Black',
-        stroke: '#000000',
-        strokeThickness: 2,
-      })
-      .setOrigin(0.5);
-
-    // 버튼 이벤트
-    [this.confirmButton, this.cancelButton].forEach((button) => {
-      button
-        .on('pointerover', function () {
-          // 호버 시 떨림 효과
-          this.scene.tweens.add({
-            targets: [
-              button,
-              button === this.scene.confirmButton ? this.scene.confirmText : this.scene.cancelText,
-            ],
-            x: '+=1',
-            y: '+=1',
-            duration: 50,
-            yoyo: true,
-            repeat: 3,
-          });
-
-          this.setFillStyle(button === this.scene.confirmButton ? 0x333333 : 0xff0000);
-        })
-        .on('pointerout', function () {
-          this.setFillStyle(button === this.scene.confirmButton ? 0x1a1a1a : 0x8b0000);
-        });
-    });
-
-    this.confirmButton.on('pointerdown', () => this.handleVote(true));
-    this.cancelButton.on('pointerdown', () => this.handleVote(false));
-  }
-
-  handleVote(isConfirm) {
-    if (this.hasVoted) return;
-
-    this.hasVoted = true;
-    this.finalVote = isConfirm;
-
-    // 강한 화면 효과
-    this.cameras.main.shake(500, 0.008);
-    this.cameras.main.flash(300, 255, 0, 0, 0.4);
-
-    const finalResult = {
-      player: this.votedPlayer,
-      executed: isConfirm,
-    };
-    this.registry.set('executionResult', finalResult);
-
-    // 버튼 비활성화
-    this.confirmButton.setAlpha(0.5);
-    this.cancelButton.setAlpha(0.5);
-
-    // 버튼 텍스트도 흐리게
-    this.confirmText.setAlpha(0.5);
-    this.cancelText.setAlpha(0.5);
-
-    const message = isConfirm ? '처형이 결정되었습니다' : '처형이 거부되었습니다';
-    this.showMessage(message);
   }
 
   handleTimeUp() {
@@ -191,27 +99,12 @@ export default class LastVoteScene extends Phaser.Scene {
     this.showFinalResult(finalResult);
   }
 
-  showFinalResult(result) {
-    const { width, height } = this.scale.gameSize;
-    const resultMessage = result.executed
-      ? `생존자${result.player}가 처형되었습니다.`
-      : `생존자${result.player}가 살아남았습니다.`;
-
-    this.add
-      .text(width / 2, height * 0.7, resultMessage, {
-        fontSize: '32px',
-        fill: result.executed ? '#FF0000' : '#00FF00',
-        stroke: '#000000',
-        strokeThickness: 4,
-        align: 'center',
-      })
-      .setOrigin(0.5);
-
+  showFinalResult() {
     this.time.delayedCall(3000, () => {
       this.cameras.main.fade(800, 0, 0, 0);
       this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.get('SceneManager').loadSceneData('NightScene');
-        this.scene.stop('LastVoteScene');
+        this.scene.get('SceneManager').loadSceneData('LastVoteScene');
+        this.scene.stop('StatementScene');
         // this.scene.start('NightScene');
       });
     });
@@ -220,7 +113,7 @@ export default class LastVoteScene extends Phaser.Scene {
   showMessage(text) {
     const { width, height } = this.scale.gameSize;
     const message = this.add
-      .text(width / 2, height * 0.6, text, {
+      .text(width / 2, height * 0.2, text, {
         fontSize: '24px',
         fill: '#ff0000',
         backgroundColor: '#000000',
@@ -229,26 +122,7 @@ export default class LastVoteScene extends Phaser.Scene {
         strokeThickness: 2,
       })
       .setOrigin(0.5);
-
-    // 메시지 떨림 효과
-    this.tweens.add({
-      targets: message,
-      y: '+=2',
-      duration: 50,
-      yoyo: true,
-      repeat: 5,
-    });
-
     this.time.delayedCall(2000, () => message.destroy());
-  }
-
-  setupSocketListeners() {
-    if (this.socketService && this.socketService.socket) {
-      this.socketService.socket.on('final-vote-update', (data) => {
-        // 다른 플레이어들의 투표 현황 업데이트
-        this.updateVoteDisplay(data);
-      });
-    }
   }
 
   createTimer(width) {

@@ -16,7 +16,7 @@ export default class SceneManager extends Phaser.Scene {
   async loadSceneData(nextSceneName) {
     try {
       this.gameAPI = this.registry.get('gameAPI');
-      await this.loadGameData(this.gameAPI);
+      await this.loadGameData();
 
       if (nextSceneName === 'NightScene') {
         const isEnd = await this.gameAPI.getGameEndState();

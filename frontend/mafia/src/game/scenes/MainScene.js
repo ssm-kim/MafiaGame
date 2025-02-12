@@ -1,3 +1,4 @@
+import axios from 'axios';
 import setBackground from '@/game/utils/map';
 import BaseScene from '@/game/scenes/BaseScene';
 import PlayerManager from '@/game/player/PlayerManager';
@@ -35,6 +36,7 @@ export default class MainScene extends BaseScene {
       delay: this.remainingTime,
       callback() {
         this.scene.get('SceneManager').loadSceneData('VoteScene');
+        this.scene.stop('MainScene');
         // this.scene.start('VoteScene');
       },
       callbackScope: this,
@@ -63,6 +65,17 @@ export default class MainScene extends BaseScene {
       .on('pointerdown', () => {
         this.scene.start('NightScene');
       }); // 카메라 고정
+  }
+
+  async getgameData() {
+    try {
+      // 응답 성공
+      const response = await axios.get(`http://localhost:8080/api/game/2`);
+      console.log(response);
+    } catch (error) {
+      // 응답 실패
+      console.error(error);
+    }
   }
 
   update() {

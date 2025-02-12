@@ -1,3 +1,4 @@
+import axios from 'axios';
 import BaseScene from '@/game/scenes/BaseScene';
 import GamePhases from '@/types/game';
 
@@ -35,6 +36,17 @@ export default class LoadingScene extends BaseScene {
       frameWidth: 32,
       frameHeight: 60,
     });
+  }
+
+  async getgameData() {
+    try {
+      // 응답 성공
+      const response = await axios.get(`http://localhost:8080/api/game/1`);
+      console.log(response);
+    } catch (error) {
+      // 응답 실패
+      console.error(error);
+    }
   }
 
   createAnims() {
