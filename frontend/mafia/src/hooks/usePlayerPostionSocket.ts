@@ -11,7 +11,7 @@ const usePlayerPostionSocket = (roomId) => {
 
   useEffect(() => {
     if (!playerPostionSocket.current) {
-      const socket = new WebSocket(endpoints.PlayerPostion);
+      const socket = new WebSocket(`ws://localhost:8080${endpoints.PlayerPostion}`);
       const stompClient = new StompClient({
         webSocketFactory: () => socket,
         reconnectDelay: 5000,
@@ -19,8 +19,7 @@ const usePlayerPostionSocket = (roomId) => {
           console.log('PlayerPostion WebSocket Connected');
         },
       });
-
-      stompClient.activate();
+      // stompClient.activate();
       playerPostionSocket.current = stompClient;
     }
 
@@ -33,7 +32,6 @@ const usePlayerPostionSocket = (roomId) => {
   }, []);
 
   const subscribeToRoom = (onReceiveMessage) => {
-    console.log(playerPostionSocket.current);
     if (!playerPostionSocket.current || !playerPostionSocket.current.connected) {
       console.warn('PlayerPostion WebSocket이 아직 연결되지 않음');
       return;

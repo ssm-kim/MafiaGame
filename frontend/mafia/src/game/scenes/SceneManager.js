@@ -7,13 +7,15 @@ export default class SceneManager extends Phaser.Scene {
     super({ key: 'SceneManager' });
   }
 
-  init() {
+  async init() {
     this.roomId = this.registry.get('roomId');
     this.userId = this.registry.get('userId');
-    this.loadSceneData('LoadingScene');
+    await this.loadSceneData(this, 'LoadingScene');
   }
 
-  async loadSceneData(nextSceneName) {
+  async loadSceneData(scene, nextSceneName) {
+    console.log(scene);
+
     try {
       this.gameAPI = this.registry.get('gameAPI');
       await this.loadGameData(this.gameAPI);
@@ -22,7 +24,7 @@ export default class SceneManager extends Phaser.Scene {
         const isEnd = await this.gameAPI.getGameEndState();
 
         if (isEnd.result.ex !== 'PLAYING') {
-          this.scene.start('GameOverScene');
+          scene.scene.start('GameOverScene');
           return;
         }
       }
@@ -30,8 +32,7 @@ export default class SceneManager extends Phaser.Scene {
       this.setPlayerData();
 
       // 다음 씬 시작
-      this.scene.start(nextSceneName);
-      console.log(this.scene);
+      scene.scene.start(nextSceneName);
     } catch (error) {
       console.error('Failed to load game data:', error);
       // 에러 처리

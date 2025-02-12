@@ -135,7 +135,7 @@ export default class VoteScene extends Phaser.Scene {
           this.timerEvent.destroy();
           this.cameras.main.fade(800, 0, 0, 0);
           this.cameras.main.once('camerafadeoutcomplete', () => {
-            this.scene.get('SceneManager').loadSceneData('LastVoteScene');
+            this.scene.get('SceneManager').loadSceneData(this, 'LastVoteScene');
 
             // this.scene.start('LastVoteScene', {
             //   voteResults: this.voteResults,

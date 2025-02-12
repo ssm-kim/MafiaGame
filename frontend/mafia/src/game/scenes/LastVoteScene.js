@@ -210,7 +210,7 @@ export default class LastVoteScene extends Phaser.Scene {
     this.time.delayedCall(3000, () => {
       this.cameras.main.fade(800, 0, 0, 0);
       this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.get('SceneManager').loadSceneData('NightScene');
+        this.scene.get('SceneManager').loadSceneData(this, 'NightScene');
         // this.scene.start('NightScene');
       });
     });

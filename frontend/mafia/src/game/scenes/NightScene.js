@@ -26,7 +26,7 @@ export default class NightScene extends Phaser.Scene {
     this.time.addEvent({
       delay: this.remainingTime,
       callback() {
-        this.scene.get('SceneManager').loadSceneData('MainScene');
+        this.scene.get('SceneManager').loadSceneData(this, 'MainScene');
       },
       callbackScope: this,
     });

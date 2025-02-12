@@ -34,7 +34,7 @@ export default class MainScene extends BaseScene {
     this.time.addEvent({
       delay: this.remainingTime,
       callback() {
-        this.scene.get('SceneManager').loadSceneData('VoteScene');
+        this.scene.get('SceneManager').loadSceneData(this, 'VoteScene');
         // this.scene.start('VoteScene');
       },
       callbackScope: this,
