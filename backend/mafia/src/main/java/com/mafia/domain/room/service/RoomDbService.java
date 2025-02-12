@@ -42,6 +42,7 @@ public class RoomDbService {
         // RDB 방 생성
         Room room = new Room();
         room.setHostId(memberId);
+        // room.setHostId(1L);  // 테스트 용
         room.setTitle(roomRequest.getTitle().trim());
         room.setPassword(roomRequest.getPassword());
         room.setRequiredPlayers(roomRequest.getRequiredPlayers());
