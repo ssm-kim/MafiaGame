@@ -61,5 +61,6 @@ public class Player {
     public void updateSubscriptionsOnDeath(Long gameId) {
         subscribe("game-" + gameId + "-night-chat");
         subscribe("game-" + gameId + "-dead-chat");
+        subscribe("game-" + gameId + "-mafia-system");
     }
 }
