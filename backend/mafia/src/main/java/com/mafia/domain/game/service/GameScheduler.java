@@ -14,6 +14,7 @@ import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
 import com.mafia.global.common.exception.exception.BusinessException;
 import com.mafia.global.common.service.GameSubscription;
+import jakarta.annotation.PreDestroy;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,6 +35,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class GameScheduler {
+    // 애플리케이션이 실행 중인지 여부를 나타내는 플래그
+    private volatile boolean running = true;
 
     private final GameSeqRepository gameSeqRepository;
     private final GameRepository gameRepository;
@@ -59,6 +62,12 @@ public class GameScheduler {
                 }
             }
         };
+    }
+
+    @PreDestroy
+    public void shutdown() {
+        log.info("[GameScheduler] 애플리케이션 종료 감지, 모든 게임 스케줄러 종료...");
+        running = false; // 종료 신호 설정
     }
 
     /**
@@ -91,7 +100,7 @@ public class GameScheduler {
         int remainingTime = gameSeqRepository.getTimer(gameId).intValue();
         gameTimers.put(gameId, remainingTime); // 타이머 초기화
 
-        while (gameSeqRepository.isGameActive(gameId)) { // 게임이 활성화되어 있으면 실행
+        while (running && gameSeqRepository.isGameActive(gameId)) { // 게임이 활성화되어 있으면 실행
             try {
                 processTimers(gameId);
                 TimeUnit.SECONDS.sleep(1); // 1초마다 실행
