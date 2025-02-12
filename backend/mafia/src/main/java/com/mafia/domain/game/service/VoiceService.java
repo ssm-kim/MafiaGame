@@ -19,8 +19,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class VoiceService {
 
-    private final String OPENVIDU_URL = "http://localhost:4443/";
-    private final String SECRET = "MY_SECRET_KEY"; // docker-compose.yml에서 설정한 값
+    private final String OPENVIDU_URL = "https://i12d101.p.ssafy.io:5443/";
+    private final String SECRET = "fuckauth"; // docker-compose.yml에서 설정한 값
 
     private final OpenVidu openvidu = new OpenVidu(OPENVIDU_URL, SECRET);
     private final Map<Long, Session> gameSessions = new HashMap<>(); // 게임별 세션 저장

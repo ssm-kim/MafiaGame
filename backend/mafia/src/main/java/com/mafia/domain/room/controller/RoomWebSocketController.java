@@ -1,16 +1,20 @@
 package com.mafia.domain.room.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mafia.domain.chat.model.StompPrincipal;
 import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.room.model.webSocket.RoomMessages;
 import com.mafia.domain.room.service.RoomDbService;
 import com.mafia.domain.room.service.RoomMessageService;
 import com.mafia.domain.room.service.RoomRedisService;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -28,6 +32,7 @@ public class RoomWebSocketController {
     private final RoomRedisService roomRedisService;
     private final RoomDbService roomDbService;
     private final GameService gameService;
+    private final ObjectMapper objectMapper;
 
     /**
      * 로비 입장 시 방 목록 전송
@@ -119,10 +124,11 @@ public class RoomWebSocketController {
      * 게임 시작 처리
      */
     @MessageMapping("/room/start/{roomId}")
-    public void handleGameStart(
+    @SendTo("/topic/room/{roomId}")
+    public String handleGameStart(
         @DestinationVariable Long roomId,
         @AuthenticationPrincipal StompPrincipal detail
-    ) {
+    ) throws JsonProcessingException {
         log.info("게임 시작 - 방 번호: {}, 방장: {}", roomId, Long.parseLong(detail.getName()));
         roomRedisService.startGame(roomId, Long.parseLong(detail.getName()));
 
@@ -135,7 +141,10 @@ public class RoomWebSocketController {
         // 방 게임 시작 활성화
         roomDbService.isActive(roomId);
 
-        // 게임 서비스로 방 정보 전달 (주석 해제)
-        gameService.startGame(roomId);
+        boolean isStart = gameService.startGame(roomId);
+
+        return objectMapper.writeValueAsString(
+            Map.of("gameStart", String.valueOf(isStart))
+        );
     }
 }

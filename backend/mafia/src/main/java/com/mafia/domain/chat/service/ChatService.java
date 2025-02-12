@@ -46,6 +46,8 @@ public class ChatService {
 
     private final MemberService memberService; // 사용자 정보 조회
 
+    private final ObjectMapper objectMapper;
+
     /**
      * 특정 게임의 채팅 채널을 검증하여 Redis Pub/Sub 채널 토픽을 반환
      *
@@ -113,7 +115,7 @@ public class ChatService {
         payload.put("content", content); // 메시지 내용 추가
 
         // JSON 변환
-        String jsonMessage = new ObjectMapper().writeValueAsString(payload);
+        String jsonMessage = objectMapper.writeValueAsString(payload);
 
         // Redis Pub/Sub을 통해 메시지 전송
         chatPublisher.publish(topic, jsonMessage);
