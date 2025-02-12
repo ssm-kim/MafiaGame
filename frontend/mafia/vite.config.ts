@@ -58,7 +58,7 @@ export default defineConfig({
       //   target: 'http://localhost:8080',
       //   changeOrigin: true,
       //   secure: true
-      // }//cnrk
+      // }
       '/api': {
         target: 'https://i12d101.p.ssafy.io',
         changeOrigin: true,
