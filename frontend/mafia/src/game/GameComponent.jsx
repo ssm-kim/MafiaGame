@@ -24,50 +24,50 @@ function GameComponent() {
     };
   }, []);
 
-  useEffect(() => {
-    if (gameContainer.current) {
-      const socketService = new SocketService('http://192.168.100.181:3000');
+  // useEffect(() => {
+  //   if (gameContainer.current) {
+  //     const socketService = new SocketService('http://192.168.100.181:3000');
 
-      const config = {
-        type: Phaser.CANVAS,
-        parent: gameContainer.current,
-        pixelArt: true,
-        scale: {
-          mode: Phaser.Scale.RESIZE,
-          autoCenter: Phaser.Scale.CENTER_BOTH,
-          width: '100%',
-          height: '100%',
-        },
-        physics: {
-          default: 'arcade',
-          arcade: {
-            gravity: { y: 0 },
-          },
-        },
-        callbacks: {
-          preBoot: (game) => {
-            game.registry.set('socketService', socketService);
-          },
-        },
-        scene: [PreLoaderScene, MainScene, NightScene, VoteScene],
-        plugins: {
-          scene: [
-            {
-              key: 'rexUI',
-              plugin: UIPlugin,
-              mapping: 'rexUI',
-            },
-          ],
-        },
-      };
+  //     const config = {
+  //       type: Phaser.CANVAS,
+  //       parent: gameContainer.current,
+  //       pixelArt: true,
+  //       scale: {
+  //         mode: Phaser.Scale.RESIZE,
+  //         autoCenter: Phaser.Scale.CENTER_BOTH,
+  //         width: '100%',
+  //         height: '100%',
+  //       },
+  //       physics: {
+  //         default: 'arcade',
+  //         arcade: {
+  //           gravity: { y: 0 },
+  //         },
+  //       },
+  //       callbacks: {
+  //         preBoot: (game) => {
+  //           game.registry.set('socketService', socketService);
+  //         },
+  //       },
+  //       scene: [PreLoaderScene, MainScene, NightScene, VoteScene],
+  //       plugins: {
+  //         scene: [
+  //           {
+  //             key: 'rexUI',
+  //             plugin: UIPlugin,
+  //             mapping: 'rexUI',
+  //           },
+  //         ],
+  //       },
+  //     };
 
-      gameInstance.current = new Phaser.Game(config);
-    }
+  //     gameInstance.current = new Phaser.Game(config);
+  //   }
 
-    return () => {
-      gameInstance.current.destroy(true);
-    };
-  }, []);
+  //   return () => {
+  //     gameInstance.current.destroy(true);
+  //   };
+  // }, []);
 
   useEffect(() => {
     let resizeObserver;
