@@ -1,6 +1,7 @@
 package com.mafia.domain.room.controller;
 
 import com.mafia.domain.game.model.game.GameOption;
+import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.room.model.redis.Participant;
 import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.repository.RoomRedisRepository;
@@ -23,6 +24,7 @@ public class TestDataController {
     private final RoomDbService roomDbService;
     private final RoomRedisService roomRedisService;
     private final RoomRedisRepository redisRepository;
+    private final GameService gameService;
 
     @PostMapping("/init-dummy-data")
     public ResponseEntity<String> initDummyData() {
@@ -49,6 +51,9 @@ public class TestDataController {
             redisRepository.save(2000L, room2);
 
             log.info("더미 데이터 초기화 완료 - 두 개의 방이 생성됨");
+            //roomRedisService.createRoomInfo(2L, 13L, 3, "테스트방 2", null, new GameOption());
+            //gameService.startGame(2L);
+
             return ResponseEntity.ok("더미 데이터 초기화 완료");
 
         } catch (Exception e) {

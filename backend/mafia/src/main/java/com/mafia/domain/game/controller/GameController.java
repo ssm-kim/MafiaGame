@@ -3,7 +3,6 @@ package com.mafia.domain.game.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mafia.domain.game.model.dto.GameInfoDto;
 import com.mafia.domain.game.model.game.GamePhase;
-import com.mafia.domain.game.model.game.Player;
 import com.mafia.domain.game.model.game.STATUS;
 import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.login.model.dto.AuthenticatedUser;
@@ -50,14 +49,6 @@ public class GameController {
         return ResponseEntity.ok(new BaseResponse<>(gameInfo));
     }
 
-    @GetMapping("/{roomId}/player")
-    @Operation(summary = "Get game", description = "플레이어의 정보를 가져옵니다.")
-    public ResponseEntity<BaseResponse<Player>> getGame(@PathVariable Long roomId,
-        @AuthenticationPrincipal AuthenticatedUser detail) {
-        Player player = gameService.findMemberByGame(roomId, detail.getMemberId());
-        return ResponseEntity.ok(new BaseResponse<>(player));
-    }
-
     @DeleteMapping("/{roomId}")
     @Operation(summary = "Delete game", description = "방 ID로 게임을 삭제합니다.")
     public ResponseEntity<BaseResponse<String>> deleteGame(@PathVariable Long roomId) {
@@ -102,6 +93,19 @@ public class GameController {
             new BaseResponse<>(result));
     }
 
+    @GetMapping("/{roomId}/isEnd")
+    @Operation(summary = "Check game over", description = "게임이 끝났는지 확인합니다.")
+    public ResponseEntity<BaseResponse<STATUS>> isEnd(@PathVariable Long roomId) {
+        STATUS status = gameService.isEnd(roomId);
+        if (status != STATUS.PLAYING) {
+            /*
+             * 게임 로그 저장 기능 구현하기
+             * */
+            gameService.deleteGame(roomId);
+        }
+        return ResponseEntity.ok(new BaseResponse<>(status));
+    }
+
     @PostMapping("/{roomId}/test/target/set")
     @Operation(summary = "set target player", description = "타겟을 설정합니다.(밤 페이즈)")
     public ResponseEntity<BaseResponse<String>> setTarget(@PathVariable Long roomId,
@@ -123,19 +127,15 @@ public class GameController {
             "Player " + playerNo + " voted for " + targetNo + " in Room " + roomId + "."));
     }
 
-    @GetMapping("/{roomId}/isEnd")
-    @Operation(summary = "Check game over", description = "게임이 끝났는지 확인합니다.")
-    public ResponseEntity<BaseResponse<STATUS>> isEnd(@PathVariable Long roomId) {
-        STATUS status = gameService.isEnd(roomId);
-        if (status != STATUS.PLAYING) {
-            /*
-             * 게임 로그 저장 기능 구현하기
-             * */
-            gameService.deleteGame(roomId);
-        }
-        return ResponseEntity.ok(new BaseResponse<>(status));
-    }
 
+//    @GetMapping("/{roomId}/player")
+//    @Operation(summary = "Get game", description = "플레이어의 정보를 가져옵니다.")
+//    public ResponseEntity<BaseResponse<Player>> getGame(@PathVariable Long roomId,
+//        @AuthenticationPrincipal AuthenticatedUser detail) {
+//        Player player = gameService.findMemberByGame(roomId, detail.getMemberId());
+//        return ResponseEntity.ok(new BaseResponse<>(player));
+//    }
+//
 //    @GetMapping("/{roomId}/status")
 //    @Operation(summary = "Check game status", description = "게임의 현재 상태와 남은 시간을 확인합니다.")
 //    public ResponseEntity<BaseResponse<?>> getStatus(@PathVariable long roomId) {
@@ -148,13 +148,13 @@ public class GameController {
 //
 //        return ResponseEntity.ok(new BaseResponse<>(response));
 //    }
-
+//
 //    @GetMapping("/{roomId}/voteresult")
 //    @Operation(summary = "Get vote result", description = "투표 집계 결과를 가져옵니다(테스트 용)")
 //    public ResponseEntity<BaseResponse<Integer>> getVoteResult(@PathVariable Long roomId) {
 //        return ResponseEntity.ok(new BaseResponse<>(gameService.getVoteResult(roomId)));
 //    }
-
+//
 //    @GetMapping("/{gameId}/kill")
 //    @Operation(summary = "Vote kill player", description = "타겟이 된 플레이어를 사망 처리합니다.") // 테스트용
 //    public ResponseEntity<BaseResponse<String>> killVote(@PathVariable Long gameId)

@@ -117,6 +117,8 @@ public class GameService {
         //Redis 채팅방 생성
         subscription.subscribe(gameId);
 
+        gameRepository.save(game);
+
         // 🔥 OpenVidu 세션 생성
         try {
             String sessionId = voiceService.createSession(gameId);
@@ -216,6 +218,7 @@ public class GameService {
      * 투표 결과 반환
      *
      * @param gameId 방 ID
+     *
      */
     public int getVoteResult(long gameId) throws JsonProcessingException {
         int target = findById(gameId).voteResult();
@@ -227,11 +230,8 @@ public class GameService {
         );
         gamePublisher.publish(topic, message);
 
-        if (target == -1) {
-            log.info("[Game{}] No one is selected", gameId);
-        } else {
-            log.info("[Game{}] Target is {}", gameId, target);
-        }
+        if (target == -1) log.info("[Game{}] No one is selected", gameId);
+        else log.info("[Game{}] Target is {}", gameId, target);
 
         return target;
     }
@@ -241,6 +241,7 @@ public class GameService {
      * 최종 찬반 투표: 보내는거 자체가 수락임
      *
      * @param gameId 방 ID
+     *
      */
     public void finalVote(long gameId) {
         Game game = findById(gameId);
@@ -251,9 +252,10 @@ public class GameService {
 
 
     /**
-     * 최종 찬반 투표 결과 반환 -> GameScheduler로 옮기기
-     *
+     * 최종 찬반 투표 결과 반환
+     * -> GameScheduler로 옮기기
      * @param gameId 방 ID
+     *
      */
     public void getFinalVoteResult(long gameId) throws JsonProcessingException {
         Game game = findById(gameId);
@@ -269,16 +271,17 @@ public class GameService {
         if (isKill) {
             log.info("[Game{}] Vote Kill!!!!!", gameId);
             gameRepository.save(game);
-        } else {
-            log.info("[Game{}] No one is selected", gameId);
         }
+        else log.info("[Game{}] No one is selected", gameId);
     }
 
 
     /**
-     * 플레이어 사망 처리 - 테스트는 이렇게 냅두고 실 배포 시, param으로 Game객체만 사용 후 Scheduler에서만 이를 호출 Controller 제거
+     * 플레이어 사망 처리 - 테스트는 이렇게 냅두고
+     * 실 배포 시, param으로 Game객체만 사용 후 Scheduler에서만 이를 호출
+     * Controller 제거
      *
-     * @param game 방 ID가 있는 이벤트 객체
+     * @param game  방 ID가 있는 이벤트 객체
      */
     public void killPlayer(Game game) throws JsonProcessingException {
         Integer healedPlayer = game.getHealTarget();
