@@ -83,12 +83,9 @@ public class RoomRedisService {
     /**
      * 방 입장 처리 - 중복 입장, 비밀번호, 정원 초과 등 체크 후 입장 처리
      */
-    public void enterRoom(Long roomId, Integer participantNo, String password) {
+    public void enterRoom(Long roomId, Long memberId, String password) {
         // RoomInfo에서 해당 참가자 번호의 memberId 조회
         roomInfo = findById(roomId);
-
-        Long memberId = roomInfo.getMemberMapping().get(participantNo);
-
         log.info("유저 방 입장 시도: roomId={}, memberId={}", roomId, memberId);
 
         // 이미 다른 방에 있는지 체크
@@ -96,9 +93,11 @@ public class RoomRedisService {
             throw new BusinessException(ALREADY_HAS_ROOM);
         }
 
-        // RDB에서 방 존재 여부와 비밀번호 체크
+        // RDB에서 방 존재 여부
         Room room = roomRepository.findById(roomId)
             .orElseThrow(() -> new BusinessException(ROOM_NOT_FOUND));
+
+        // 비밀번호 체크
         if (room.getPassword() != null && !room.getPassword().equals(password)) {
             throw new BusinessException(INVALID_PASSWORD);
         }

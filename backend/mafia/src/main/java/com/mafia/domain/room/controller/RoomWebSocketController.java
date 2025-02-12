@@ -49,11 +49,13 @@ public class RoomWebSocketController {
     @MessageMapping("/room/enter/{roomId}")
     public void handleRoomEnter(
         @DestinationVariable Long roomId,
-        @Payload RoomMessages.EnterMessage message
+        @Payload RoomMessages.EnterMessage message,
+        @AuthenticationPrincipal StompPrincipal detail
     ) {
-        log.info("방 입장 요청 - 방 번호: {}, 참가자 번호: {}", roomId, message.getParticipantNo());
+        Long memberId = Long.parseLong(detail.getName());
+        log.info("방 입장 요청 - 방 번호: {}, memberId: {}", roomId, memberId);
 
-        roomRedisService.enterRoom(roomId, message.getParticipantNo(), message.getPassword());
+        roomRedisService.enterRoom(roomId, memberId, message.getPassword());
         messageService.sendRoomUpdate(roomId);
         messageService.sendRoomListToAll();
     }
