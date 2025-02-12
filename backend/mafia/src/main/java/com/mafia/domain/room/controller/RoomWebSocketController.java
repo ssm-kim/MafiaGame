@@ -15,7 +15,6 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
@@ -52,7 +51,7 @@ public class RoomWebSocketController {
         @Payload RoomMessages.EnterMessage message,
         @AuthenticationPrincipal StompPrincipal detail
     ) {
-        Long memberId = Long.parseLong(detail.getName());
+        long memberId = Long.parseLong(detail.getName());
         log.info("방 입장 요청 - 방 번호: {}, memberId: {}", roomId, memberId);
 
         roomRedisService.enterRoom(roomId, memberId, message.getPassword());
@@ -69,11 +68,10 @@ public class RoomWebSocketController {
         @Payload RoomMessages.LeaveMessage message,
         @AuthenticationPrincipal StompPrincipal detail
     ) {
-        Long memberId = Long.parseLong(detail.getName());
+        long memberId = Long.parseLong(detail.getName());
         log.info("방 퇴장 요청 - 방 번호: {}, memberId: {}, 참가자 번호: {}",
             roomId, memberId, message.getParticipantNo());
 
-        // 방장 여부 확인
         boolean isHost = roomRedisService.isHost(roomId, memberId);
         roomRedisService.leaveRoom(roomId, memberId, message.getParticipantNo());
         if (isHost) {
@@ -93,11 +91,11 @@ public class RoomWebSocketController {
         @Payload RoomMessages.KickMessage message,
         @AuthenticationPrincipal StompPrincipal detail
     ) {
+        long memberId = Long.parseLong(detail.getName());
         log.info("강제 퇴장 요청 - 방 번호: {}, 방장: {}, 대상: {}",
             roomId, Long.parseLong(detail.getName()), message.getTargetParticipantNo());
 
-        roomRedisService.kickMember(roomId, Long.parseLong(detail.getName()),
-            message.getTargetParticipantNo());
+        roomRedisService.kickMember(roomId, memberId, message.getTargetParticipantNo());
         messageService.sendRoomUpdate(roomId);
         messageService.sendRoomListToAll();
     }
@@ -111,7 +109,7 @@ public class RoomWebSocketController {
         @Payload RoomMessages.ReadyMessage message,
         @AuthenticationPrincipal StompPrincipal detail
     ) {
-        Long memberId = Long.parseLong(detail.getName());
+        long memberId = Long.parseLong(detail.getName());
         log.info("준비 상태 변경 - 방 번호: {}, memberId: {}, 참가자 번호: {}",
             roomId, memberId, message.getParticipantNo());
 
@@ -126,25 +124,17 @@ public class RoomWebSocketController {
     @SendTo("/topic/room/{roomId}")
     public String handleGameStart(
         @DestinationVariable Long roomId,
-        @Payload RoomMessages.StartGameMessage message,
         @AuthenticationPrincipal StompPrincipal detail
     ) throws JsonProcessingException {
-        Long memberId = Long.parseLong(detail.getName());
+        long memberId = Long.parseLong(detail.getName());
         log.info("게임 시작 요청 - 방 번호: {}, 방장 memberId: {}", roomId, memberId);
 
         roomRedisService.startGame(roomId, memberId);
-
-        // 방 정보 업데이트 (방 안의 유저들에게 전송)
         messageService.sendRoomUpdate(roomId);
-
-        // 로비 방 목록 업데이트 (게임 중으로 상태 변경됨)
         messageService.sendRoomListToAll();
-
-        // 방 게임 시작 활성화
         roomDbService.isActive(roomId);
 
         boolean isStart = gameService.startGame(roomId);
-
         return objectMapper.writeValueAsString(
             Map.of("gameStart", String.valueOf(isStart))
         );
