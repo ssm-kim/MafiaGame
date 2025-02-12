@@ -12,20 +12,26 @@ import io.openvidu.java.client.OpenViduJavaClientException;
 import io.openvidu.java.client.Session;
 import java.util.HashMap;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
 public class VoiceService {
 
     @Value("${openvidu.url}") String openviduUrl;
     @Value("${openvidu.secret}") String secret;
 
-    private final OpenVidu openvidu = new OpenVidu(openviduUrl, secret);
+    private final OpenVidu openvidu;
     private final Map<Long, Session> gameSessions = new HashMap<>(); // 게임별 세션 저장
     private final Map<Long, Map<Long, String>> playerTokens = new HashMap<>(); // 게임 내 플레이어별 토큰 저장
+
+    // OpenVidu 객체를 생성자에서 초기화
+    public VoiceService(@Value("${openvidu.url}") String openviduUrl,
+        @Value("${openvidu.secret}") String secret) {
+        this.openviduUrl = openviduUrl;
+        this.secret = secret;
+        this.openvidu = new OpenVidu(openviduUrl, secret);
+    }
 
     /**
      * 게임 시작 시 OpenVidu 세션 생성
