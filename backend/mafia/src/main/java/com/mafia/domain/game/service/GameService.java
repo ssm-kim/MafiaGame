@@ -13,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mafia.domain.game.event.GamePublisher;
 import com.mafia.domain.game.model.dto.GameEndEvent;
+import com.mafia.domain.game.model.dto.GameInfoDto;
 import com.mafia.domain.game.model.dto.GameStartEvent;
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
@@ -52,6 +53,20 @@ public class GameService {
     private final ObjectMapper objectMapper;
     private final ApplicationEventPublisher applicationEventPublisher;
 
+
+
+    /**
+     * 게임 조회
+     *
+     * @param gameId 방 ID
+     * @return 게임 객체
+     * @throws BusinessException 게임이 존재하지 않을 경우 예외 발생
+     */
+    public GameInfoDto getGameInfo(Long memberId, long gameId) {
+        Game game = findById(gameId);
+        return new GameInfoDto(memberId, game);
+    }
+
     /**
      * 게임 조회
      *
@@ -87,7 +102,7 @@ public class GameService {
      * @param gameId 방 ID를 그대로 사용한다.
      * @throws BusinessException 이미 시작된 게임이거나 플레이어가 부족할 경우 예외 발생
      */
-    public void startGame(long gameId) {
+    public boolean startGame(long gameId) throws JsonProcessingException {
         gameRepository.findById(gameId).ifPresent(game -> {
             new BusinessException(GAME_ALREADY_START);
         });
@@ -103,8 +118,6 @@ public class GameService {
         //Redis 채팅방 생성
         subscription.subscribe(gameId);
 
-        gameRepository.save(game);
-
         // 🔥 OpenVidu 세션 생성
         try {
             String sessionId = voiceService.createSession(gameId);
@@ -113,15 +126,16 @@ public class GameService {
             // 🔥 모든 플레이어에게 토큰 발급
             for (Long playerId : game.getPlayers().keySet()) {
                 String token = voiceService.generateToken(gameId, playerId);
+                game.getPlayers().get(playerId).setOpenviduToken(token);
                 log.info("Token issued for Player {}: {}", playerId, token);
             }
         } catch (Exception e) {
             log.error("Failed to create OpenVidu session: {}", e.getMessage());
         }
-
-
+        gameRepository.save(game);
         log.info("Game started in Room {}.", gameId);
         applicationEventPublisher.publishEvent(new GameStartEvent(gameId));
+        return true;
     }
 
     private Game makeGame(long roomId) {
