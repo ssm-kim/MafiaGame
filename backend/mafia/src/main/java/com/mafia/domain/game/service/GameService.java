@@ -54,7 +54,6 @@ public class GameService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
 
-
     /**
      * 게임 조회
      *
@@ -118,6 +117,8 @@ public class GameService {
         //Redis 채팅방 생성
         subscription.subscribe(gameId);
 
+        gameRepository.save(game);
+
         // 🔥 OpenVidu 세션 생성
         try {
             String sessionId = voiceService.createSession(gameId);
@@ -144,7 +145,7 @@ public class GameService {
         Game game = new Game(roomId, roominfo.getGameOption());
 
         // 게임에 참가할 플레이어를 추가한다.
-        roominfo.getParticipant().values().forEach(game::addPlayer);
+        // roominfo.getParticipant().values().forEach(game::addPlayer);
 
         return game;
     }
@@ -222,7 +223,7 @@ public class GameService {
     public int getVoteResult(long gameId) throws JsonProcessingException {
         int target = findById(gameId).voteResult();
 
-        String topic = "game-"+gameId+"-system";
+        String topic = "game-" + gameId + "-system";
         // JSON 메시지 생성 및 publish
         String message = objectMapper.writeValueAsString(
             Map.of("voteresult", String.valueOf(target))
@@ -260,7 +261,7 @@ public class GameService {
         Game game = findById(gameId);
         boolean isKill = game.finalvoteResult();
 
-        String topic = "game-"+gameId+"-system";
+        String topic = "game-" + gameId + "-system";
         // JSON 메시지 생성 및 publish
         String message = objectMapper.writeValueAsString(
             Map.of("votekill", isKill)
@@ -288,12 +289,13 @@ public class GameService {
 
         Map<String, String> message = new HashMap<>();
         //의사
-        if (healedPlayer != 0 && killList != null && (killList.isEmpty() || !killList.contains(healedPlayer))) {
+        if (healedPlayer != 0 && killList != null && (killList.isEmpty() || !killList.contains(
+            healedPlayer))) {
             message.put("heal", String.valueOf(healedPlayer));
             log.info("Game[{}] 플레이어 " + healedPlayer + " 이(가) 의사의 치료로 살아남았습니다!", healedPlayer);
         }
         // 좀비
-        if(killList != null && !killList.isEmpty()) {
+        if (killList != null && !killList.isEmpty()) {
             // JSON 형태로 메시지 구성
             String deaths = killList.stream()
                 .map(String::valueOf)
@@ -326,22 +328,22 @@ public class GameService {
         if (myrole == Role.ZOMBIE) {
             game.specifyTarget(Role.ZOMBIE, targetNo);
             result = targetNo + "플레이어는 감염 타겟이 되었습니다.";
-            String topic = "game-"+gameId+"-maifa-system";
+            String topic = "game-" + gameId + "-maifa-system";
             // JSON 메시지 생성 및 publish
             String message = objectMapper.writeValueAsString(
                 Map.of("zombiepick", targetNo)
             );
             gamePublisher.publish(topic, message);
-        } else if(myrole == Role.MUTANT){
+        } else if (myrole == Role.MUTANT) {
             game.specifyTarget(Role.MUTANT, targetNo);
             result = targetNo + "플레이어는 돌연변이 타겟이 되었습니다.";
-        } else if(myrole == Role.POLICE){
+        } else if (myrole == Role.POLICE) {
             Role findrole = game.findRole(targetNo);
             result = targetNo + "의 직업은 " + findrole + "입니다.";
         } else if (myrole == Role.PLAGUE_DOCTOR) {
             if (game.getSetting().getDoctorSkillUsage() == 0) {
                 result = "남은 백신이 없습니다.";
-            } else{
+            } else {
                 int heal_cnt = game.heal(targetNo);
                 result = targetNo + "을 살리기로 했습니다. 남은 백신은 " + heal_cnt + "개 입니다.";
             }

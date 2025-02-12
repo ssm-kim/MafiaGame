@@ -40,6 +40,7 @@ public class RoomController {
         @RequestBody RoomRequest roomRequest,
         @AuthenticationPrincipal AuthenticatedUser detail
     ) {
+        System.out.println("############## " + detail.getMemberId());
         RoomIdResponse response = roomDbService.createRoom(roomRequest, detail.getMemberId());
         // 새로운 게임방 생성 후 로비의 구독자들에게 업데이트된 방 목록을 전송
         messagingTemplate.convertAndSend("/topic/lobby", roomDbService.getAllRooms());

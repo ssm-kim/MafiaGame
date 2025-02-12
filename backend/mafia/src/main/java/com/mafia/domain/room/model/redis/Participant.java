@@ -5,9 +5,14 @@ import lombok.Data;
 @Data
 public class Participant {
 
-    private Long memberId;
-    private String nickName;
-    private boolean isReady = false;
-    private String sessionId;
+    private String nickName;    // 닉네임
+    private boolean isReady = false;  // 준비 여부
 
+    public Participant() {
+
+    }
+
+    public Participant(String nickName) {
+        this.nickName = nickName;
+    }
 }
