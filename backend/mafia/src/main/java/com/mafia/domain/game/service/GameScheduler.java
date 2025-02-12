@@ -14,8 +14,10 @@ import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
 import com.mafia.global.common.exception.exception.BusinessException;
 import com.mafia.global.common.service.GameSubscription;
+import jakarta.annotation.PreDestroy;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +35,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Slf4j
 public class GameScheduler {
+    // 애플리케이션이 실행 중인지 여부를 나타내는 플래그
+    private volatile boolean running = true;
 
     private final GameSeqRepository gameSeqRepository;
     private final GameRepository gameRepository;
@@ -41,6 +45,8 @@ public class GameScheduler {
     private final ObjectMapper objectMapper;
     private final GameSubscription subscription;
 
+    // 각 게임의 타이머를 관리하는 맵
+    private final Map<Long, Integer> gameTimers = new ConcurrentHashMap<>();
 
     /**
      * 서버가 재시작될 때 실행 중이던 게임을 복원
@@ -58,17 +64,23 @@ public class GameScheduler {
         };
     }
 
+    @PreDestroy
+    public void shutdown() {
+        log.info("[GameScheduler] 애플리케이션 종료 감지, 모든 게임 스케줄러 종료...");
+        running = false; // 종료 신호 설정
+    }
+
     /**
      * 게임을 Redis에서 복원하여 다시 실행
      */
     private void restoreGame(Long gameId) {
         GamePhase lastPhase = gameSeqRepository.getPhase(gameId);
-        Long lastTimer = gameSeqRepository.getTimer(gameId);
+        Integer lastTimer = gameSeqRepository.getTimer(gameId).intValue();
 
         if (lastPhase != null && lastTimer != null) {
             log.info("[GameScheduler] 서버 재시작 - 게임 {} 복원 (Phase: {}, Timer: {}초)", gameId, lastPhase, lastTimer);
             subscription.subscribe(gameId);
-
+            gameTimers.put(gameId, lastTimer); // 내부 타이머 저장
             // 게임 스케줄러 다시 시작
             startGameScheduler(new GameStartEvent(gameId));
         }
@@ -85,7 +97,10 @@ public class GameScheduler {
         gameSeqRepository.setActiveGame(gameId);
         log.info("[GameScheduler] 게임 {} 스케줄러 시작", gameId);
 
-        while (gameSeqRepository.isGameActive(gameId)) { // 게임이 활성화되어 있으면 실행
+        int remainingTime = gameSeqRepository.getTimer(gameId).intValue();
+        gameTimers.put(gameId, remainingTime); // 타이머 초기화
+
+        while (running && gameSeqRepository.isGameActive(gameId)) { // 게임이 활성화되어 있으면 실행
             try {
                 processTimers(gameId);
                 TimeUnit.SECONDS.sleep(1); // 1초마다 실행
@@ -106,6 +121,7 @@ public class GameScheduler {
 
         // Redis에서 게임 실행 정보 삭제
         gameSeqRepository.removeActiveGame(gameId);
+        gameTimers.remove(gameId); // 내부 타이머 삭제
         log.info("[GameScheduler] 게임 {}의 스케줄러가 종료되었습니다.", gameId);
     }
 
@@ -116,7 +132,7 @@ public class GameScheduler {
      * @throws JsonProcessingException JSON 변환 오류 발생 시 예외 처리
      */
     public void processTimers(long gameId) throws JsonProcessingException {
-        Long remainingTime = gameSeqRepository.getTimer(gameId);
+        int remainingTime = gameTimers.getOrDefault(gameId, 0);
         GamePhase phase = gameSeqRepository.getPhase(gameId);
 
         if(remainingTime == 5 && phase == GamePhase.DAY_FINAL_VOTE){
@@ -126,7 +142,7 @@ public class GameScheduler {
         if (remainingTime <= 0) {
             advanceGamePhase(gameId);
         } else {
-            gameSeqRepository.decrementTimer(gameId, 1);
+            gameTimers.put(gameId, remainingTime - 1);
         }
 
         // JSON 메시지 생성 및 publish
@@ -151,41 +167,45 @@ public class GameScheduler {
 
 
         GamePhase curPhase = gameSeqRepository.getPhase(gameId);
+        int setTime = 10;
 
         switch (curPhase) {
             case DAY_DISCUSSION -> {
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_VOTE);
-                gameSeqRepository.saveTimer(gameId, 15);
+                setTime = 15;
             }
             case DAY_VOTE -> {
                 if(game.voteResult() == -1){
                     game.updateVoicePermissions("night"); // 좀비만 음성 채팅 활성화
                     gameSeqRepository.savePhase(gameId, GamePhase.NIGHT_ACTION);
-                    gameSeqRepository.saveTimer(gameId, 20);
+                    setTime = 20;
                 } else {
                     gameSeqRepository.savePhase(gameId, GamePhase.DAY_FINAL_STATEMENT);
-                    gameSeqRepository.saveTimer(gameId, 10);
+                    setTime = 10;
                 }
             }
             case DAY_FINAL_STATEMENT -> {
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_FINAL_VOTE);
-                gameSeqRepository.saveTimer(gameId, 10);
+                setTime = 10;
             }
             case DAY_FINAL_VOTE -> {
                 gameService.killPlayer(game);
                 game.updateVoicePermissions("night"); // 좀비만 음성 채팅 활성화
                 gameSeqRepository.savePhase(gameId, GamePhase.NIGHT_ACTION);
-                gameSeqRepository.saveTimer(gameId, 20);
+                setTime = 20;
             }
             case NIGHT_ACTION -> {
                 gameService.killPlayer(game);
                 game.roundInit();
                 game.updateVoicePermissions("day"); // 모든 생존자 음성 채팅 활성화 (토론)
                 gameSeqRepository.savePhase(gameId, GamePhase.DAY_DISCUSSION);
-                gameSeqRepository.saveTimer(gameId, 10);
+                setTime = 10;
             }
             default -> throw new BusinessException(UNKNOWN_PHASE);
         }
+
+        gameTimers.put(gameId, setTime);
+        gameSeqRepository.saveTimer(gameId, setTime);
         gameRepository.save(game);
         log.info("Game phase advanced in Room {}: New Phase = {}, Timer = {} seconds",
             gameId, gameSeqRepository.getPhase(gameId), gameSeqRepository.getTimer(gameId));
