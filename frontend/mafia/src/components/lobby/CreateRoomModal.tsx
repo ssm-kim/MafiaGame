@@ -473,9 +473,9 @@ export default CreateRoomModal;
 //             <input
 //               type="number"
 //               className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-100"
-//               value={roomData.maxPlayers}
+//               value={roomData.requiredPlayers}
 //               onChange={(e) =>
-//                 onRoomDataChange({ ...roomData, maxPlayers: parseInt(e.target.value) })
+//                 onRoomDataChange({ ...roomData, requiredPlayers: parseInt(e.target.value) })
 //               }
 //             />
 //           </div>

@@ -1,10 +1,11 @@
 export interface Room {
   roomId: number;
   roomTitle: string;
+  initParticipantNo: number;
   // roomStatus: boolean; // false(대기방), true(게임 진행 중)
   roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
   roomOption: string;
-  maxPlayer: number;
+  requiredPlayers: number;
   isVoice: boolean;
   createdAt: string;
   peopleCnt: number;
@@ -14,7 +15,7 @@ export interface Room {
 }
 
 export interface Participant {
-  memberId: number;
+  participantNo: number;
   nickName: string;
   ready: boolean;
   subscriptions?: string[];
@@ -41,7 +42,7 @@ export interface GameStartResponse {
 // export interface Room {
 //     id: string;
 //     name: string;
-//     maxPlayers: number;
+//     requiredPlayers: number;
 //     currentPlayers: number;
 //     password?: string;
 //     gameStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
@@ -59,7 +60,7 @@ export interface GameStartResponse {
 //   roomTitle: string;
 //   roomStatus: boolean; // false(대기방), true(게임 진행 중)
 //   roomOption: string;
-//   maxPlayers: number;
+//   requiredPlayers: number;
 //   isVoice: boolean;
 //   createdAt: string;
 //   curPlayers: number;

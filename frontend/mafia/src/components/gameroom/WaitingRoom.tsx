@@ -8,7 +8,7 @@ import { Player } from '@/types/player';
 // interface WaitingRoomProps {
 //   players: Player[];
 //   isHost: boolean;
-//   maxPlayers: number;
+//   requiredPlayers: number;
 //   onReady: () => void;
 //   onStart: () => void;
 // }
@@ -17,7 +17,7 @@ interface WaitingRoomProps {
   players: Player[];
   isHost: boolean;
   // currentPlayerId: number;
-  maxPlayers: number;
+  requiredPlayers: number;
   onReady: () => Promise<void>;
   onStart: () => Promise<void>;
 }
@@ -25,7 +25,7 @@ interface WaitingRoomProps {
 function WaitingRoom({
   players,
   isHost,
-  maxPlayers,
+  requiredPlayers,
   onReady,
   onStart,
 }: WaitingRoomProps): JSX.Element {
@@ -33,7 +33,7 @@ function WaitingRoom({
 
   const paddedPlayers = [
     ...players,
-    ...Array(Math.max(0, maxPlayers - players.length)).fill(undefined),
+    ...Array(Math.max(0, requiredPlayers - players.length)).fill(undefined),
   ];
 
   return (
@@ -47,7 +47,7 @@ function WaitingRoom({
           생존자 현황
         </h2>
         <div className="text-gray-400">
-          {players.length}/{maxPlayers}
+          {players.length}/{requiredPlayers}
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export default WaitingRoom;
 //   players: Player[];
 //   isHost: boolean;
 //   // currentPlayerId: number;
-//   maxPlayers: number;
+//   requiredPlayers: number;
 //   onReady: () => void;
 //   onStart: () => void;
 // }
@@ -93,12 +93,12 @@ export default WaitingRoom;
 //   players,
 //   isHost,
 //   // currentPlayerId,
-//   maxPlayers,
+//   requiredPlayers,
 //   onReady,
 //   onStart,
 // }: WaitingRoomProps): JSX.Element {
 //   console.log('Original players:', players);
-//   const paddedPlayers = [...players, ...Array(maxPlayers - players.length).fill(undefined)];
+//   const paddedPlayers = [...players, ...Array(requiredPlayers - players.length).fill(undefined)];
 //   console.log('Padded players:', paddedPlayers);
 //   return (
 //     <div className="w-full h-full bg-gray-900 bg-opacity-80 p-6">
@@ -111,7 +111,7 @@ export default WaitingRoom;
 //           생존자 현황
 //         </h2>
 //         <div className="text-gray-400">
-//           {players.length}/{maxPlayers}
+//           {players.length}/{requiredPlayers}
 //         </div>
 //       </div>
 

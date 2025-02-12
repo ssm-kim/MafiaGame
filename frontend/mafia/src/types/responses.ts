@@ -25,7 +25,7 @@ export interface GameStartResponse {
 //   roomId: number;
 //   roomTitle: string;
 //   roomOption: string;
-//   maxPlayers: number;
+//   requiredPlayers: number;
 //   isVoice: boolean;
 //   peopleCnt: number;
 //   maxPlayer?: number;
