@@ -38,9 +38,20 @@ public class RoomWebSocketController {
     /**
      * 방 입장 처리 및 참가자 정보 업데이트
      */
+    // 테스트용
+    @MessageMapping("/room/enter/{roomId}")
+    public void handleRoomEnter(
+        @DestinationVariable Long roomId,
+        @Payload RoomMessages.EnterMessage message
+    ) {
+        log.info("방 입장 요청 - 방 번호: {}, 참가자 번호: {}", roomId, message.getParticipantNo());
+        roomRedisService.enterRoom(roomId, message.getPassword());
+        messageService.sendRoomUpdate(roomId);
+        messageService.sendRoomListToAll();
+    }
 //    @MessageMapping("/room/enter/{roomId}")
 //    public void handleRoomEnter(
-//        @DestinationVariable(value = "roomId") Long roomId,
+//        @DestinationVariable Long roomId,
 //        @Payload RoomMessages.EnterMessage message
 //    ) {
 //        log.info("방 입장 요청 - 방 번호: {}, 참가자 번호: {}", roomId, message.getParticipantNo());
@@ -49,24 +60,13 @@ public class RoomWebSocketController {
 //        messageService.sendRoomUpdate(roomId);
 //        messageService.sendRoomListToAll();
 //    }
-    @MessageMapping("/room/enter/{roomId}")
-    public void handleRoomEnter(
-        @DestinationVariable("roomId") Long roomId,
-        @Payload RoomMessages.EnterMessage message
-    ) {
-        log.info("방 입장 요청 - 방 번호: {}", roomId);
-        roomRedisService.enterRoom(roomId, message.getPassword());
-        messageService.sendRoomUpdate(roomId);
-        messageService.sendRoomListToAll();
-    }
-
 
     /**
      * 방 퇴장 처리 (방장 퇴장 시 방 삭제)
      */
     @MessageMapping("/room/leave/{roomId}")
     public void handleRoomLeave(
-        @DestinationVariable("roomId") Long roomId,
+        @DestinationVariable Long roomId,
         @Payload RoomMessages.LeaveMessage message
     ) {
         log.info("방 퇴장 요청 - 방 번호: {}, 참가자 번호: {}", roomId, message.getParticipantNo());
@@ -86,7 +86,7 @@ public class RoomWebSocketController {
      */
     @MessageMapping("/room/kick/{roomId}")
     public void handleKickMember(
-        @DestinationVariable("roomId") Long roomId,
+        @DestinationVariable Long roomId,
         @Payload RoomMessages.KickMessage message
     ) {
         log.info("강제 퇴장 요청 - 방 번호: {}, 방장: {}, 대상: {}",
@@ -103,7 +103,7 @@ public class RoomWebSocketController {
      */
     @MessageMapping("/room/ready/{roomId}")
     public void handleReadyToggle(
-        @DestinationVariable("roomId") Long roomId,
+        @DestinationVariable Long roomId,
         @Payload RoomMessages.ReadyMessage message
     ) {
         log.info("준비 상태 변경 - 방 번호: {}, 참가자 번호: {}", roomId, message.getParticipantNo());
@@ -116,7 +116,7 @@ public class RoomWebSocketController {
      */
     @MessageMapping("/room/start/{roomId}")
     public void handleGameStart(
-        @DestinationVariable("roomId") Long roomId,
+        @DestinationVariable Long roomId,
         @Payload RoomMessages.StartGameMessage message
     ) {
         log.info("게임 시작 요청 - 방 번호: {}, 방장: {}", roomId, message.getParticipantNo());

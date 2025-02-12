@@ -37,6 +37,5 @@ public class GameOption {
         if (preset == 8) {
             this.mutant = 1;
         }
-
     }
 }

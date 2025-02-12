@@ -15,7 +15,4 @@ public class Participant {
     public Participant(String nickName) {
         this.nickName = nickName;
     }
-
-    public void put(Long no, Participant requireInfo) {
-    }
 }

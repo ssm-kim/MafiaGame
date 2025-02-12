@@ -85,7 +85,9 @@ public class GameService {
      * @param gameId 방 ID를 그대로 사용한다.
      * @throws BusinessException 이미 시작된 게임이거나 플레이어가 부족할 경우 예외 발생
      */
-    public void startGame(long gameId) {
+    public void
+
+    startGame(long gameId) {
         gameRepository.findById(gameId).ifPresent(game -> {
             new BusinessException(GAME_ALREADY_START);
         });
