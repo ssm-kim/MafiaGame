@@ -9,10 +9,12 @@ spring:
       green: green, secret, prod
 
   management:
-    endpoints:
-      web:
-        exposure:
-          include: "prometheus"
+    metrics:
+      export:
+        prometheus:
+          enabled: true
+
+
 
   jpa:
     generate-ddl: true
