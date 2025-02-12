@@ -1,11 +1,11 @@
 package com.mafia.global.common.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +26,7 @@ public class RedisService {
         return Optional.ofNullable(objectMapper.convertValue(value, clazz));
     }
 
+
     public boolean existsByKey(String key) {
         return redisTemplate.hasKey(key);
     }
@@ -36,10 +37,5 @@ public class RedisService {
 
     public void saveWithExpiry(String key, String value, long timeout, TimeUnit timeUnit) {
         redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
-    }
-
-    // JWT Refresh Token 관련
-    public void saveRefreshToken(String key, String refreshToken, long expirationTime) {
-        saveWithExpiry(key, refreshToken, expirationTime, TimeUnit.MILLISECONDS);
     }
 }
