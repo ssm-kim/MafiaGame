@@ -13,16 +13,17 @@ import io.openvidu.java.client.Session;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class VoiceService {
 
-    private final String OPENVIDU_URL = "어나더레벨";
-    private final String SECRET = "얍얍얍"; // docker-compose.yml에서 설정한 값
+    @Value("${openvidu.url}") String openviduUrl;
+    @Value("${openvidu.secret}") String secret;
 
-    private final OpenVidu openvidu = new OpenVidu(OPENVIDU_URL, SECRET);
+    private final OpenVidu openvidu = new OpenVidu(openviduUrl, secret);
     private final Map<Long, Session> gameSessions = new HashMap<>(); // 게임별 세션 저장
     private final Map<Long, Map<Long, String>> playerTokens = new HashMap<>(); // 게임 내 플레이어별 토큰 저장
 
