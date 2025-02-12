@@ -1,6 +1,7 @@
 package com.mafia.domain.room.controller;
 
 import com.mafia.domain.game.model.game.GameOption;
+import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.room.model.redis.Participant;
 import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.repository.RoomRedisRepository;
