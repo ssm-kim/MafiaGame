@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
@@ -121,6 +123,7 @@ public class RoomWebSocketController {
      * 게임 시작
      */
     @MessageMapping("/room/start/{roomId}")
+    @SendTo("/topic/room/{roomId}")
     public String handleGameStart(
         @DestinationVariable Long roomId,
         @Payload RoomMessages.StartGameMessage message,
