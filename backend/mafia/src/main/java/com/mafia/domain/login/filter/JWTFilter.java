@@ -1,13 +1,17 @@
 package com.mafia.domain.login.filter;
 
 import com.mafia.domain.login.model.dto.AuthenticatedUser;
-import com.mafia.global.common.utils.JWTUtil;
 import com.mafia.domain.member.model.dto.MemberDTO;
+import com.mafia.domain.member.repository.MemberRepository;
+import com.mafia.global.common.service.RedisService;
+import com.mafia.global.common.utils.JWTUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,14 +20,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-
 @Slf4j
 @RequiredArgsConstructor
 @Component
 public class JWTFilter extends OncePerRequestFilter {
 
     private final JWTUtil jwtUtil;
+    private final MemberRepository memberRepository;
+    private final RedisService redisService;
+
+    private static final String ACTIVITY_KEY_PREFIX = "guest_activity:";
+    private static final int UPDATE_INTERVAL = 300; // 5분 (초 단위)
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -42,6 +49,23 @@ public class JWTFilter extends OncePerRequestFilter {
         // JWT 토큰에서 사용자 정보 추출
         String providerId = jwtUtil.getProviderId(authorization);
         Long memberId = jwtUtil.getMemberId(authorization);
+
+        // 게스트 사용자인 경우에만 활동 시간 업데이트 처리
+        if (providerId.startsWith("guest_")) {
+            String activityKey = ACTIVITY_KEY_PREFIX + providerId;
+            String lastUpdate = redisService.get(activityKey, String.class).orElse(null);
+
+            if (lastUpdate == null) {
+                memberRepository.findById(memberId).ifPresent(member -> {
+                    member.updateLastActivityTime();
+                    memberRepository.save(member);
+                });
+                redisService.saveWithExpiry(activityKey,
+                    String.valueOf(System.currentTimeMillis()),
+                    UPDATE_INTERVAL,
+                    TimeUnit.SECONDS);
+            }
+        }
 
         // 사용자 정보로 MemberDTO 생성
         MemberDTO memberDTO = MemberDTO.builder()
