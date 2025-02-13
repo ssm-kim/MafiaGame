@@ -1,6 +1,6 @@
 import { Stomp } from '@stomp/stompjs';
 import api from '@/api/axios';
-import { Room, GameStartResponse } from '@/types/room';
+import { Room, GameStartResponse, ParticipantMap } from '@/types/room';
 
 interface ApiResponse<T> {
   isSuccess: boolean;
@@ -106,7 +106,7 @@ const roomApi = {
   //   return stompClientSubscription;
   // },
   // 방 구독
-  subscribeRoom: (roomId: number, onRoomUpdate: (roomInfo: Room) => void) => {
+  subscribeRoom: (roomId: number, onRoomUpdate: (roomInfo: ParticipantMap) => void) => {
     console.log('방 구독');
     if (!stompClient) return;
     const stompClientSubscription = stompClient.subscribe(
@@ -198,7 +198,7 @@ const roomApi = {
   },
 
   // 게임 시작
-  startGame: async (roomId: number, participantNo: number): Promise<WebSocketResponse> => {
+  startGame: async (roomId: number): Promise<WebSocketResponse> => {
     if (!stompClient) {
       await roomApi.initializeWebSocket();
     }

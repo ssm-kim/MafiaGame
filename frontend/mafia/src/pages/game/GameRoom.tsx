@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import roomApi from '@/api/roomApi';
-import { Room, GameStartResponse } from '@/types/room';
+import { Room, GameStartResponse, ParticipantMap } from '@/types/room';
 import { ChatMessage } from '@/types/chat';
 import GameHeader from '@/components/gameroom/GameHeader';
 import GameStatus from '@/components/gameroom/GameStatus';
@@ -28,7 +28,7 @@ function GameRoom(): JSX.Element {
   const [gameState, setGameState] = useState<Room | null>(null);
 
   const [participantNo, setParticipantNo] = useState<number | null>(null);
-  const [participants, setParticipants] = useState(null);
+  const [participants, setParticipants] = useState<ParticipantMap | null>(null);
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [isHost, setIsHost] = useState(false);
@@ -38,6 +38,10 @@ function GameRoom(): JSX.Element {
   const stompClientRef = useRef<any>(null);
 
   useEffect(() => {
+    // 사용하지 않음
+    // setParticipantNo(1);
+    // setIsHost(false);
+
     const fetchMemberId = async () => {
       try {
         const response = await axios.get('/api/member');
@@ -106,7 +110,7 @@ function GameRoom(): JSX.Element {
 
     // 현재 플레이어의 participantNo를 찾음
     let currentParticipant;
-    Object.entries(participants).forEach(([id, p]) => {
+    Object.entries(participants).forEach(([_, p]) => {
       if (p.memberId === currentPlayerId) {
         currentParticipant = p;
       }
@@ -114,8 +118,8 @@ function GameRoom(): JSX.Element {
 
     // participantNo가 처음 설정될 때만 isHost 상태를 설정
     if (currentParticipant && participantNo === null) {
-      setParticipantNo(currentParticipant.participantNo);
-      setIsHost(currentParticipant.participantNo === 1);
+      setParticipantNo((currentParticipant as Participant).participantNo);
+      setIsHost((currentParticipant as Participant).participantNo === 1);
     }
 
     // 플레이어 리스트 업데이트
@@ -319,7 +323,7 @@ function GameRoom(): JSX.Element {
         return;
       }
 
-      const response = await roomApi.startGame(Number(roomId), participantNo);
+      const response = await roomApi.startGame(Number(roomId));
       if (response.data.isSuccess) {
         const gameStartData = response.data.result as GameStartResponse;
         setGameState((prevState) => ({
@@ -367,9 +371,9 @@ function GameRoom(): JSX.Element {
           roomId={roomId || ''}
           gameState={gameState}
           onLeave={handleLeaveRoom}
-          onReady={handleReadyState}
-          onStart={handleGameStart}
-          isHost={isHost}
+          // onReady={handleReadyState}
+          // onStart={handleGameStart}
+          // isHost={isHost}
         />
 
         <div className="flex h-full gap-4 pt-16">

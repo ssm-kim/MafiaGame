@@ -7,6 +7,7 @@ interface RoomCardProps {
     roomTitle: string;
     curPlayers: number;
     requiredPlayers: number;
+    // isStart: boolean;
   };
   onJoin: (roomId: number) => void;
 }

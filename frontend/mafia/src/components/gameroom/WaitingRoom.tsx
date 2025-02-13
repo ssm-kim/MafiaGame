@@ -68,7 +68,7 @@ function WaitingRoom({
           players={players}
           onReady={onReady}
           onStart={onStart}
-          className="w-32"
+          // className="w-32"
         />
       </div>
     </div>

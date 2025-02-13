@@ -13,7 +13,7 @@ export interface Room {
   isNight?: boolean;
 }
 
-export interface ParticipantsInfo {
+export interface ParticipantMap {
   [key: number]: Participant;
 }
 
