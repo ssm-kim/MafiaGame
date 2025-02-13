@@ -86,18 +86,17 @@ public class RoomRedisService {
         RoomInfo roomInfo = findById(roomId);
         log.info("유저 방 입장 시도: roomId={}, memberId={}", roomId, memberId);
 
-        // 방장인지 체크 (참가자 번호가 1번인 경우가 방장)
-        boolean isHost = roomInfo.getMemberMapping().containsValue(memberId) &&
-            roomInfo.getMemberMapping().get(1).equals(memberId);
-
+        boolean isHost = roomInfo.getMemberMapping().get(1).equals(memberId);
         if (isHost) {
-            log.info("방장의 재입장 시도 - 추가 저장하지 않음: roomId={}, memberId={}", roomId, memberId);
+            log.info("방장으로 이미 방 생성완료");
             return;
         }
 
-        // memberId로 방장 체크
-        if (isHost(roomId, memberId)) {
-            throw new BusinessException(HOST_CANNOT_READY);
+        // 새로고침 시 처리 (이미 있는 방이라면)
+        boolean isAlreadyInRoom = roomInfo.getParticipant().containsKey(memberId);
+        if (isAlreadyInRoom) {
+            log.info("새고로침 이미 참여중인 유저의 재접속: roomId={}, memberId={}", roomId, memberId);
+            return;  // 이미 참여중이면 추가 처리 없이 리턴
         }
 
         // 이미 다른 방에 있는지 체크
@@ -172,12 +171,12 @@ public class RoomRedisService {
         log.info("강제 퇴장 시도: roomId={}, 방장 memberId={}, 대상 participantNo={}",
             roomId, hostMemberId, targetParticipantNo);
 
-        // 방장 권한 확인
+        // 방장 권한 확인  ->  필요한가?
         if (!isHost(roomId, hostMemberId)) {
             throw new BusinessException(UNAUTHORIZED_HOST_ACTION);
         }
 
-        // 강퇴 대상이 방장인지 확인
+        // 강퇴 대상이 방장인지 확인  ->  필요한가?
         if (targetParticipantNo == 1) {
             throw new BusinessException(CANNOT_KICK_HOST);
         }

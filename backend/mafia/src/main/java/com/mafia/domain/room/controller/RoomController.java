@@ -6,6 +6,7 @@ import com.mafia.domain.room.model.request.RoomRequest;
 import com.mafia.domain.room.model.response.RoomIdResponse;
 import com.mafia.domain.room.model.response.RoomResponse;
 import com.mafia.domain.room.service.RoomDbService;
+import com.mafia.domain.room.service.RoomRedisService;
 import com.mafia.global.common.model.dto.BaseResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RoomController {
 
     private final SimpMessageSendingOperations messagingTemplate;
+    private final RoomRedisService roomRedisService;
     private final RoomDbService roomDbService;
 
     /**
