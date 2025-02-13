@@ -26,10 +26,26 @@ public class RoomMessageService {
     private final RoomDbService roomDbService;
 
     /**
+     * 임의로 수정한 내용입니다.
+     */
+
+    public void sendHostLeftMessage(Long roomId) {
+        HashMap<String, String> message = new HashMap<>();
+        message.put("message", "방장이 나갔어요!");
+        messagingTemplate.convertAndSend("/topic/room/" + roomId, message);
+    }
+
+    /**
      * 로비의 전체 방 목록 전송 - 각 방의 현재 인원수 정보를 포함
      */
     public void sendRoomListToAll() {
+        HashMap<Long, Integer> roomPlayerCounts = roomRedisService.getRoomPlayerCounts();
         List<RoomResponse> rooms = roomDbService.getAllRooms();
+        // Redis 데이터로 현재 인원 업데이트
+        for (RoomResponse room : rooms) {
+            room.setPeopleCnt(roomPlayerCounts.getOrDefault(room.getRoomId(), 0));
+        }
+
         log.info("로비 방 목록 전송 - 총 {}개 방", rooms.size());
 
         // 로비 유저들은 방 목록만 받음 (준비 상태 등 상세 정보 제외)
@@ -59,6 +75,21 @@ public class RoomMessageService {
             participantInfo.put(participantNo, response);
         }
 
+        log.info("각 참가자 정보 : {}", participantInfo);
+
         messagingTemplate.convertAndSend("/topic/room/" + roomId, participantInfo);
+    }
+
+    public void sendRoomStart(Long roomId) {
+        List<RoomResponse> rooms = roomDbService.getAllRooms();
+
+        for (RoomResponse room : rooms) {
+            if (room.getRoomId().equals(roomId)) {
+                room.setStart(true);
+            }
+        }
+
+        log.info("로비 게임 진행 중 목록 추가 - 총 개 방");
+        messagingTemplate.convertAndSend("/topic/lobby", rooms);
     }
 }

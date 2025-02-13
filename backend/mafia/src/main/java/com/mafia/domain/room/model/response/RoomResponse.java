@@ -8,5 +8,6 @@ public class RoomResponse {
     private Long roomId;
     private String roomTitle;
     private Integer peopleCnt;
-    private int requiredPlayers;
+    private Integer requiredPlayers;
+    private boolean isStart = false;
 }

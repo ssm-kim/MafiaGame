@@ -74,7 +74,6 @@ public class RoomWebSocketController {
         boolean isHost = roomRedisService.isHost(roomId, memberId);
         roomRedisService.leaveRoom(roomId, memberId);
         messageService.sendRoomUpdate(roomId);
-
         if (isHost) {
             roomDbService.deleteRoom(roomId);
         }
@@ -108,7 +107,9 @@ public class RoomWebSocketController {
         @AuthenticationPrincipal StompPrincipal detail
     ) {
         long memberId = Long.parseLong(detail.getName());
-        log.info("준비 상태 변경 - 방 번호: {}, memberId: {}", roomId, memberId);
+        log.info("준비 상태 변경 - 방 번호: {}, memberId: {}, 참가자 번호: {}",
+            roomId, memberId);
+
         roomRedisService.toggleReady(roomId, memberId);
         messageService.sendRoomUpdate(roomId);
     }
@@ -128,6 +129,7 @@ public class RoomWebSocketController {
         roomRedisService.startGame(roomId, memberId);
         messageService.sendRoomUpdate(roomId);
         messageService.sendRoomListToAll();
+        messageService.sendRoomStart(roomId);
         roomDbService.isActive(roomId);
 
         boolean isStart = gameService.startGame(roomId);
