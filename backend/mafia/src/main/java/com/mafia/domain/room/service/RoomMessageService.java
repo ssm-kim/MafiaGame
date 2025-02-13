@@ -29,14 +29,7 @@ public class RoomMessageService {
      * 로비의 전체 방 목록 전송 - 각 방의 현재 인원수 정보를 포함
      */
     public void sendRoomListToAll() {
-        HashMap<Long, Integer> roomPlayerCounts = roomRedisService.getRoomPlayerCounts();
         List<RoomResponse> rooms = roomDbService.getAllRooms();
-
-        // Redis 데이터로 현재 인원 업데이트
-        for (RoomResponse room : rooms) {
-            room.setPeopleCnt(roomPlayerCounts.getOrDefault(room.getRoomId(), 0));
-        }
-
         log.info("로비 방 목록 전송 - 총 {}개 방", rooms.size());
 
         // 로비 유저들은 방 목록만 받음 (준비 상태 등 상세 정보 제외)

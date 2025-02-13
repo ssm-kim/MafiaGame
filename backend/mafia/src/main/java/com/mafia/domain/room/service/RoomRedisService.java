@@ -92,7 +92,6 @@ public class RoomRedisService {
 
         if (isHost) {
             log.info("방장의 재입장 시도 - 추가 저장하지 않음: roomId={}, memberId={}", roomId, memberId);
-
             return;
         }
 
@@ -125,7 +124,6 @@ public class RoomRedisService {
         while (roomInfo.getMemberMapping().containsKey(newParticipantNo)) {
             newParticipantNo++;
         }
-        //roomInfo.setInitParticipantNo(newParticipantNo);  // 1, 2, 3번에서 2번에 나가고 새로운 유저가 들어오면 2번 할당
 
         // 참가자 정보 생성 (회원 ID, 닉네임)
         MemberResponse memberInfo = memberService.getMemberInfo(memberId);  // 멤버 서비스에서 닉네임을 가져옴.
@@ -150,12 +148,12 @@ public class RoomRedisService {
         log.info("유저 방 퇴장: roomId={}, memberId={}, 참가자 번호={}",
             roomId, memberId, participantNo);
 
-        // 방장(1번) 퇴장이면 바로 방 삭제
-        if (isHost(roomId, memberId)) {
-            deleteById(roomId);  // 방 삭제
-            log.info("방장 퇴장으로 인한 방 삭제 완료 - 방 번호: {}", roomId);
-            return;
-        }
+//        // 방장(1번) 퇴장이면 바로 방 삭제
+//        if (isHost(roomId, memberId)) {
+//            deleteById(roomId);  // 방 삭제
+//            log.info("방장 퇴장으로 인한 방 삭제 완료 - 방 번호: {}", roomId);
+//            return;
+//        }
 
         // 일반 참가자 퇴장: 두 맵에서 모두 제거
         roomInfo.getParticipant().remove(memberId);

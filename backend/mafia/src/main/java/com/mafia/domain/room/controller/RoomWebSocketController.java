@@ -73,10 +73,10 @@ public class RoomWebSocketController {
 
         boolean isHost = roomRedisService.isHost(roomId, memberId);
         roomRedisService.leaveRoom(roomId, memberId);
+        messageService.sendRoomUpdate(roomId);
+
         if (isHost) {
             roomDbService.deleteRoom(roomId);
-        } else {
-            messageService.sendRoomUpdate(roomId);
         }
         messageService.sendRoomListToAll();
     }

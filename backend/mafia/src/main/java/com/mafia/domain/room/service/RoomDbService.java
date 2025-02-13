@@ -72,6 +72,7 @@ public class RoomDbService {
             roomResponse.setRoomId(room.getRoomId());
             roomResponse.setRoomTitle(room.getTitle());
             roomResponse.setPeopleCnt(allRoomInfo.getOrDefault(room.getRoomId(), 0));
+            roomResponse.setRequiredPlayers(room.getRequiredPlayers());
             roomList.add(roomResponse);
         }
 
