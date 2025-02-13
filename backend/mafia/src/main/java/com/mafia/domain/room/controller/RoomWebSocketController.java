@@ -108,9 +108,7 @@ public class RoomWebSocketController {
         @AuthenticationPrincipal StompPrincipal detail
     ) {
         long memberId = Long.parseLong(detail.getName());
-        log.info("준비 상태 변경 - 방 번호: {}, memberId: {}, 참가자 번호: {}",
-            roomId, memberId);
-
+        log.info("준비 상태 변경 - 방 번호: {}, memberId: {}", roomId, memberId);
         roomRedisService.toggleReady(roomId, memberId);
         messageService.sendRoomUpdate(roomId);
     }

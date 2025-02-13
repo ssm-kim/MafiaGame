@@ -66,14 +66,14 @@ public class RoomRedisService {
 
         // 방장 정보 설정 (방장은 항상 1번)
         MemberResponse memberInfo = memberService.getMemberInfo(hostId);
-        Participant host = new Participant(hostId,memberInfo.getNickname());
-
-        // 1번 (방장) 등록
-        roomInfo.getParticipant().put(hostId, host);      // 참가자 맵:    1번 - 유저 정보
-        roomInfo.getMemberMapping().put(1, hostId);  // 멤버 매핑 맵: 1번 - 방장 memberId
+        Participant host = new Participant(hostId, memberInfo.getNickname());
 
         subscription.subscribe(roomId);
         redisRepository.save(roomId, roomInfo);
+
+        // 1번 (방장) 등록
+        roomInfo.getParticipant().put(hostId, host);
+        roomInfo.getMemberMapping().put(1, hostId);
 
         log.info("방 생성 완료 - 방 번호: {}, 방장: {}", roomId, memberInfo.getNickname());
     }
@@ -85,6 +85,21 @@ public class RoomRedisService {
         // RoomInfo에서 해당 참가자 번호의 memberId 조회
         RoomInfo roomInfo = findById(roomId);
         log.info("유저 방 입장 시도: roomId={}, memberId={}", roomId, memberId);
+
+        // 방장인지 체크 (참가자 번호가 1번인 경우가 방장)
+        boolean isHost = roomInfo.getMemberMapping().containsValue(memberId) &&
+            roomInfo.getMemberMapping().get(1).equals(memberId);
+
+        if (isHost) {
+            log.info("방장의 재입장 시도 - 추가 저장하지 않음: roomId={}, memberId={}", roomId, memberId);
+
+            return;
+        }
+
+        // memberId로 방장 체크
+        if (isHost(roomId, memberId)) {
+            throw new BusinessException(HOST_CANNOT_READY);
+        }
 
         // 이미 다른 방에 있는지 체크
         if (isMemberInRoom(memberId)) {
@@ -114,7 +129,8 @@ public class RoomRedisService {
 
         // 참가자 정보 생성 (회원 ID, 닉네임)
         MemberResponse memberInfo = memberService.getMemberInfo(memberId);  // 멤버 서비스에서 닉네임을 가져옴.
-        Participant participant = new Participant(memberId, memberInfo.getNickname());  // 닉네임은 실제 구현에 맞게 수정 필요
+        Participant participant = new Participant(memberId,
+            memberInfo.getNickname());  // 닉네임은 실제 구현에 맞게 수정 필요
 
         // 참가자 맵과 매핑 맵에 추가
         roomInfo.getParticipant().put(memberId, participant);
