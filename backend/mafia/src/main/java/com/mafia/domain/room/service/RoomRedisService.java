@@ -65,12 +65,11 @@ public class RoomRedisService {
         RoomInfo roomInfo = new RoomInfo(roomId, title, password, requiredPlayer, gameOption);
 
         // 방장 정보 설정 (방장은 항상 1번)
-        Participant host = new Participant();
         MemberResponse memberInfo = memberService.getMemberInfo(hostId);
-        host.setNickName(memberInfo.getNickname());
+        Participant host = new Participant(hostId,memberInfo.getNickname());
 
         // 1번 (방장) 등록
-        roomInfo.getParticipant().put(1, host);      // 참가자 맵:    1번 - 유저 정보
+        roomInfo.getParticipant().put(hostId, host);      // 참가자 맵:    1번 - 유저 정보
         roomInfo.getMemberMapping().put(1, hostId);  // 멤버 매핑 맵: 1번 - 방장 memberId
 
         subscription.subscribe(roomId);
@@ -108,18 +107,17 @@ public class RoomRedisService {
 
         // 새로운 참가자 번호 할당 (가장 작은 빈 번호)
         int newParticipantNo = 2;  // 1번은 방장
-        while (roomInfo.getParticipant().containsKey(newParticipantNo)) {
+        while (roomInfo.getMemberMapping().containsKey(newParticipantNo)) {
             newParticipantNo++;
         }
-        roomInfo.setInitParticipantNo(newParticipantNo);  // 1, 2, 3번에서 2번에 나가고 새로운 유저가 들어오면 2번 할당
+        //roomInfo.setInitParticipantNo(newParticipantNo);  // 1, 2, 3번에서 2번에 나가고 새로운 유저가 들어오면 2번 할당
 
         // 참가자 정보 생성 (회원 ID, 닉네임)
         MemberResponse memberInfo = memberService.getMemberInfo(memberId);  // 멤버 서비스에서 닉네임을 가져옴.
-        Participant participant = new Participant(
-            memberInfo.getNickname());  // 닉네임은 실제 구현에 맞게 수정 필요
+        Participant participant = new Participant(memberId, memberInfo.getNickname());  // 닉네임은 실제 구현에 맞게 수정 필요
 
         // 참가자 맵과 매핑 맵에 추가
-        roomInfo.getParticipant().put(newParticipantNo, participant);
+        roomInfo.getParticipant().put(memberId, participant);
         roomInfo.getMemberMapping().put(newParticipantNo, memberId);  // memberMapping 추가
 
         redisRepository.save(roomId, roomInfo);
@@ -130,9 +128,10 @@ public class RoomRedisService {
     /**
      * 방 퇴장 처리 - 방장 퇴장시 방 삭제, 일반 유저는 참가자 목록에서 제거
      */
-    public void leaveRoom(Long roomId, Long memberId, Integer participantNo) {
+    public void leaveRoom(Long roomId, Long memberId) {
         RoomInfo roomInfo = findById(roomId);
-        log.info("유저 방 퇴장: roomId={}, memberId={}, participantNo={}",
+        int participantNo = roomInfo.getpartNoByMemberId(memberId);
+        log.info("유저 방 퇴장: roomId={}, memberId={}, 참가자 번호={}",
             roomId, memberId, participantNo);
 
         // 방장(1번) 퇴장이면 바로 방 삭제
@@ -143,7 +142,7 @@ public class RoomRedisService {
         }
 
         // 일반 참가자 퇴장: 두 맵에서 모두 제거
-        roomInfo.getParticipant().remove(participantNo);
+        roomInfo.getParticipant().remove(memberId);
         roomInfo.getMemberMapping().remove(participantNo);
         redisRepository.save(roomId, roomInfo);
 
@@ -169,15 +168,15 @@ public class RoomRedisService {
             throw new BusinessException(CANNOT_KICK_HOST);
         }
 
-        leaveRoom(roomId, roomInfo.getMemberMapping().get(targetParticipantNo),
-            targetParticipantNo);
+        leaveRoom(roomId, roomInfo.getMemberMapping().get(targetParticipantNo));
     }
 
     /**
      * 게임 준비 상태 토글 - 방장 제외 참가자의 준비 상태 변경
      */
-    public void toggleReady(Long roomId, Long memberId, Integer participantNo) {
+    public void toggleReady(Long roomId, Long memberId) {
         RoomInfo roomInfo = findById(roomId);
+        int participantNo = roomInfo.getpartNoByMemberId(memberId);
         log.info("준비상태 토글: roomId={}, participantNo={}", roomId, participantNo);
 
         // 디버깅을 위한 로그 추가
@@ -190,9 +189,7 @@ public class RoomRedisService {
         }
 
         // 참가자 정보 조회
-        Participant participant = roomInfo.getParticipant()
-            .get(participantNo);  // 키가 없으면
-        System.out.println(participant + " ########");
+        Participant participant = roomInfo.getParticipant().get(memberId);  // 키가 없으면
         if (participant == null) {
             throw new BusinessException(PLAYER_NOT_FOUND);
         }

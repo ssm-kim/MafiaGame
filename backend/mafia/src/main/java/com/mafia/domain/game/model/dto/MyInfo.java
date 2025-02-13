@@ -36,7 +36,7 @@ public class MyInfo {
 
     MyInfo(Integer playerNo, Player player){
         this.playerNo = playerNo;
-        this.nickname = player.getNickname();
+        this.nickname = player.getNickName();
         this.subscriptions = player.getSubscriptions();
         this.isDead = player.isDead();
         this.role = player.getRole();

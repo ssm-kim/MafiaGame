@@ -1,6 +1,7 @@
 package com.mafia.domain.game.model.game;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mafia.domain.room.model.redis.Participant;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -83,18 +84,17 @@ public class Game implements Serializable { // 필드정리
         log.info("round 진행- 초기화완료");
     }
 
-//    public void addPlayer(Participant participant) {
-//        for (Player p : players.values()) {
-//            if (p.getMemberId().equals(participant.getMemberId())) {
-//                log.info("[Game{}] User {} is already in the game", gameId,
-//                    participant.getMemberId());
-//                return;
-//            }
-//        }
-//        Player player = new Player(participant);
-//        players.put(participant.getMemberId(), player);
-//        map_players.put(players.size(), participant.getMemberId());
-//    }
+    public void addPlayer(Participant participant) {
+        for (Player p : players.values()) {
+            if (p.getMemberId().equals(participant.getMemberId())) {
+                log.info("[Game{}] User {} is already in the game", gameId,
+                    participant.getMemberId());
+                return;
+            }
+        }
+        Player player = new Player(participant);
+        players.put(participant.getMemberId(), player);
+    }
 
     public void startGame() {
         this.status = STATUS.PLAYING;

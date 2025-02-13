@@ -37,7 +37,7 @@ public class GameInfoDto {
             Player player = players.get(map.get(i));
             PlayerInfo playerInfo = new PlayerInfo();
             playerInfo.setPlayerNo(i);
-            playerInfo.setNickname(player.getNickname());
+            playerInfo.setNickname(player.getNickName());
             playersInfo.put(i, playerInfo);
         }
         this.status = game.getStatus();
