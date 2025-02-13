@@ -11,18 +11,6 @@ public class RoomMessages {
     }
 
     @Data
-    public static class LeaveMessage {
-
-        private Integer participantNo;  // 참가자 번호
-    }
-
-    @Data
-    public static class ReadyMessage {
-
-        private Integer participantNo;  // 참가자 번호
-    }
-
-    @Data
     public static class KickMessage {
 
         private Integer hostParticipantNo;    // 방장의 참가자 번호 (항상 1)

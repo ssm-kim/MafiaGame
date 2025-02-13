@@ -65,15 +65,14 @@ public class RoomWebSocketController {
     @MessageMapping("/room/leave/{roomId}")
     public void handleRoomLeave(
         @DestinationVariable Long roomId,
-        @Payload RoomMessages.LeaveMessage message,
         @AuthenticationPrincipal StompPrincipal detail
     ) {
         long memberId = Long.parseLong(detail.getName());
-        log.info("방 퇴장 요청 - 방 번호: {}, memberId: {}, 참가자 번호: {}",
-            roomId, memberId, message.getParticipantNo());
+        log.info("방 퇴장 요청 - 방 번호: {}, memberId: {}",
+            roomId, memberId);
 
         boolean isHost = roomRedisService.isHost(roomId, memberId);
-        roomRedisService.leaveRoom(roomId, memberId, message.getParticipantNo());
+        roomRedisService.leaveRoom(roomId, memberId);
         if (isHost) {
             roomDbService.deleteRoom(roomId);
         } else {
@@ -106,14 +105,13 @@ public class RoomWebSocketController {
     @MessageMapping("/room/ready/{roomId}")
     public void handleReadyToggle(
         @DestinationVariable Long roomId,
-        @Payload RoomMessages.ReadyMessage message,
         @AuthenticationPrincipal StompPrincipal detail
     ) {
         long memberId = Long.parseLong(detail.getName());
         log.info("준비 상태 변경 - 방 번호: {}, memberId: {}, 참가자 번호: {}",
-            roomId, memberId, message.getParticipantNo());
+            roomId, memberId);
 
-        roomRedisService.toggleReady(roomId, memberId, message.getParticipantNo());
+        roomRedisService.toggleReady(roomId, memberId);
         messageService.sendRoomUpdate(roomId);
     }
 
