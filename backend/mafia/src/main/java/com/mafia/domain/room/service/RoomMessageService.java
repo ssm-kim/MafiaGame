@@ -1,9 +1,13 @@
 package com.mafia.domain.room.service;
 
+import com.mafia.domain.room.model.redis.Participant;
 import com.mafia.domain.room.model.redis.RoomInfo;
+import com.mafia.domain.room.model.response.RoomParticipantResponse;
 import com.mafia.domain.room.model.response.RoomResponse;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
@@ -40,11 +44,28 @@ public class RoomMessageService {
     }
 
     /**
-     * 특정 방의 실시간 정보를 해당 방 참가자들에게 전송
+     * 방 참가자들에게 실시간 참가자 정보를 전송
      */
     public void sendRoomUpdate(Long roomId) {
         RoomInfo roomInfo = roomRedisService.findById(roomId);
         log.info("방 정보 업데이트 - 방 번호: {}", roomId);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomInfo);
+
+        // participantNo를 키로 하는 Map으로 구성하여 프론트엔드에서 쉽게 참가자 정보를 업데이트할 수 있도록 함
+        Map<Integer, RoomParticipantResponse> participantInfo = new HashMap<>();
+
+        for (Entry<Integer, Long> entry : roomInfo.getMemberMapping().entrySet()) {
+            int participantNo = entry.getKey();
+            long memberId = entry.getValue();
+            Participant participant = roomInfo.getParticipant().get(memberId);
+
+            RoomParticipantResponse response = RoomParticipantResponse.builder()
+                .participantNo(participantNo)
+                .nickname(participant.getNickName())
+                .isReady(participant.isReady())
+                .build();
+            participantInfo.put(participantNo, response);
+        }
+
+        messagingTemplate.convertAndSend("/topic/room/" + roomId, participantInfo);
     }
 }
