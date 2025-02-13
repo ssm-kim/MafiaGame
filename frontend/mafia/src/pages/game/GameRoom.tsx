@@ -195,20 +195,23 @@ function GameRoom(): JSX.Element {
         if (stompClient) {
           // 방 상태 업데이트 구독
           roomSubscription = roomApi.subscribeRoom(Number(roomId), (participantsInfo) => {
-            if (participantsInfo.message) {
-              console.log(`${participantsInfo.message} 그래서 너도 나가`);
-              navigate('/game-lobby');
-            }
+            // if (participantsInfo.message) {
+            //   console.log(`${participantsInfo.message} 그래서 너도 나가`);
+            //   navigate('/game-lobby');
+            // }
 
-            // let isHostLeft = false;
+            let isHostLeft = true;
+            console.log(participantsInfo);
 
-            // Object.values(participantsInfo).forEach((participantInfo) => {
-            //   if (participantInfo.participantNo === 1) {
-            //     isHostLeft = true;
-            //   }
-            // });
+            Object.values(participantsInfo).forEach((participantInfo) => {
+              if (participantInfo.participantNo === 1) {
+                isHostLeft = false;
+              }
+            });
 
-            // if (isHostLeft) return navigate('/game-lobby');
+            console.log(isHostLeft);
+
+            if (isHostLeft) return navigate('/game-lobby');
 
             // 방이 없어졌거나 참가자 목록이 비어있으면 로비로 이동
             if (!participantsInfo) {
