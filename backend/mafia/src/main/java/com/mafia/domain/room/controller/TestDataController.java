@@ -50,6 +50,8 @@ public class TestDataController {
             redisRepository.save(1000L, room1);
             redisRepository.save(2000L, room2);
 
+            gameService.startGame(1000L);
+
             log.info("더미 데이터 초기화 완료 - 두 개의 방이 생성됨");
             //roomRedisService.createRoomInfo(2L, 13L, 3, "테스트방 2", null, new GameOption());
             //gameService.startGame(2L);

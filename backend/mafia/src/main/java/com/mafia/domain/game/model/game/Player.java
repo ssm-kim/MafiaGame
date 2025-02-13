@@ -18,7 +18,7 @@ public class Player {
     private Long memberId;
 
     @Schema(description = "플레이어의 닉네임", example = "Gamer123")
-    private String nickname;
+    private String nickName;
 
     @Schema(description = "플레이어의 역할", example = "CITIZEN", allowableValues = {"CITIZEN", "ZOMBIE",
         "MUTANT", "POLICE", "PLAGUE_DOCTOR"})
@@ -44,7 +44,7 @@ public class Player {
 
     public Player(Participant participant) {
         this.memberId = participant.getMemberId();
-        this.nickname = participant.getNickName();
+        this.nickName = participant.getNickName();
         this.role = Role.CITIZEN;
         this.subscriptions = new HashSet<>();
         this.isDead = false;
