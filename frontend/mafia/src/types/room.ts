@@ -2,7 +2,7 @@ export interface Room {
   roomId: number;
   roomTitle: string;
   initParticipantNo: number;
-  // roomStatus: boolean; // false(대기방), true(게임 진행 중)
+  roomStatus: boolean; // false(대기방), true(게임 진행 중)
   roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
   roomOption: string;
   requiredPlayers: number;

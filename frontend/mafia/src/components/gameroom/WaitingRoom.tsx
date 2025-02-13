@@ -1,22 +1,11 @@
-// import React from 'react';
-
-// import { useEffect } from 'react';
+import React from 'react';
 import PlayerCard from './PlayerCard';
 import ActionButton from './WatingButton';
 import { Player } from '@/types/player';
 
-// interface WaitingRoomProps {
-//   players: Player[];
-//   isHost: boolean;
-//   requiredPlayers: number;
-//   onReady: () => void;
-//   onStart: () => void;
-// }
-
 interface WaitingRoomProps {
   players: Player[];
   isHost: boolean;
-  // currentPlayerId: number;
   requiredPlayers: number;
   onReady: () => Promise<void>;
   onStart: () => Promise<void>;
@@ -29,45 +18,51 @@ function WaitingRoom({
   onReady,
   onStart,
 }: WaitingRoomProps): JSX.Element {
-  // 빈 자리를 포함한 전체 플레이어 배열 생성
-
+  console.log('WaitingRoom - props:', { isHost, players });
   const paddedPlayers = [
     ...players,
     ...Array(Math.max(0, requiredPlayers - players.length)).fill(undefined),
   ];
 
   return (
-    <div className="w-full h-full bg-gray-900 bg-opacity-80 p-6">
-      {/* 대기실 타이틀 */}
-      <div className="mb-8 flex justify-between items-center">
+    <div className="w-full h-full bg-gray-900 bg-opacity-80 p-4 flex flex-col">
+      {/* 생존자 현황 헤더 */}
+      <div className="flex flex-nowrap justify-between items-center mb-6">
         <h2
-          className="text-2xl text-red-500"
+          className="text-xl text-red-500 whitespace-nowrap"
           style={{ fontFamily: 'BMEuljiro10yearslater' }}
         >
           생존자 현황
         </h2>
-        <div className="text-gray-400">
+        <span className="text-gray-400 ml-2 whitespace-nowrap">
           {players.length}/{requiredPlayers}
-        </div>
+        </span>
       </div>
 
-      {/* 플레이어 목록 */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      {/* 플레이어 그리드 - 화면을 최대한 활용 */}
+      <div className="grid grid-cols-2 gap-4 mb-6 flex-grow w-full px-2">
         {paddedPlayers.map((player, index) => (
-          <PlayerCard
-            key={player?.id || index}
-            player={player}
-          />
+          <div
+            // player가 있으면 player.id를, 없으면 `empty-${index}`를 키로 사용
+            key={player ? `player-${player.id}` : `empty-${index}`}
+            className="w-full"
+          >
+            <PlayerCard
+              player={player}
+              className="w-full min-h-[120px] md:min-h-[150px] lg:min-h-[180px]"
+            />
+          </div>
         ))}
       </div>
 
-      {/* 버튼 영역 */}
-      <div className="flex justify-center gap-4">
+      {/* 준비/시작 버튼 */}
+      <div className="flex justify-center mt-auto pb-4">
         <ActionButton
           isHost={isHost}
           players={players}
           onReady={onReady}
           onStart={onStart}
+          className="w-32"
         />
       </div>
     </div>
@@ -75,67 +70,3 @@ function WaitingRoom({
 }
 
 export default WaitingRoom;
-
-// import PlayerCard from './PlayerCard';
-// import ActionButton from './WatingButton';
-// import { Player } from '@/types/player';
-
-// interface WaitingRoomProps {
-//   players: Player[];
-//   isHost: boolean;
-//   // currentPlayerId: number;
-//   requiredPlayers: number;
-//   onReady: () => void;
-//   onStart: () => void;
-// }
-
-// function WaitingRoom({
-//   players,
-//   isHost,
-//   // currentPlayerId,
-//   requiredPlayers,
-//   onReady,
-//   onStart,
-// }: WaitingRoomProps): JSX.Element {
-//   console.log('Original players:', players);
-//   const paddedPlayers = [...players, ...Array(requiredPlayers - players.length).fill(undefined)];
-//   console.log('Padded players:', paddedPlayers);
-//   return (
-//     <div className="w-full h-full bg-gray-900 bg-opacity-80 p-6">
-//       {/* 대기실 타이틀 */}
-//       <div className="mb-8 flex justify-between items-center">
-//         <h2
-//           className="text-2xl text-red-500"
-//           style={{ fontFamily: 'BMEuljiro10yearslater' }}
-//         >
-//           생존자 현황
-//         </h2>
-//         <div className="text-gray-400">
-//           {players.length}/{requiredPlayers}
-//         </div>
-//       </div>
-
-//       {/* 플레이어 목록 */}
-//       <div className="grid grid-cols-2 gap-4 mb-8">
-//         {paddedPlayers.map((player, index) => (
-//           <PlayerCard
-//             key={index}
-//             player={player}
-//           />
-//         ))}
-//       </div>
-
-//       {/* 버튼 영역 */}
-//       <div className="flex justify-center gap-4">
-//         <ActionButton
-//           isHost={isHost}
-//           players={players}
-//           onReady={onReady}
-//           onStart={onStart}
-//         />
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default WaitingRoom;

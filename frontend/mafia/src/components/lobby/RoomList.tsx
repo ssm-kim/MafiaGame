@@ -22,6 +22,7 @@ export function RoomList({ rooms, searchTerm, onJoinRoom }: RoomListProps): JSX.
               roomId: room.roomId,
               roomTitle: room.roomTitle,
               curPlayers: room.peopleCnt || 0,
+              requiredPlayers: room.requiredPlayers,
             }}
             onJoin={() => onJoinRoom(room.roomId)}
           />
