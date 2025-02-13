@@ -1,5 +1,4 @@
 /* eslint-disable react/require-default-props */
-
 import { Player } from '@/types/player';
 
 interface PlayerCardProps {
@@ -12,7 +11,7 @@ function PlayerCard({ player, isHost, onKick }: PlayerCardProps): JSX.Element {
   return (
     <div
       className={`p-4 rounded-lg border relative group
-        ${player ? 'bg-gray-800 border-gray-700' : 'bg-gray-800 bg-opacity-50 border-gray-800'}`}
+       ${player ? 'bg-gray-800 border-gray-700' : 'bg-gray-800 bg-opacity-50 border-gray-800'}`}
     >
       {player ? (
         <div className="flex justify-between items-center">
@@ -35,8 +34,8 @@ function PlayerCard({ player, isHost, onKick }: PlayerCardProps): JSX.Element {
                   onKick?.(player.participantNo);
                 }}
                 className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 
-                          hover:text-red-500 p-1 rounded-full hover:bg-red-500/10
-                          w-6 h-6 flex items-center justify-center text-sm font-bold"
+                         hover:text-red-500 p-1 rounded-full hover:bg-red-500/10
+                         w-6 h-6 flex items-center justify-center text-sm font-bold"
                 title="강퇴하기"
               >
                 ×

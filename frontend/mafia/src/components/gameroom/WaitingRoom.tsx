@@ -1,7 +1,6 @@
 import PlayerCard from './PlayerCard';
 import ActionButton from './WatingButton';
 import { Player } from '@/types/player';
-import roomApi from '@/api/roomApi';
 
 interface WaitingRoomProps {
   players: Player[];
@@ -52,23 +51,8 @@ function WaitingRoom({
               player={player}
               isHost={isHost}
               onKick={async (playerNo) => {
-                if (!roomId) {
-                  console.error('방 ID가 없습니다');
-                  return;
-                }
-
                 if (confirm('정말 강퇴하시겠습니까?')) {
-                  try {
-                    console.log('강퇴 시도 - 상세정보:', {
-                      roomId,
-                      playerNo,
-                      isHost,
-                    });
-                    await roomApi.kickMember(roomId, playerNo);
-                  } catch (error) {
-                    console.error('강퇴 처리 중 오류:', error);
-                    alert('강퇴 처리 중 오류가 발생했습니다.');
-                  }
+                  await roomApi.kickMember(roomId, playerNo);
                 }
               }}
             />
@@ -83,7 +67,7 @@ function WaitingRoom({
           players={players}
           onReady={onReady}
           onStart={onStart}
-          // className="w-32"
+          className="w-32"
         />
       </div>
     </div>

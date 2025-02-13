@@ -1,6 +1,6 @@
 import { Stomp } from '@stomp/stompjs';
 import api from '@/api/axios';
-import { Room, GameStartResponse, ParticipantsInfo } from '@/types/room';
+import { Room, GameStartResponse } from '@/types/room';
 
 interface ApiResponse<T> {
   isSuccess: boolean;
@@ -84,16 +84,49 @@ const roomApi = {
     });
   },
 
+  // // 방 구독
+  // subscribeRoom: (roomId: number, onRoomUpdate: (roomInfo: Room) => void) => {
+  //   console.log('방 구독');
+  //   if (!stompClient) return;
+  //   const stompClientSubscription = stompClient.subscribe(
+  //     `/topic/room/${roomId}`,
+  //     (message: any) => {
+  //       console.log(JSON.parse(message.body));
+  //       try {
+  //         const roomInfo = JSON.parse(message.body);
+  //         onRoomUpdate(roomInfo);
+  //       } catch (error) {
+  //         console.error('Error processing room info:', error);
+  //       }
+  //     },
+  //   );
+
+  //   return stompClientSubscription;
+  // },
   // 방 구독
-  subscribeRoom: (roomId: number, onRoomUpdate: (participantInfo: ParticipantsInfo) => void) => {
+  subscribeRoom: (roomId: number, onRoomUpdate: (roomInfo: Room) => void) => {
     console.log('방 구독');
     if (!stompClient) return;
     const stompClientSubscription = stompClient.subscribe(
       `/topic/room/${roomId}`,
       (message: any) => {
-        console.log(JSON.parse(message.body));
+        console.log('받은 메시지:', JSON.parse(message.body));
         try {
           const roomInfo = JSON.parse(message.body);
+
+          // 강퇴 메시지인 경우
+          if ('message' in roomInfo) {
+            console.log('메시지 확인:', roomInfo.message);
+            if (roomInfo.message && typeof roomInfo.message === 'string') {
+              if (roomInfo.message.includes('강제퇴장') || roomInfo.message.includes('강퇴')) {
+                alert('강퇴되었습니다.');
+                // 상위 컴포넌트에 강퇴 상태를 전달
+                onRoomUpdate({ ...roomInfo, isKicked: true });
+                return;
+              }
+            }
+          }
+
           onRoomUpdate(roomInfo);
         } catch (error) {
           console.error('Error processing room info:', error);
