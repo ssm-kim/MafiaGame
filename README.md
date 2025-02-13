@@ -64,6 +64,8 @@ blue,green에 depends_on mysql 제거(이미 컨테이너 실행중)
 
 ## 시크릿파일 적용
 
+## Redis 비번 추가
+
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**
