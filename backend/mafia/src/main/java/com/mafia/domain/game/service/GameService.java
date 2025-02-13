@@ -143,9 +143,9 @@ public class GameService {
         RoomInfo roominfo = roomService.findById(roomId);
 
         Game game = new Game(roomId, roominfo.getGameOption());
-
+        game.setMap_players(roominfo.getMemberMapping());
         // 게임에 참가할 플레이어를 추가한다.
-        // roominfo.getParticipant().values().forEach(game::addPlayer);
+        roominfo.getParticipant().values().forEach(game::addPlayer);
 
         return game;
     }
