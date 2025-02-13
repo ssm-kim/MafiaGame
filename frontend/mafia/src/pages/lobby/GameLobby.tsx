@@ -44,6 +44,7 @@ function GameLobby() {
 
         // 로비 구독
         roomApi.subscribeLobby((updatedRooms) => {
+          console.log('Lobby subscription update:', updatedRooms);
           setRooms(updatedRooms);
         });
 
@@ -52,7 +53,8 @@ function GameLobby() {
           roomApi.getRooms(),
           api.get('/api/member'),
         ]);
-
+        console.log('Initial rooms data:', roomsResponse.data.result);
+        console.log('roomApi.getRooms() response:', roomsResponse.data.result);
         setRooms(roomsResponse.data.result);
         if (userResponse.data.isSuccess) {
           setNickname(userResponse.data.result.nickname);

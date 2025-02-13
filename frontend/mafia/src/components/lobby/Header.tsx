@@ -1,8 +1,10 @@
 // import React from 'react';
 
+import { ReactElement } from 'react';
+
 interface HeaderProps {
-  title: string;
-  subtitle: string;
+  title: ReactElement;
+  subtitle: ReactElement;
 }
 
 export function Header({ title, subtitle }: HeaderProps) {

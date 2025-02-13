@@ -1,7 +1,7 @@
-import React from 'react';
 import PlayerCard from './PlayerCard';
 import ActionButton from './WatingButton';
 import { Player } from '@/types/player';
+import roomApi from '@/api/roomApi';
 
 interface WaitingRoomProps {
   players: Player[];
@@ -9,6 +9,7 @@ interface WaitingRoomProps {
   requiredPlayers: number;
   onReady: () => Promise<void>;
   onStart: () => Promise<void>;
+  roomId: number;
 }
 
 function WaitingRoom({
@@ -17,6 +18,7 @@ function WaitingRoom({
   requiredPlayers,
   onReady,
   onStart,
+  roomId,
 }: WaitingRoomProps): JSX.Element {
   console.log('WaitingRoom - props:', { isHost, players });
   const paddedPlayers = [
@@ -43,13 +45,32 @@ function WaitingRoom({
       <div className="grid grid-cols-2 gap-4 mb-6 flex-grow w-full px-2">
         {paddedPlayers.map((player, index) => (
           <div
-            // player가 있으면 player.id를, 없으면 `empty-${index}`를 키로 사용
             key={player ? `player-${player.id}` : `empty-${index}`}
             className="w-full"
           >
             <PlayerCard
               player={player}
-              className="w-full min-h-[120px] md:min-h-[150px] lg:min-h-[180px]"
+              isHost={isHost}
+              onKick={async (playerNo) => {
+                if (!roomId) {
+                  console.error('방 ID가 없습니다');
+                  return;
+                }
+
+                if (confirm('정말 강퇴하시겠습니까?')) {
+                  try {
+                    console.log('강퇴 시도 - 상세정보:', {
+                      roomId,
+                      playerNo,
+                      isHost,
+                    });
+                    await roomApi.kickMember(roomId, playerNo);
+                  } catch (error) {
+                    console.error('강퇴 처리 중 오류:', error);
+                    alert('강퇴 처리 중 오류가 발생했습니다.');
+                  }
+                }
+              }}
             />
           </div>
         ))}
@@ -62,7 +83,7 @@ function WaitingRoom({
           players={players}
           onReady={onReady}
           onStart={onStart}
-          className="w-32"
+          // className="w-32"
         />
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { Stomp } from '@stomp/stompjs';
 import api from '@/api/axios';
-import { Room, GameStartResponse } from '@/types/room';
+import { Room, GameStartResponse, ParticipantsInfo } from '@/types/room';
 
 interface ApiResponse<T> {
   isSuccess: boolean;
@@ -85,7 +85,7 @@ const roomApi = {
   },
 
   // 방 구독
-  subscribeRoom: (roomId: number, onRoomUpdate: (roomInfo: Room) => void) => {
+  subscribeRoom: (roomId: number, onRoomUpdate: (participantInfo: ParticipantsInfo) => void) => {
     console.log('방 구독');
     if (!stompClient) return;
     const stompClientSubscription = stompClient.subscribe(
@@ -197,6 +197,41 @@ const roomApi = {
     });
   },
 
+  // 강퇴
+
+  kickMember: async (roomId: number, targetParticipantNo: number): Promise<WebSocketResponse> => {
+    if (!stompClient) {
+      await roomApi.initializeWebSocket();
+    }
+
+    if (!roomId) {
+      console.error('방 ID가 없습니다.');
+      throw new Error('방 ID가 필요합니다.');
+    }
+
+    console.log('강퇴 요청 파라미터:', {
+      roomId,
+      targetParticipantNo,
+      destination: `/app/room/kick/${roomId}`,
+      message: { targetParticipantNo },
+    });
+
+    return new Promise((resolve, reject) => {
+      try {
+        stompClient.send(
+          `/app/room/kick/${roomId}`,
+          {},
+          JSON.stringify({
+            targetParticipantNo: Number(targetParticipantNo),
+          }),
+        );
+        resolve({ data: { isSuccess: true, result: [] } });
+      } catch (error) {
+        console.error('강퇴 요청 실패:', error);
+        reject(error);
+      }
+    });
+  },
   // WebSocket 연결 해제
   disconnect: () => {
     if (stompClient) {

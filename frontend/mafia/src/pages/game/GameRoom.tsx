@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import roomApi from '@/api/roomApi';
-import { Room, GameStartResponse } from '@/types/room';
+import { Room, GameStartResponse, ParticipantsInfo } from '@/types/room';
 import { ChatMessage } from '@/types/chat';
 import GameHeader from '@/components/gameroom/GameHeader';
 import GameStatus from '@/components/gameroom/GameStatus';
@@ -30,7 +30,7 @@ function GameRoom(): JSX.Element {
   const [gameState, setGameState] = useState<Room | null>(null);
 
   const [participantNo, setParticipantNo] = useState<number | null>(null);
-  const [participants, setParticipants] = useState(null);
+  const [participants, setParticipants] = useState<ParticipantsInfo | null>(null);
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [isHost, setIsHost] = useState(false);
@@ -107,8 +107,9 @@ function GameRoom(): JSX.Element {
     const playersList: Player[] = [];
 
     // 현재 플레이어의 participantNo를 찾음
-    let currentParticipant;
-    Object.entries(participants).forEach(([id, p]) => {
+    let currentParticipant = null as Participant | null;
+
+    Object.entries(participants).forEach(([_, p]) => {
       if (p.memberId === currentPlayerId) {
         currentParticipant = p;
       }
@@ -197,13 +198,20 @@ function GameRoom(): JSX.Element {
         if (stompClient) {
           // 방 상태 업데이트 구독
           roomSubscription = roomApi.subscribeRoom(Number(roomId), (participantsInfo) => {
-            if (participantsInfo.message) {
-              console.log(`${participantsInfo.message} 그래서 저도 나가볼게요ㅠㅠ..`);
-              navigate('/game-lobby');
-            }
-            // if (!participantNo) {
-            //   setParticipantNo(roomInfo.initParticipantNo);
+            // if (participantsInfo.message) {
+            //   console.log(`${participantsInfo.message} 그래서 너도 나가`);
+            //   navigate('/game-lobby');
             // }
+
+            let isHostLeft = false;
+
+            Object.values(participantsInfo).forEach((participantInfo) => {
+              if (participantInfo.participantNo === 1) {
+                isHostLeft = true;
+              }
+            });
+
+            if (isHostLeft) return navigate('/game-lobby');
 
             // 방이 없어졌거나 참가자 목록이 비어있으면 로비로 이동
             if (!participantsInfo) {
@@ -214,6 +222,31 @@ function GameRoom(): JSX.Element {
             // setGameState(roomInfo);
             setParticipants(participantsInfo);
           });
+          // roomSubscription = roomApi.subscribeRoom(Number(roomId), (participantsInfo) => {
+          //   if (participantsInfo.message) {
+          //     // 강퇴 메시지 확인
+          //     if (
+          //       participantsInfo.message.includes('강제퇴장') ||
+          //       participantsInfo.message.includes('강퇴')
+          //     ) {
+          //       alert('강퇴되었습니다.');
+          //       navigate('/game-lobby');
+          //       return;
+          //     }
+          //     // 다른 메시지(방장 퇴장 등) 처리
+          //     console.log(`${participantsInfo.message} 그래서 너도 나가`);
+          //     navigate('/game-lobby');
+          //     return;
+          //   }
+
+          //   // 방이 없어졌거나 참가자 목록이 비어있으면 로비로 이동
+          //   if (!participantsInfo) {
+          //     alert('방이 삭제되었습니다.');
+          //     navigate('/game-lobby');
+          //     return;
+          //   }
+          //   setParticipants(participantsInfo);
+          // });
 
           // 채팅 구독
           chatSubscription = stompClient.subscribe(
@@ -349,9 +382,9 @@ function GameRoom(): JSX.Element {
           roomId={roomId || ''}
           gameState={gameState}
           onLeave={handleLeaveRoom}
-          onReady={handleReadyState}
-          onStart={handleGameStart}
-          isHost={isHost}
+          // onReady={handleReadyState}
+          // onStart={handleGameStart}
+          // isHost={isHost}
         />
 
         <div className="flex h-full gap-4 pt-16">
@@ -363,6 +396,7 @@ function GameRoom(): JSX.Element {
                 requiredPlayers={requiredPlayers}
                 onReady={handleReadyState}
                 onStart={handleGameStart}
+                roomId={Number(roomId)}
               />
             ) : (
               <div className="w-full h-full bg-gray-900 bg-opacity-80 rounded-lg border border-gray-800">

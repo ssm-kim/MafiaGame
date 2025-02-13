@@ -2,8 +2,7 @@ export interface Room {
   roomId: number;
   roomTitle: string;
   initParticipantNo: number;
-  roomStatus: boolean; // false(대기방), true(게임 진행 중)
-  roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
+  roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED'; // 문자열 타입으로 통일
   roomOption: string;
   requiredPlayers: number;
   isVoice: boolean;
@@ -12,6 +11,10 @@ export interface Room {
   hostId: number;
   participant: Record<string, Participant>;
   isNight?: boolean;
+}
+
+export interface ParticipantsInfo {
+  [key: number]: Participant;
 }
 
 export interface Participant {
@@ -26,7 +29,7 @@ export interface GameStartResponse {
   roomId: number;
   hostId: number;
   readyCnt: number;
-  roomStatus: boolean;
+  roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED'; // Room 인터페이스와 같은 타입으로 변경
   participant: Record<string, Participant>;
   gameOption: {
     maxPlayer: number;
@@ -38,70 +41,3 @@ export interface GameStartResponse {
     requiredPlayers: number;
   };
 }
-
-// export interface Room {
-//     id: string;
-//     name: string;
-//     requiredPlayers: number;
-//     currentPlayers: number;
-//     password?: string;
-//     gameStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
-//     timePhase?: 'DAY' | 'NIGHT' | 'VOTE';
-//     mafia: number;
-//     police: number;
-//     doctor: number;
-//     dayTime: number;
-//     nightTime: number;
-//     voteTime: number;
-//   }
-
-// export interface Room {
-//   roomId: number;
-//   roomTitle: string;
-//   roomStatus: boolean; // false(대기방), true(게임 진행 중)
-//   roomOption: string;
-//   requiredPlayers: number;
-//   isVoice: boolean;
-//   createdAt: string;
-//   curPlayers: number;
-//   hostId: number;
-//   participant: Record<string, Participant>;
-//   maxPlayer?: number;
-// }
-
-// interface Participant {
-//   memberId: number;
-//   nickName: string;
-//   ready: boolean;
-// }
-
-// export interface GameStartResponse {
-//   roomId: number;
-//   hostId: number;
-//   readyCnt: number;
-//   roomStatus: boolean;
-//   participant: {
-//     [key: string]: {
-//       memberId: number;
-//       nickName: string;
-//       ready: boolean;
-//     };
-//   };
-//   gameOption: {
-//     zombie: number;
-//     mutant: number;
-//     doctorSkillUsage: number;
-//     nightTimeSec: number;
-//     dayDisTimeSec: number;
-//     requiredPlayers: number;
-//   };
-// }
-
-// interface TestGameHeaderProps {
-//   roomId: string;
-//   gameState: Room | null;
-//   onLeave: () => Promise<void>;
-//   onReady: () => Promise<void>; // 추가
-//   onStart: () => Promise<void>;
-//   isHost: boolean;
-// }
