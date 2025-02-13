@@ -73,10 +73,9 @@ public class RoomWebSocketController {
 
         boolean isHost = roomRedisService.isHost(roomId, memberId);
         roomRedisService.leaveRoom(roomId, memberId);
+        messageService.sendRoomUpdate(roomId);
         if (isHost) {
             roomDbService.deleteRoom(roomId);
-        } else {
-            messageService.sendRoomUpdate(roomId);
         }
         messageService.sendRoomListToAll();
     }
@@ -130,6 +129,7 @@ public class RoomWebSocketController {
         roomRedisService.startGame(roomId, memberId);
         messageService.sendRoomUpdate(roomId);
         messageService.sendRoomListToAll();
+        messageService.sendRoomStart(roomId);
         roomDbService.isActive(roomId);
 
         boolean isStart = gameService.startGame(roomId);
