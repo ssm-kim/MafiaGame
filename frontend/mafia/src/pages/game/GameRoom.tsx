@@ -192,26 +192,36 @@ function GameRoom(): JSX.Element {
         const stompClient = roomApi.getStompClient();
         stompClientRef.current = stompClient;
 
+        const responseNickname = await axios.get('/api/member');
+        const { nickname } = responseNickname.data.result;
+
         if (stompClient) {
           // 방 상태 업데이트 구독
           roomSubscription = roomApi.subscribeRoom(Number(roomId), (participantsInfo) => {
-            // if (participantsInfo.message) {
-            //   console.log(`${participantsInfo.message} 그래서 너도 나가`);
-            //   navigate('/game-lobby');
-            // }
+            console.log(participantNo)
 
+            // 방에서 방장이 있는지 확인 후 없으면 로비로 이동동
             let isHostLeft = true;
-            console.log(participantsInfo);
-
             Object.values(participantsInfo).forEach((participantInfo) => {
               if (participantInfo.participantNo === 1) {
                 isHostLeft = false;
               }
             });
 
-            console.log(isHostLeft);
-
             if (isHostLeft) return navigate('/game-lobby');
+
+            // 새로운 참가자 목록에서 내 닉네임으로 정보 찾기
+            // 중복된 닉네임일시 둘다 퇴장될 가능성 100% 추후 수정 필요
+            const myNewInfo = Object.values(participantsInfo).find((p) => {
+              console.log(nickname);
+              console.log(`p: ${p.nickname}`);
+              return p.nickname === nickname;
+            });
+
+            if (!myNewInfo) {
+              alert(`${!myNewInfo} 강제 퇴장 당하였습니다.`);
+              navigate('/game-lobby');
+            }
 
             // 방이 없어졌거나 참가자 목록이 비어있으면 로비로 이동
             if (!participantsInfo) {

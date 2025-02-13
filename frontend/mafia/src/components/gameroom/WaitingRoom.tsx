@@ -1,3 +1,4 @@
+import roomApi from '@/api/roomApi';
 import PlayerCard from './PlayerCard';
 import ActionButton from './WatingButton';
 import { Player } from '@/types/player';

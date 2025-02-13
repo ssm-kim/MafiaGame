@@ -77,6 +77,8 @@ const roomApi = {
     return stompClient.subscribe('/topic/lobby', (message: any) => {
       try {
         const rooms = JSON.parse(message.body);
+        console.log('###############')
+        console.log(rooms)
         onRoomsUpdate(rooms);
       } catch (error) {
         console.error('Error processing room list:', error);
@@ -201,28 +203,22 @@ const roomApi = {
       await roomApi.initializeWebSocket();
     }
 
-    // 게임 시작 전 조건 체크
-    const roomResponse = await roomApi.getRoom(roomId);
-    const room = roomResponse.data.result;
+    // // 게임 시작 전 조건 체크
+    // const roomResponse = await roomApi.getRoom(roomId);
+    // const room = roomResponse.data.result;
 
-    // 호스트를 제외한 모든 참가자가 준비 상태인지 확인
-    const participants = Object.values(room.participant);
-    const nonHostParticipants = participants.filter((p) => p.participantNo !== 1);
-    const allReady = nonHostParticipants.every((p) => p.ready);
+    // // 호스트를 제외한 모든 참가자가 준비 상태인지 확인
+    // const participants = Object.values(room.participant);
+    // const nonHostParticipants = participants.filter((p) => p.participantNo !== 1);
+    // const allReady = nonHostParticipants.every((p) => p.ready);
 
-    if (!allReady) {
-      throw new Error('모든 참가자가 준비를 완료하지 않았습니다.');
-    }
+    // if (!allReady) {
+    //   throw new Error('모든 참가자가 준비를 완료하지 않았습니다.');
+    // }
 
     return new Promise((resolve, reject) => {
       try {
-        stompClient.send(
-          `/app/room/start/${roomId}`,
-          {},
-          JSON.stringify({
-            participantNo,
-          }),
-        );
+        stompClient.send(`/app/room/start/${roomId}`);
         resolve({ data: { isSuccess: true, result: {} as GameStartResponse } });
       } catch (error) {
         reject(error);

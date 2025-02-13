@@ -33,8 +33,8 @@ function PlayerCard({ player, isHost, onKick }: PlayerCardProps): JSX.Element {
                   e.stopPropagation();
                   onKick?.(player.participantNo);
                 }}
-                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 
-                         hover:text-red-500 p-1 rounded-full hover:bg-red-500/10
+                className="
+                         text-red-500 p-1 rounded-full bg-red-500/10
                          w-6 h-6 flex items-center justify-center text-sm font-bold"
                 title="강퇴하기"
               >
