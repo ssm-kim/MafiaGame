@@ -34,17 +34,17 @@ public class TestDataController {
             RoomInfo room1 = new RoomInfo(1000L, "철수의 테스트방", null, 4, new GameOption());
 
             // 방장(철수) 정보만 설정
-            Participant host1 = new Participant("철수");
+            Participant host1 = new Participant(1001L, "철수");
             host1.setReady(true);
-            room1.getParticipant().put(1, host1);
-            room1.getMemberMapping().put(1, 100L);  // 방장만 매핑
+            room1.getParticipant().put(1001L, host1);
+            room1.getMemberMapping().put(1, 1001L);  // 방장만 매핑
 
             // 두 번째 방도 동일하게
             RoomInfo room2 = new RoomInfo(2000L, "영희의 테스트방", null, 4, new GameOption());
-            Participant host2 = new Participant("영희");
+            Participant host2 = new Participant(2001L, "영희");
             host2.setReady(true);
-            room2.getParticipant().put(1, host2);
-            room2.getMemberMapping().put(1, 200L);
+            room2.getParticipant().put(2001L, host2);
+            room2.getMemberMapping().put(1, 2001L);
 
             // Redis에 저장
             redisRepository.save(1000L, room1);
