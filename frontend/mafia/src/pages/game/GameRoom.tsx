@@ -5,7 +5,7 @@ import roomApi from '@/api/roomApi';
 import { Room, ParticipantMap } from '@/types/room';
 import { ChatMessage } from '@/types/chat';
 import GameHeader from '@/components/gameroom/GameHeader';
-import GameStatus from '@/components/gameroom/GameStatus';
+// import GameStatus from '@/components/gameroom/GameStatus';
 import ChatWindow from '@/components/gameroom/ChatWindow';
 import WaitingRoom from '@/components/gameroom/WaitingRoom';
 import { Player } from '@/types/player';
@@ -168,18 +168,33 @@ function GameRoom(): JSX.Element {
         const { nickname } = responseNickname.data.result;
 
         if (stompClient) {
+          // roomSubscription = roomApi.subscribeRoom(Number(roomId), (message) => {
+          //   if ('gameStart' in message && message.gameStart === 'true') {
+          //     setGameState((prevState) => ({
+          //       // ...(gameState as Room),
+          //       // roomStatus: 'PLAYING',
+          //       ...prevState, // 기존의 모든 상태 유지
+          //       roomStatus: 'PLAYING',
+          //       participant: prevState?.participant || {},
+          //     }));
+
+          //     return;
           roomSubscription = roomApi.subscribeRoom(Number(roomId), (message) => {
             if ('gameStart' in message && message.gameStart === 'true') {
-              setGameState({
-                ...(gameState as Room),
-                roomStatus: 'PLAYING',
-              });
+              setGameState((prevState) => {
+                if (!prevState) return null; // prevState가 null이면 null 반환
 
+                return {
+                  ...prevState, // 기존 상태 모두 유지
+                  roomStatus: 'PLAYING', // roomStatus만 변경
+                };
+              });
               return;
             }
 
             let isHostLeft = true;
-            Object.values(message).forEach((participantInfo) => {
+            // Object.values(message).forEach((participantInfo) => {
+            Object.values(message as ParticipantMap).forEach((participantInfo) => {
               if (participantInfo.participantNo === 1) {
                 isHostLeft = false;
               }
@@ -350,7 +365,7 @@ function GameRoom(): JSX.Element {
               />
             ) : (
               <div className="w-full h-full bg-gray-900 bg-opacity-80 rounded-lg border border-gray-800">
-                <GameStatus gameState={gameState} />
+                {/* <GameStatus gameState={gameState} /> */}
               </div>
             )}
           </div>
