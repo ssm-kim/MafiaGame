@@ -8,12 +8,6 @@ spring:
       blue: blue, secret, prod
       green: green, secret, prod
 
-  management:
-    metrics:
-      export:
-        prometheus:
-          enabled: true
-
 
 
   jpa:
@@ -40,6 +34,20 @@ notification:
     title: "백엔드 에러 로그"
     text: ""
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 ---
 spring:
   config:

@@ -175,6 +175,14 @@ public class GameScheduler {
                 setTime = 15;
             }
             case DAY_VOTE -> {
+                int result = game.voteResult();
+                // JSON 메시지 생성 및 publish
+                String jsonMessage = objectMapper.writeValueAsString(
+                    Map.of("voteresult", String.valueOf(result))
+                );
+
+                gamePublisher.publish("game-" + gameId + "-system", jsonMessage);
+
                 if(game.voteResult() == -1){
                     game.updateVoicePermissions("night"); // 좀비만 음성 채팅 활성화
                     gameSeqRepository.savePhase(gameId, GamePhase.NIGHT_ACTION);
