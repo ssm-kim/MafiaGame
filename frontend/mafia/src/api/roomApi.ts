@@ -1,6 +1,6 @@
 import { Stomp } from '@stomp/stompjs';
 import api from '@/api/axios';
-import { Room, GameStartResponse, ParticipantMap } from '@/types/room';
+import { Room, GameStartResponse, ParticipantMap, GameStart } from '@/types/room';
 
 interface ApiResponse<T> {
   isSuccess: boolean;
@@ -106,7 +106,7 @@ const roomApi = {
   //   return stompClientSubscription;
   // },
   // 방 구독
-  subscribeRoom: (roomId: number, onRoomUpdate: (roomInfo: ParticipantMap) => void) => {
+  subscribeRoom: (roomId: number, onRoomUpdate: (roomInfo: ParticipantMap | GameStart) => void) => {
     console.log('방 구독');
     if (!stompClient) return;
     const stompClientSubscription = stompClient.subscribe(

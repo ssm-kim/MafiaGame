@@ -13,6 +13,10 @@ export interface Room {
   isNight?: boolean;
 }
 
+export interface GameStart {
+  gameStart: string;
+}
+
 export interface ParticipantMap {
   [key: number]: Participant;
 }

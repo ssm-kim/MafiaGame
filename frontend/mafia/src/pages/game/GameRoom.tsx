@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import roomApi from '@/api/roomApi';
-import { Room, GameStartResponse, ParticipantMap } from '@/types/room';
+import { Room, ParticipantMap } from '@/types/room';
 import { ChatMessage } from '@/types/chat';
 import GameHeader from '@/components/gameroom/GameHeader';
 import GameStatus from '@/components/gameroom/GameStatus';
@@ -168,11 +168,18 @@ function GameRoom(): JSX.Element {
         const { nickname } = responseNickname.data.result;
 
         if (stompClient) {
-          roomSubscription = roomApi.subscribeRoom(Number(roomId), (participantsInfo) => {
-            console.log(participantNo);
+          roomSubscription = roomApi.subscribeRoom(Number(roomId), (message) => {
+            if ('gameStart' in message && message.gameStart === 'true') {
+              setGameState({
+                ...(gameState as Room),
+                roomStatus: 'PLAYING',
+              });
+
+              return;
+            }
 
             let isHostLeft = true;
-            Object.values(participantsInfo).forEach((participantInfo) => {
+            Object.values(message).forEach((participantInfo) => {
               if (participantInfo.participantNo === 1) {
                 isHostLeft = false;
               }
@@ -180,19 +187,19 @@ function GameRoom(): JSX.Element {
 
             if (isHostLeft) return navigate('/game-lobby');
 
-            const myNewInfo = Object.values(participantsInfo).find((p) => p.nickname === nickname);
+            const myNewInfo = Object.values(message).find((p) => p.nickname === nickname);
 
             if (!myNewInfo) {
               alert('강제 퇴장 당하였습니다.');
               navigate('/game-lobby');
             }
 
-            if (!participantsInfo) {
+            if (!message) {
               alert('방이 삭제되었습니다.');
               navigate('/game-lobby');
               return;
             }
-            setParticipants(participantsInfo);
+            setParticipants(message as ParticipantMap);
           });
 
           chatSubscription = stompClient.subscribe(
@@ -276,15 +283,17 @@ function GameRoom(): JSX.Element {
         return;
       }
 
-      const response = await roomApi.startGame(Number(roomId));
-      if (response.data.isSuccess) {
-        const gameStartData = response.data.result as GameStartResponse;
-        setGameState((prevState) => ({
-          ...prevState!,
-          roomStatus: gameStartData.roomStatus ? 'PLAYING' : 'WAITING',
-          participant: gameStartData.participant,
-        }));
-      }
+      await roomApi.startGame(Number(roomId));
+
+      // const response = await roomApi.startGame(Number(roomId));
+      // if (response.data.isSuccess) {
+      //   const gameStartData = response.data.result as GameStartResponse;
+      //   setGameState((prevState) => ({
+      //     ...prevState!,
+      //     roomStatus: gameStartData.roomStatus ? 'PLAYING' : 'WAITING',
+      //     participant: gameStartData.participant,
+      //   }));
+      // }
     } catch (error) {
       console.error('Failed to start game:', error);
       if (error instanceof Error) {
