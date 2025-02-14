@@ -77,8 +77,8 @@ const roomApi = {
     return stompClient.subscribe('/topic/lobby', (message: any) => {
       try {
         const rooms = JSON.parse(message.body);
-        console.log('###############')
-        console.log(rooms)
+        console.log('###############');
+        console.log(rooms);
         onRoomsUpdate(rooms);
       } catch (error) {
         console.error('Error processing room list:', error);
