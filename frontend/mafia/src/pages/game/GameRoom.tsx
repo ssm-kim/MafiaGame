@@ -295,6 +295,7 @@ function GameRoom(): JSX.Element {
       //     participant: gameStartData.participant,
       //   }));
       // }
+      // 지우기 가능
     } catch (error) {
       console.error('Failed to start game:', error);
       if (error instanceof Error) {
