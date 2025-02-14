@@ -66,9 +66,13 @@ blue,green에 depends_on mysql 제거(이미 컨테이너 실행중)
 
 무중단 배포(blue, green) 설정 테스트
 
-## 열여덟번째 배포 테스트
+## 열아홉번째 배포 테스트
 
 green -> conf upstream으로 수정
+
+## 스무번째 배포 테스트
+
+green upstream.conf 에서 삭제
 
 ## 시크릿파일 적용
 
