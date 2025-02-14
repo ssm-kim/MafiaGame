@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import setBackground from '@/game/utils/map';
-import { sceneTimeout } from '@/game/utils/time';
+import sceneChanger from '@/game/utils/time';
+// import { sceneTimeout } from '@/game/utils/time';
 
 export default class LastVoteScene extends Phaser.Scene {
   constructor() {
@@ -8,10 +9,12 @@ export default class LastVoteScene extends Phaser.Scene {
   }
 
   init(data) {
+    this.targetPlayerId = data?.targetPlayerId;
+
     this.voteResults = data.voteResults || this.registry.get('voteResults') || {};
     // this.socketService = this.registry.get('socketService');
-    this.sceneTime = sceneTimeout.DAY_FINAL_STATEMENT;
-    this.remainingTime = this.sceneTime / 1000;
+    // this.sceneTime = sceneTimeout.DAY_FINAL_STATEMENT;
+    // this.remainingTime = this.sceneTime / 1000;
     this.hasVoted = false;
     this.finalVote = null;
     this.calculateMostVoted();
@@ -40,6 +43,7 @@ export default class LastVoteScene extends Phaser.Scene {
 
   create() {
     setBackground(this);
+    sceneChanger(this);
     const { width, height } = this.scale.gameSize;
 
     // 중앙 컨테이너 생성
@@ -60,7 +64,7 @@ export default class LastVoteScene extends Phaser.Scene {
 
     // 처형 확인 메시지 (떨림 효과 추가)
     const messageText = this.add
-      .text(width / 2, height * 0.45, `생존자${this.votedPlayer}의 최후 변론`, {
+      .text(width / 2, height * 0.45, `생존자${this.targetPlayerId}의 최후 변론`, {
         fontSize: '32px',
         fill: '#ff0000',
         fontFamily: 'Arial Black',
@@ -103,8 +107,9 @@ export default class LastVoteScene extends Phaser.Scene {
     this.time.delayedCall(3000, () => {
       this.cameras.main.fade(800, 0, 0, 0);
       this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.get('SceneManager').loadSceneData('LastVoteScene');
-        this.scene.stop('StatementScene');
+        // this.scene.get('SceneManager').loadSceneData('LastVoteScene');
+        // this.scene.start('LastVoteScene', { targetPlayerId: this.targetPlayerId });
+        // this.scene.stop('StatementScene');
         // this.scene.start('NightScene');
       });
     });

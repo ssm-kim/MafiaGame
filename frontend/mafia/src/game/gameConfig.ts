@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import UIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin';
 import GameOverScene from '@/game/scenes/GameOverScene';
 import MainScene from '@/game/scenes/MainScene';
-import LoadingScene from '@/game/scenes/LoadingScene';
+// import LoadingScene from '@/game/scenes/LoadingScene';
 import StartScene from '@/game/scenes/StartScene';
 import VoteScene from '@/game/scenes/VoteScene';
 import StatementScene from '@/game/scenes/StatementScene';
@@ -15,7 +15,7 @@ import NightScene from '@/game/scenes/NightScene';
 
 const scenes = [
   SceneManager,
-  LoadingScene,
+  // LoadingScene,
   StartScene,
   MainScene,
   NightScene,

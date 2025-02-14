@@ -1,6 +1,7 @@
-import axios from 'axios';
 import BaseScene from '@/game/scenes/BaseScene';
 import GamePhases from '@/types/game';
+import sceneChanger from '@/game/utils/time';
+import setBackground from '@/game/utils/map';
 
 export default class LoadingScene extends BaseScene {
   constructor() {
@@ -38,17 +39,6 @@ export default class LoadingScene extends BaseScene {
     });
   }
 
-  async getgameData() {
-    try {
-      // 응답 성공
-      const response = await axios.get(`http://localhost:8080/api/game/1`);
-      console.log(response);
-    } catch (error) {
-      // 응답 실패
-      console.error(error);
-    }
-  }
-
   createAnims() {
     for (let i = 1; i <= 5; i += 1) {
       this.anims.create({
@@ -83,33 +73,40 @@ export default class LoadingScene extends BaseScene {
 
   create() {
     this.createAnims();
-
+    setBackground(this);
     const socketService = this.registry.get('socketService');
     const eventEmitter = this.registry.get('eventEmitter');
 
     this.roomId = this.registry.get('roomId');
 
-    // this.scene.get('SceneManager').loadSceneData('StartScene');
+    this.scene.get('SceneManager').loadSceneData('MainScene');
     socketService.subscribeToRoom((positions) => {
       eventEmitter.emit('PLAYER_DATA_UPDATED', positions);
     });
 
-    switch (this.gameStatus.result.currentphase) {
-      case GamePhases.DAY_DISCUSSION:
-        if (false) {
-          this.scene.start('StartScene');
-          break;
-        }
-        this.scene.start('MainScene');
-        break;
-      case GamePhases.DAY_VOTE:
-        this.scene.start('VoteScene');
-        break;
-      case GamePhases.NIGHT_ACTION:
-        this.scene.start('NightScene');
-        break;
-      default:
-        console.error('GamePhase Not Found!');
-    }
+    // this.handleEvents();
+    sceneChanger(this);
+    // this.scene.start('MainScene');
   }
+
+  // handleEvents() {
+    // const eventEmitter = this.registry.get('eventEmitter');
+    // eventEmitter.on('VOTE_RESULT', (data) => {
+    //   console.log(data);
+    //   if (data.voteResult !== -1) {
+    //     this.scene.start('StatementScene', data);
+    //   } else {
+    //     this.scene.start('NightScene');
+    //   }
+    // });
+    // console.log(eventEmitter);
+    // eventEmitter.on('TIME', (data) => {
+    //   try {
+    //     const parsedData = JSON.parse(data);  // 문자열을 JSON 객체로 변환
+    //     console.log(parsedData);  // time 값 출력
+    //   } catch (error) {
+    //     console.error("Error parsing JSON:", error);
+    //   }
+    // });
+  // }
 }

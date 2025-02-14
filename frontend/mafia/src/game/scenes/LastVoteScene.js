@@ -1,6 +1,9 @@
 import Phaser from 'phaser';
 import setBackground from '@/game/utils/map';
-import { sceneTimeout } from '@/game/utils/time';
+import sceneChanger from '@/game/utils/time';
+import showFixedClock from '@/game/ui/clock/BaseClock';
+import showFixedRoleText from '@/game/ui/role/UserRole';
+// import { sceneTimeout } from '@/game/utils/time';
 
 export default class LastVoteScene extends Phaser.Scene {
   constructor() {
@@ -8,38 +11,21 @@ export default class LastVoteScene extends Phaser.Scene {
   }
 
   init(data) {
-    this.voteResults = data.voteResults || this.registry.get('VoteResults') || {};
+    this.targetPlayerId = data?.targetPlayerId;
+
+    // this.voteResults = data.voteResults || this.registry.get('VoteResults') || {};
     // this.socketService = this.registry.get('socketService');
-    this.sceneTime = sceneTimeout.DAY_FINAL_VOTE;
-    this.remainingTime = this.sceneTime / 1000;
+    // this.sceneTime = sceneTimeout.DAY_FINAL_VOTE;
+    // this.remainingTime = this.sceneTime / 1000;
     this.hasVoted = false;
     this.finalVote = null;
-    this.calculateMostVoted();
-  }
-
-  calculateMostVoted() {
-    const voteCounts = {};
-    Object.values(this.voteResults).forEach((targetId) => {
-      voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
-    });
-
-    let maxVotes = 0;
-    let mostVotedPlayer = null;
-    Object.entries(voteCounts).forEach(([playerId, votes]) => {
-      if (votes > maxVotes) {
-        maxVotes = votes;
-        mostVotedPlayer = playerId;
-      }
-    });
-
-    const totalPlayers = Object.keys(this.voteResults).length;
-    this.isMajority = maxVotes > totalPlayers / 2;
-    this.votedPlayer = mostVotedPlayer;
-    this.voteCount = maxVotes;
   }
 
   create() {
     setBackground(this);
+    showFixedClock(this);
+    showFixedRoleText(this);
+    sceneChanger(this);
     const { width, height } = this.scale.gameSize;
 
     // 중앙 컨테이너 생성
@@ -60,7 +46,7 @@ export default class LastVoteScene extends Phaser.Scene {
 
     // 처형 확인 메시지 (떨림 효과 추가)
     const messageText = this.add
-      .text(width / 2, height * 0.45, `생존자${this.votedPlayer}를 처형 시키겠습니까?`, {
+      .text(width / 2, height * 0.45, `생존자${this.targetPlayerId}를 처형 시키겠습니까?`, {
         fontSize: '32px',
         fill: '#ff0000',
         fontFamily: 'Arial Black',
@@ -206,15 +192,6 @@ export default class LastVoteScene extends Phaser.Scene {
         align: 'center',
       })
       .setOrigin(0.5);
-
-    this.time.delayedCall(3000, () => {
-      this.cameras.main.fade(800, 0, 0, 0);
-      this.cameras.main.once('camerafadeoutcomplete', () => {
-        this.scene.get('SceneManager').loadSceneData('NightScene');
-        this.scene.stop('LastVoteScene');
-        // this.scene.start('NightScene');
-      });
-    });
   }
 
   showMessage(text) {

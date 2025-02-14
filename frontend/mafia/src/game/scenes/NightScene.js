@@ -6,12 +6,14 @@ import DoctorRole from '@/game/ui/role/DoctorRole.js';
 import MutantRole from '@/game/ui/role/MutantRole.js';
 import showFixedRoleText from '@/game/ui/role/UserRole';
 import CitizenRole from '@/game/ui/role/CitizenRole';
-import { sceneTimeout } from '@/game/utils/time';
+// import { sceneTimeout } from '@/game/utils/time';
+import showFixedClock from '@/game/ui/clock/BaseClock';
+import sceneChanger from '@/game/utils/time';
 
 export default class NightScene extends Phaser.Scene {
   constructor() {
     super({ key: 'NightScene' });
-    this.remainingTime = sceneTimeout.NIGHT_ACTION;
+    // this.remainingTime = sceneTimeout.NIGHT_ACTION;
   }
 
   init() {
@@ -22,15 +24,8 @@ export default class NightScene extends Phaser.Scene {
 
   create() {
     setBackground(this);
-
-    this.time.addEvent({
-      delay: this.remainingTime,
-      callback() {
-        this.scene.get('SceneManager').loadSceneData('MainScene');
-        this.scene.stop('NightScene');
-      },
-      callbackScope: this,
-    });
+    showFixedClock(this);
+    sceneChanger(this);
 
     // 밤 전환 효과 추가
     this.createNightTransition();
@@ -39,7 +34,6 @@ export default class NightScene extends Phaser.Scene {
     this.time.delayedCall(3000, () => {
       this.assignRoles();
       this.userRole = showFixedRoleText(this);
-      // this.showFixedClock();
     });
   }
 
@@ -88,20 +82,22 @@ export default class NightScene extends Phaser.Scene {
   }
 
   assignRoles() {
-    const currentPlayer = this.playerInfo.role;
+    const gameData = this.registry.get('gameData');
 
-    if (currentPlayer === '생존자') {
+    const { role } = gameData.result.myInfo;
+
+    if (role === 'CITIZEN') {
       // 일반 시민을 위한 메시지 표시
       this.currentRole = new CitizenRole(this);
-    } else if (currentPlayer === '감염자') {
+    } else if (role === 'ZOMBIE') {
       // 특수 역할 UI 생성
-      this.currentRole = new MafiaRole(this);
-    } else if (currentPlayer === '연구원') {
-      this.currentRole = new PoliceRole(this, [currentPlayer]);
-    } else if (currentPlayer === '의사') {
-      this.currentRole = new DoctorRole(this, [currentPlayer]);
-    } else if (currentPlayer === '돌연변이') {
-      this.currentRole = new MutantRole(this, [currentPlayer]);
+      this.role = new MafiaRole(this);
+    } else if (role === 'POLICE') {
+      this.role = new PoliceRole(this, [role]);
+    } else if (role === 'PLAGUE_DOCTOR') {
+      this.role = new DoctorRole(this, [role]);
+    } else if (role === 'MUTANT') {
+      this.role = new MutantRole(this, [role]);
     }
   }
 

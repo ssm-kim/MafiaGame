@@ -33,7 +33,6 @@ const usePlayerPostionSocket = (roomId) => {
   }, []);
 
   const subscribeToRoom = (onReceiveMessage) => {
-    console.log(playerPostionSocket.current);
     if (!playerPostionSocket.current || !playerPostionSocket.current.connected) {
       console.warn('PlayerPostion WebSocket이 아직 연결되지 않음');
       return;
@@ -41,7 +40,6 @@ const usePlayerPostionSocket = (roomId) => {
 
     playerPostionSocket.current.subscribe(`/topic/game/${roomId}/positions`, (message) => {
       const positions = JSON.parse(message.body);
-      console.log(`Message from '${newTopic}':`, JSON.paser(message.body));
       onReceiveMessage(positions);
     });
   };
