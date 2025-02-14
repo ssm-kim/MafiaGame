@@ -59,8 +59,10 @@ public class VoiceService {
             .data("Player " + playerNo)
             .build();
 
-        String token = session.createConnection(properties).getToken();
+        Connection connection = session.createConnection(properties);
+        String token = connection.getToken();
         playerTokens.get(gameId).put(playerNo, token);
+
         return token;
     }
 
