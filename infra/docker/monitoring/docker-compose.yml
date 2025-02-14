@@ -37,8 +37,8 @@ services:
       - app-network
 
 networks:
-  monitoring:
-    driver: bridge
+  app-network:
+    external: true
 
 volumes:
   grafana-data:
