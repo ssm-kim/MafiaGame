@@ -20,7 +20,7 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
     environment:
-      - GF_SERVER_ROOT_URL=https://your-domain.com/grafana/
+      - GF_SERVER_ROOT_URL=https://i12d101.p.ssafy.io/grafana/
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_SECURITY_ADMIN_PASSWORD=zzzombieee # 기본 관리자 비밀번호 설정
     restart: always
