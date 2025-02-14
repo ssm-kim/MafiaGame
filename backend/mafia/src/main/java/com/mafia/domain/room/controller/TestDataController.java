@@ -7,6 +7,7 @@ import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.repository.RoomRedisRepository;
 import com.mafia.domain.room.service.RoomDbService;
 import com.mafia.domain.room.service.RoomRedisService;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,36 +30,47 @@ public class TestDataController {
     @PostMapping("/init-dummy-data")
     public ResponseEntity<String> initDummyData() {
         try {
-
-            // 첫 번째 방 생성 (철수의 방)
-            RoomInfo room1 = new RoomInfo(1000L, "철수의 테스트방", null, 4, new GameOption());
-
-            // 방장(철수) 정보만 설정
-            Participant host1 = new Participant(1001L, "김철수");
+            // 첫 번째 방 (길동의 방)
+            RoomInfo room1 = new RoomInfo(1L, "테스트방 1", null, 4, new GameOption());
+            Participant host1 = new Participant(5L, "길동");  // member_id: 5
             host1.setReady(true);
-            room1.getParticipant().put(1001L, host1);
-            room1.getMemberMapping().put(1, 1001L);
-            Participant player2 = new Participant(1002L, "안철수");
-            player2.setReady(true);
-            room1.getParticipant().put(1002L, player2);
-            room1.getMemberMapping().put(2, 1002L);  // 방장만 매핑
+            room1.getParticipant().put(5L, host1);
+            room1.getMemberMapping().put(1, 5L);
 
-            // 두 번째 방도 동일하게
-            RoomInfo room2 = new RoomInfo(2000L, "영희의 테스트방", null, 4, new GameOption());
-            Participant host2 = new Participant(2001L, "영희");
+            // 두 번째 방 (준표의 방)
+            RoomInfo room2 = new RoomInfo(2L, "테스트방 2", null, 7, new GameOption());
+            Participant host2 = new Participant(6L, "준표");  // member_id: 6
             host2.setReady(true);
-            room2.getParticipant().put(2001L, host2);
-            room2.getMemberMapping().put(1, 2001L);
+            room2.getParticipant().put(6L, host2);
+            room2.getMemberMapping().put(1, 6L);
+
+            // 세 번째 방 (성욱의 방)
+            RoomInfo room3 = new RoomInfo(3L, "비밀방 테스트", "1234", 8, new GameOption());
+            Participant host3 = new Participant(7L, "성욱");  // member_id: 7
+            host3.setReady(true);
+            room3.getParticipant().put(7L, host3);
+            room3.getMemberMapping().put(1, 7L);
+
+            // 네 번째 방 (철수의 방)
+            RoomInfo room4 = new RoomInfo(4L, "테스트방 4", null, 5, new GameOption());
+            Participant host4 = new Participant(100L, "철수");  // member_id: 100
+            host4.setReady(true);
+            room4.getParticipant().put(100L, host4);
+            room4.getMemberMapping().put(1, 100L);
+
+            // 맵 데이터 검증
+            validateRoomMaps(room1);
+            validateRoomMaps(room2);
+            validateRoomMaps(room3);
+            validateRoomMaps(room4);
 
             // Redis에 저장
-            redisRepository.save(1000L, room1);
-            redisRepository.save(2000L, room2);
+            redisRepository.save(1L, room1);
+            redisRepository.save(2L, room2);
+            redisRepository.save(3L, room3);
+            redisRepository.save(4L, room4);
 
-            gameService.startGame(1000L);
-
-            log.info("더미 데이터 초기화 완료 - 두 개의 방이 생성됨");
-            //roomRedisService.createRoomInfo(2L, 13L, 3, "테스트방 2", null, new GameOption());
-            //gameService.startGame(2L);
+            log.info("더미 데이터 초기화 완료 - 네 개의 방이 생성됨");
 
             return ResponseEntity.ok("더미 데이터 초기화 완료");
 
@@ -67,5 +79,38 @@ public class TestDataController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("더미 데이터 초기화 실패: " + e.getMessage());
         }
+    }
+
+    /**
+     * RoomInfo의 맵 데이터 정합성 검증
+     */
+    private void validateRoomMaps(RoomInfo roomInfo) {
+        // 1. participant와 memberMapping의 크기 비교
+        if (roomInfo.getParticipant().size() != roomInfo.getMemberMapping().size()) {
+            throw new IllegalStateException(
+                String.format("방 %d: participant 크기(%d)와 memberMapping 크기(%d)가 일치하지 않습니다.",
+                    roomInfo.getRoomId(),
+                    roomInfo.getParticipant().size(),
+                    roomInfo.getMemberMapping().size())
+            );
+        }
+
+        // 2. memberMapping의 각 memberId가 participant에 존재하는지 확인
+        for (Map.Entry<Integer, Long> entry : roomInfo.getMemberMapping().entrySet()) {
+            if (!roomInfo.getParticipant().containsKey(entry.getValue())) {
+                throw new IllegalStateException(
+                    String.format("방 %d: memberMapping의 memberId %d가 participant에 존재하지 않습니다.",
+                        roomInfo.getRoomId(),
+                        entry.getValue())
+                );
+            }
+        }
+
+        // 3. 로그 출력
+        log.info("방 {} 맵 검증 완료 - participant: {}, memberMapping: {}",
+            roomInfo.getRoomId(),
+            roomInfo.getParticipant(),
+            roomInfo.getMemberMapping()
+        );
     }
 }

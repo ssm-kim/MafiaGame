@@ -14,6 +14,7 @@ import com.mafia.global.common.exception.exception.BusinessException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -86,7 +87,6 @@ public class RoomDbService {
     public void deleteRoom(Long roomId) {
         DbRoomRepository.deleteById(roomId);
         roomRedisService.deleteById(roomId);
-        // messageService.sendRoomListToAll();
     }
 
     /**
@@ -94,7 +94,26 @@ public class RoomDbService {
      */
     @Transactional(readOnly = true)
     public RoomInfo getRoom(Long roomId) {
-        return roomRedisService.findById(roomId);
+
+        RoomInfo originRoomInfo = roomRedisService.findById(roomId);
+
+        // 새로운 RoomInfo 객체 생성 필요한 데이터만 복사
+        RoomInfo copyRoomInfo = new RoomInfo(
+            originRoomInfo.getRoomId(),
+            originRoomInfo.getTitle(),
+            originRoomInfo.getPassword(),
+            originRoomInfo.getRequiredPlayers(),
+            originRoomInfo.getGameOption()
+        );
+
+        // memberMapping 복사 및 값을 0으로 설정
+        HashMap<Integer, Long> newMemberMapping = new HashMap<>();
+        for (Entry<Integer, Long> entry : originRoomInfo.getMemberMapping().entrySet()) {
+            newMemberMapping.put(entry.getKey(), 0L);
+        }
+        copyRoomInfo.setMemberMapping(newMemberMapping);
+
+        return copyRoomInfo;
     }
 
     /**
