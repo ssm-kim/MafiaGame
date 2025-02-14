@@ -25,7 +25,7 @@ public class RoomInfo {
     private String chat;
     private GameOption gameOption;
 
-    private Map<Long, Participant> participant;  // (클라이언트) key: 참가자 번호, value: 참가자 정보
+    private Map<Long, Participant> participant;  // (클라이언트) key: memberId, value: 참가자 정보
     private Map<Integer, Long> memberMapping;    // (서버내부용) key: 참가자 번호, value: memberId
 
     public RoomInfo(Long roomId, String title, String password, int requiredPlayers,
