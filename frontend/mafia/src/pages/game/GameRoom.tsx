@@ -31,7 +31,7 @@ function GameRoom(): JSX.Element {
   const [players, setPlayers] = useState<Player[]>([]);
   const [isHost, setIsHost] = useState(false);
   const [currentNickname, setCurrentNickname] = useState<string>('');
-  const [requiredPlayers] = useState<number>(8);
+  const [requiredPlayers, setRequiredPlayers] = useState<number>(8);
   const [currentChatType, setCurrentChatType] = useState<'ROOM' | 'DAY' | 'NIGHT' | 'DEAD'>('ROOM');
   const stompClientRef = useRef<any>(null);
 
@@ -215,6 +215,7 @@ function GameRoom(): JSX.Element {
           const room = response.data.result;
           if (room) {
             setGameState(room);
+            setRequiredPlayers(room.requiredPlayers);
             const chatResponse = await axios.get(`/chat?gameId=${roomId}&chatType=ROOM&count=50`);
             if (chatResponse.data.isSuccess) {
               setMessages(chatResponse.data.result);
