@@ -1,6 +1,5 @@
 package com.mafia.domain.room.service;
 
-import static com.mafia.global.common.model.dto.BaseResponseStatus.ALREADY_HAS_ROOM;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.CANNOT_KICK_HOST;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.HOST_CANNOT_READY;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_PASSWORD;
@@ -24,6 +23,7 @@ import com.mafia.global.common.exception.exception.BusinessException;
 import com.mafia.global.common.service.RoomSubscription;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -68,12 +68,12 @@ public class RoomRedisService {
         MemberResponse memberInfo = memberService.getMemberInfo(hostId);
         Participant host = new Participant(hostId, memberInfo.getNickname());
 
+        // 1번 (방장) 등록
+        roomInfo.getParticipant().put(hostId, host);      // 참가자 맵:    1번 - 유저 정보
+        roomInfo.getMemberMapping().put(1, hostId);  // 멤버 매핑 맵: 1번 - 방장 memberId
+
         subscription.subscribe(roomId);
         redisRepository.save(roomId, roomInfo);
-
-        // 1번 (방장) 등록
-        roomInfo.getParticipant().put(hostId, host);
-        roomInfo.getMemberMapping().put(1, hostId);
 
         log.info("방 생성 완료 - 방 번호: {}, 방장: {}", roomId, memberInfo.getNickname());
     }
@@ -86,24 +86,20 @@ public class RoomRedisService {
         RoomInfo roomInfo = findById(roomId);
         log.info("유저 방 입장 시도: roomId={}, memberId={}", roomId, memberId);
 
-        // 방장인지 체크 (참가자 번호가 1번인 경우가 방장)
-        boolean isHost = roomInfo.getMemberMapping().containsValue(memberId) &&
-            roomInfo.getMemberMapping().get(1).equals(memberId);
+        // 방장인 경우 중복 체크 스킵 (roomInfo의 memberMapping에서 1번이 해당 memberId인지 확인)
+        boolean isHost = roomInfo.getMemberMapping().get(1).equals(memberId);
 
+        // 방장인 경우
         if (isHost) {
-            log.info("방장의 재입장 시도 - 추가 저장하지 않음: roomId={}, memberId={}", roomId, memberId);
-
+            log.warn("방장이므로 이미 방을 생성했습니다.  {}", roomInfo.getMemberMapping());
             return;
         }
 
-        // memberId로 방장 체크
-        if (isHost(roomId, memberId)) {
-            throw new BusinessException(HOST_CANNOT_READY);
-        }
-
-        // 이미 다른 방에 있는지 체크
-        if (isMemberInRoom(memberId)) {
-            throw new BusinessException(ALREADY_HAS_ROOM);
+        // 새로고침 시 처리 (이미 있는 방이라면)
+        boolean isAlreadyInRoom = roomInfo.getParticipant().containsKey(memberId);
+        if (isAlreadyInRoom) {
+            log.info("새고로침 이미 참여중인 유저의 재접속: roomId={}, memberId={}", roomId, memberId);
+            return;  // 이미 참여중이면 추가 처리 없이 리턴
         }
 
         // RDB에서 방 존재 여부
@@ -151,11 +147,11 @@ public class RoomRedisService {
             roomId, memberId, participantNo);
 
         // 방장(1번) 퇴장이면 바로 방 삭제
-        if (isHost(roomId, memberId)) {
-            deleteById(roomId);  // 방 삭제
-            log.info("방장 퇴장으로 인한 방 삭제 완료 - 방 번호: {}", roomId);
-            return;
-        }
+//        if (isHost(roomId, memberId)) {
+//            deleteById(roomId);  // 방 삭제
+//            log.info("방장 퇴장으로 인한 방 삭제 완료 - 방 번호: {}", roomId);
+//            return;
+//        }
 
         // 일반 참가자 퇴장: 두 맵에서 모두 제거
         roomInfo.getParticipant().remove(memberId);
@@ -279,7 +275,7 @@ public class RoomRedisService {
         RoomInfo roomInfo = findById(roomId);
         Map<Integer, Long> memberMapping = roomInfo.getMemberMapping();
         Long hostId = memberMapping.get(1);  // 방장(1번)의 memberId
-        return hostId.equals(memberId);
+        return Objects.equals(hostId, memberId);
     }
 
     /**

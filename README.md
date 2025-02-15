@@ -62,6 +62,18 @@ blue,green에 depends_on mysql 제거(이미 컨테이너 실행중)
 
 현재는 파일의 경로만 저장되어 있고 실제 내용이 복사되지 않음. -> pipeline 수정
 
+## 열여덟번째 배포 테스트
+
+무중단 배포(blue, green) 설정 테스트
+
+## 열아홉번째 배포 테스트
+
+green -> conf upstream으로 수정
+
+## 스무번째 배포 테스트
+
+green upstream.conf 에서 삭제
+
 ## 시크릿파일 적용
 
 ## Redis 비번 추가

@@ -34,10 +34,14 @@ public class TestDataController {
             RoomInfo room1 = new RoomInfo(1000L, "철수의 테스트방", null, 4, new GameOption());
 
             // 방장(철수) 정보만 설정
-            Participant host1 = new Participant(1001L, "철수");
+            Participant host1 = new Participant(1001L, "김철수");
             host1.setReady(true);
             room1.getParticipant().put(1001L, host1);
-            room1.getMemberMapping().put(1, 1001L);  // 방장만 매핑
+            room1.getMemberMapping().put(1, 1001L);
+            Participant player2 = new Participant(1002L, "안철수");
+            player2.setReady(true);
+            room1.getParticipant().put(1002L, player2);
+            room1.getMemberMapping().put(2, 1002L);  // 방장만 매핑
 
             // 두 번째 방도 동일하게
             RoomInfo room2 = new RoomInfo(2000L, "영희의 테스트방", null, 4, new GameOption());
