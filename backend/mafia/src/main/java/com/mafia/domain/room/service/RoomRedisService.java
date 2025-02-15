@@ -1,11 +1,11 @@
 package com.mafia.domain.room.service;
 
-import static com.mafia.global.common.model.dto.BaseResponseStatus.CANNOT_KICK_HOST;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_ALREADY_STARTED;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.HOST_CANNOT_READY;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_PASSWORD;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_ALL_READY;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_COUNT_INVALID;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_NOT_FOUND;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_CREATE_FAIL;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_FULL;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.UNAUTHORIZED_ACCESS;
@@ -14,11 +14,9 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.UNAUTHORIZED_
 import com.mafia.domain.game.model.game.GameOption;
 import com.mafia.domain.member.model.dto.response.MemberResponse;
 import com.mafia.domain.member.service.MemberService;
-import com.mafia.domain.room.model.entity.Room;
 import com.mafia.domain.room.model.redis.Participant;
 import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.repository.RoomRedisRepository;
-import com.mafia.domain.room.repository.RoomRepository;
 import com.mafia.global.common.exception.exception.BusinessException;
 import com.mafia.global.common.service.RoomSubscription;
 import java.util.HashMap;
@@ -42,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class RoomRedisService {
 
     private final RoomRedisRepository redisRepository;
-    private final RoomRepository roomRepository;
     private final MemberService memberService;
     private final RoomSubscription subscription;
 
@@ -59,59 +56,48 @@ public class RoomRedisService {
      */
     public void createRoomInfo(Long roomId, Long hostId, int requiredPlayer, String title,
         String password, GameOption gameOption) {
-        log.info("방 생성 시작: roomId={}, hostId={}, 필요인원={}", roomId, hostId, requiredPlayer);
+        try {
+            MemberResponse memberInfo = memberService.getMemberInfo(hostId);
+            Participant host = new Participant(hostId, memberInfo.getNickname());
 
-        // 기본 방 정보 설정
-        RoomInfo roomInfo = new RoomInfo(roomId, title, password, requiredPlayer, gameOption);
+            // 기본 방 정보 설정  ->  방 생성 시 1번은 항상 방장
+            RoomInfo roomInfo = new RoomInfo(roomId, title, password, requiredPlayer, gameOption);
+            roomInfo.getParticipant().put(hostId, host);  // 참가자 맵:    방장 memberId - 유저 정보
+            roomInfo.getMemberMapping().put(1, hostId);   // 멤버 매핑 맵: 참가자 번호 - 방장 memberId
 
-        // 방장 정보 설정 (방장은 항상 1번)
-        MemberResponse memberInfo = memberService.getMemberInfo(hostId);
-        Participant host = new Participant(hostId, memberInfo.getNickname());
-
-        // 1번 (방장) 등록
-        roomInfo.getParticipant().put(hostId, host);      // 참가자 맵:    1번 - 유저 정보
-        roomInfo.getMemberMapping().put(1, hostId);  // 멤버 매핑 맵: 1번 - 방장 memberId
-
-        subscription.subscribe(roomId);
-        redisRepository.save(roomId, roomInfo);
-
-        log.info("방 생성 완료 - 방 번호: {}, 방장: {}", roomId, memberInfo.getNickname());
+            subscription.subscribe(roomId);
+            redisRepository.save(roomId, roomInfo);
+        } catch (Exception e) {
+            log.error("Redis 방 생성 실패: roomId={}, error={}", roomId, e.getMessage());
+            throw new BusinessException(ROOM_CREATE_FAIL);
+        }
     }
 
     /**
      * 방 입장 처리 - 중복 입장, 비밀번호, 정원 초과 등 체크 후 입장 처리
      */
     public void enterRoom(Long roomId, Long memberId, String password) {
-        // RoomInfo에서 해당 참가자 번호의 memberId 조회
         RoomInfo roomInfo = findById(roomId);
-        log.info("유저 방 입장 시도: roomId={}, memberId={}", roomId, memberId);
+        log.debug("방 입장 시도 - roomId: {}, memberId: {}", roomId, memberId);
 
-        // 방장인 경우 중복 체크 스킵 (roomInfo의 memberMapping에서 1번이 해당 memberId인지 확인)
-        boolean isHost = roomInfo.getMemberMapping().get(1).equals(memberId);
+        if (roomInfo.isActive()) {
+            throw new BusinessException(GAME_ALREADY_STARTED);
+        }
 
-        // 방장인 경우
-        if (isHost) {
-            log.warn("방장이므로 이미 방을 생성했습니다.  {}", roomInfo.getMemberMapping());
+        if (isHost(roomId, memberId)) {
+            log.warn("방장 ( 참가자 번호는 항상 1번 )이므로 이미 방을 생성했습니다.");
             return;
         }
 
-        // 새로고침 시 처리 (이미 있는 방이라면)
-        boolean isAlreadyInRoom = roomInfo.getParticipant().containsKey(memberId);
-        if (isAlreadyInRoom) {
-            log.info("새고로침 이미 참여중인 유저의 재접속: roomId={}, memberId={}", roomId, memberId);
-            return;  // 이미 참여중이면 추가 처리 없이 리턴
+        if (isMemberInRoom(memberId)) {
+            log.info("다른 방에 참여 중: roomId={}, memberId={}", roomId, memberId);
+            return;
         }
 
-        // RDB에서 방 존재 여부
-        Room room = roomRepository.findById(roomId)
-            .orElseThrow(() -> new BusinessException(ROOM_NOT_FOUND));
-
-        // 비밀번호 체크
-        if (room.getPassword() != null && !room.getPassword().equals(password)) {
+        if (roomInfo.getPassword() != null && !roomInfo.getPassword().equals(password)) {
             throw new BusinessException(INVALID_PASSWORD);
         }
 
-        // 방 정보 조회 및 인원 체크
         if (roomInfo.getParticipant().size() >= roomInfo.getRequiredPlayers()) {
             throw new BusinessException(ROOM_FULL);
         }
@@ -121,20 +107,18 @@ public class RoomRedisService {
         while (roomInfo.getMemberMapping().containsKey(newParticipantNo)) {
             newParticipantNo++;
         }
-        //roomInfo.setInitParticipantNo(newParticipantNo);  // 1, 2, 3번에서 2번에 나가고 새로운 유저가 들어오면 2번 할당
 
         // 참가자 정보 생성 (회원 ID, 닉네임)
-        MemberResponse memberInfo = memberService.getMemberInfo(memberId);  // 멤버 서비스에서 닉네임을 가져옴.
-        Participant participant = new Participant(memberId,
-            memberInfo.getNickname());  // 닉네임은 실제 구현에 맞게 수정 필요
+        MemberResponse memberInfo = memberService.getMemberInfo(memberId);
+        Participant participant = new Participant(memberId, memberInfo.getNickname());
 
-        // 참가자 맵과 매핑 맵에 추가
+        // 참가자 맵과 멤버 매핑 맵에 추가
         roomInfo.getParticipant().put(memberId, participant);
-        roomInfo.getMemberMapping().put(newParticipantNo, memberId);  // memberMapping 추가
+        roomInfo.getMemberMapping().put(newParticipantNo, memberId);
 
         redisRepository.save(roomId, roomInfo);
-        log.info("방 입장 완료 - 방 번호: {}, 참가자 번호: {}, 닉네임: {}",
-            roomId, newParticipantNo, memberInfo.getNickname());
+        log.info("방 입장 완료 - roomId: {}, title: {}, participantNo: {}, memberId: {}, nickname: {}\n",
+            roomId, roomInfo.getTitle(), newParticipantNo, memberId, participant.getNickName());
     }
 
     /**
@@ -143,23 +127,18 @@ public class RoomRedisService {
     public void leaveRoom(Long roomId, Long memberId) {
         RoomInfo roomInfo = findById(roomId);
         int participantNo = roomInfo.getpartNoByMemberId(memberId);
-        log.info("유저 방 퇴장: roomId={}, memberId={}, 참가자 번호={}",
-            roomId, memberId, participantNo);
+        log.info("방 퇴장 요청 - roomId: {}, memberId: {}", roomId, memberId);
 
-        // 방장(1번) 퇴장이면 바로 방 삭제
-//        if (isHost(roomId, memberId)) {
-//            deleteById(roomId);  // 방 삭제
-//            log.info("방장 퇴장으로 인한 방 삭제 완료 - 방 번호: {}", roomId);
-//            return;
-//        }
+        if (roomInfo.isActive()) {
+            throw new BusinessException(GAME_ALREADY_STARTED);
+        }  // 게임 진행중 체크 추가
 
-        // 일반 참가자 퇴장: 두 맵에서 모두 제거
+        // 참가자 맵과 멤버 매핑 맵에서 제거
         roomInfo.getParticipant().remove(memberId);
         roomInfo.getMemberMapping().remove(participantNo);
         redisRepository.save(roomId, roomInfo);
 
-        log.info("방 퇴장 완료 - 방 번호: {}, 참가자 번호: {}, 남은 인원: {}",
-            roomId, participantNo, roomInfo.getParticipant().size());
+        log.info("방 퇴장 완료 - roomId: {}, participantNo: {}\n", roomId, participantNo);
     }
 
     /**
@@ -167,17 +146,15 @@ public class RoomRedisService {
      */
     public void kickMember(Long roomId, Long hostMemberId, Integer targetParticipantNo) {
         RoomInfo roomInfo = findById(roomId);
-        log.info("강제 퇴장 시도: roomId={}, 방장 memberId={}, 대상 participantNo={}",
+        log.info("강제 퇴장 시도: roomId={}, hostId={}, Target - participantNo={}\n",
             roomId, hostMemberId, targetParticipantNo);
 
-        // 방장 권한 확인
-        if (!isHost(roomId, hostMemberId)) {
-            throw new BusinessException(UNAUTHORIZED_HOST_ACTION);
+        if (roomInfo.isActive()) {
+            throw new BusinessException(GAME_ALREADY_STARTED);
         }
 
-        // 강퇴 대상이 방장인지 확인
-        if (targetParticipantNo == 1) {
-            throw new BusinessException(CANNOT_KICK_HOST);
+        if (!isHost(roomId, hostMemberId)) {
+            throw new BusinessException(UNAUTHORIZED_HOST_ACTION);
         }
 
         leaveRoom(roomId, roomInfo.getMemberMapping().get(targetParticipantNo));
@@ -189,74 +166,57 @@ public class RoomRedisService {
     public void toggleReady(Long roomId, Long memberId) {
         RoomInfo roomInfo = findById(roomId);
         int participantNo = roomInfo.getpartNoByMemberId(memberId);
-        log.info("준비상태 토글: roomId={}, participantNo={}", roomId, participantNo);
+        log.info("준비 상태 변경 - roomId: {}, memberId: {}, participantNo: {}", roomId, memberId,
+            participantNo);
 
-        // 디버깅을 위한 로그 추가
-        log.info("현재 참가자 목록: {}", roomInfo.getParticipant());
-        log.info("현재 멤버 매핑: {}", roomInfo.getMemberMapping());
-
-        // memberId로 방장 체크
         if (isHost(roomId, memberId)) {
             throw new BusinessException(HOST_CANNOT_READY);
         }
 
-        // 참가자 정보 조회
-        Participant participant = roomInfo.getParticipant().get(memberId);  // 키가 없으면
+        Participant participant = roomInfo.getParticipant().get(memberId);
         if (participant == null) {
             throw new BusinessException(PLAYER_NOT_FOUND);
         }
 
-        // 준비 상태 토글
         participant.setReady(!participant.isReady());
 
-        // 전체 참가자 중 준비된 사람 수 계산
         int curReadyCnt = (int) roomInfo.getParticipant().entrySet().stream()
             .filter(entry -> entry.getValue().isReady())
-            .count();
+            .count();          // 전체 참가자 중 준비된 사람 수 계산
 
         roomInfo.setReadyCnt(curReadyCnt);
         redisRepository.save(roomId, roomInfo);
-        log.info("준비 상태 변경 - 방 번호: {}, 참가자 번호: {}, 준비 상태: {}, 총 준비: {}",
-            roomId, participantNo, participant.isReady(), roomInfo.getReadyCnt());
+
+        log.info(
+            "준비 상태 변경 완료 - roomId: {}, participantNo: {}, nickName: {}, ready: {}, curReady / allReady: {} / {}\n",
+            roomId, participantNo, participant.getNickName(), !participant.isReady(),
+            roomInfo.getReadyCnt(), roomInfo.getParticipant().size() - 1);
     }
 
     /**
      * 게임 시작 - 방장 권한, 인원 수, 전체 준비 상태 확인 후 게임 시작
      */
     public void startGame(Long roomId, Long memberId) {
-        log.info("게임 시작 시도: roomId={}, memberId={}", roomId, memberId);
-
+        log.info("게임 시작 요청 - roomId: {}, hostId: {}", roomId, memberId);
         RoomInfo roomInfo = findById(roomId);
 
-        // 방장 권한 확인
         if (!isHost(roomId, memberId)) {
             throw new BusinessException(UNAUTHORIZED_ACCESS);
         }
 
-        // 필요 인원 체크
-        if (roomInfo.getParticipant().size() != roomInfo.getRequiredPlayers()) {
-            throw new BusinessException(PLAYER_COUNT_INVALID);
-        }
-
-        // 모든 참가자 준비상태 체크 (방장 제외)
         if (roomInfo.getReadyCnt() != roomInfo.getParticipant().size() - 1) {
             throw new BusinessException(NOT_ALL_READY);
         }
 
-        // 게임 상태 변경
-        roomInfo.setActive(true);
+        roomInfo.setActive(true);  // 게임 상태 변경
         redisRepository.save(roomId, roomInfo);
-
-        log.info("게임 시작 완료 - 방 번호: {}, 참가자 수: {}", roomId, roomInfo.getParticipant().size());
+        log.info("게임 시작 완료 - roomId: {}, gameActive: {}\n", roomId, roomInfo.isActive());
     }
-
-    // 유틸리티 메서드
 
     /**
      * 방 삭제 및 구독 해제
      */
     public void deleteById(Long roomId) {
-        log.info("방 삭제 : roomId={}", roomId);
         subscription.unsubscribe(roomId);
         redisRepository.delete(roomId);
     }
