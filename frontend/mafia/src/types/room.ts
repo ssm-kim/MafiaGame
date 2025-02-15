@@ -6,6 +6,7 @@ export interface Room {
   roomOption: string;
   requiredPlayers: number;
   isVoice: boolean;
+  password?: string;
   createdAt: string;
   peopleCnt: number;
   hostId: number;

@@ -9,6 +9,7 @@ import { RoomList } from '@/components/lobby/RoomList';
 import { CreateRoomModal } from '@/components/lobby/CreateRoomModal';
 import NicknameModal from '@/components/nickname/NicknameModal';
 import roomApi from '@/api/roomApi';
+import PasswordModal from '@/components/lobby/PasswordModal';
 
 export interface LoginResponse {
   memberId: number;
@@ -36,6 +37,8 @@ function GameLobby() {
   const [searchTerm, setSearchTerm] = useState('');
   const [newRoom, setNewRoom] = useState(initialRoomState);
   const [nickname, setNickname] = useState('');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
 
   useEffect(() => {
     const initializeAndSubscribe = async () => {
@@ -119,22 +122,53 @@ function GameLobby() {
     }
   };
 
+  // const handleJoinRoom = async (roomId: number) => {
+  //   try {
+  //     // 방 참가자 수 체크
+  //     const roomResponse = await roomApi.getRoom(roomId);
+  //     // console.log('#############');
+  //     // console.log(roomResponse);
+  //     const room = roomResponse.data.result;
+  //     const currentPlayers = Object.keys(room.participant).length;
+  //     // console.log('**********');
+  //     // console.log(currentPlayers);
+
+  //     if (currentPlayers >= room.requiredPlayers) {
+  //       alert('방이 가득 찼습니다.');
+  //       return;
+  //     }
+
+  //     navigate(`/game/${roomId}`);
+  //   } catch (error) {
+  //     console.error('Failed to join room:', error);
+  //     if (error instanceof Error) {
+  //       alert(error.message);
+  //     } else {
+  //       alert('방 입장에 실패했습니다. 다시 시도해주세요.');
+  //     }
+  //   }
+  // };
   const handleJoinRoom = async (roomId: number) => {
     try {
       // 방 참가자 수 체크
       const roomResponse = await roomApi.getRoom(roomId);
-      // console.log('#############');
-      // console.log(roomResponse);
       const room = roomResponse.data.result;
       const currentPlayers = Object.keys(room.participant).length;
-      // console.log('**********');
-      // console.log(currentPlayers);
 
       if (currentPlayers >= room.requiredPlayers) {
         alert('방이 가득 찼습니다.');
         return;
       }
 
+      // 비밀번호가 설정된 방인 경우
+      if (room.password) {
+        setSelectedRoom(room);
+        setShowPasswordModal(true);
+        return;
+      }
+
+      // 비밀번호가 없는 방이면 원래 로직대로 진행
+      await roomApi.joinRoom(roomId);
       navigate(`/game/${roomId}`);
     } catch (error) {
       console.error('Failed to join room:', error);
@@ -143,6 +177,25 @@ function GameLobby() {
       } else {
         alert('방 입장에 실패했습니다. 다시 시도해주세요.');
       }
+    }
+  };
+
+  const handlePasswordSubmit = async (password: string) => {
+    if (!selectedRoom) return;
+
+    try {
+      if (password === selectedRoom.password) {
+        // 비밀번호와 함께 방 입장 API 호출
+        await roomApi.joinRoom(selectedRoom.roomId, password);
+        setShowPasswordModal(false);
+        navigate(`/game/${selectedRoom.roomId}`);
+      } else {
+        alert('보안 코드가 일치하지 않습니다.');
+      }
+    } catch (error) {
+      console.error('Failed to join room:', error);
+      alert('방 입장에 실패했습니다. 다시 시도해주세요.');
+      setShowPasswordModal(false);
     }
   };
 
@@ -248,8 +301,16 @@ function GameLobby() {
 
         {/* 방 목록 */}
         <div className="px-2 sm:px-0">
-          <RoomList
+          {/* <RoomList
             rooms={rooms}
+            searchTerm={searchTerm}
+            onJoinRoom={handleJoinRoom}
+          /> */}
+          <RoomList
+            rooms={rooms.map((room) => ({
+              ...room,
+              hasPassword: !!room.password,
+            }))}
             searchTerm={searchTerm}
             onJoinRoom={handleJoinRoom}
           />
@@ -270,6 +331,13 @@ function GameLobby() {
         <NicknameModal
           show={showNicknameModal}
           onSubmit={handleNicknameChange}
+        />
+
+        <PasswordModal
+          show={showPasswordModal}
+          onClose={() => setShowPasswordModal(false)}
+          onSubmit={handlePasswordSubmit}
+          // roomTitle={selectedRoom?.roomTitle || ''}
         />
       </div>
     </div>

@@ -44,8 +44,8 @@ const roomApi = {
   // WebSocket 초기화
   initializeWebSocket: async () => {
     try {
-      const socket = new WebSocket('wss://i12d101.p.ssafy.io/ws-mafia');
-      // const socket = new WebSocket('ws://localhost:8080/ws-mafia');
+      // const socket = new WebSocket('wss://i12d101.p.ssafy.io/ws-mafia');
+      const socket = new WebSocket('ws://localhost:8080/ws-mafia');
       stompClient = Stomp.over(socket);
 
       return await new Promise<any>((resolve, reject) => {
@@ -140,14 +140,36 @@ const roomApi = {
   },
 
   // 방 입장
+  // joinRoom: async (roomId: number, password?: string): Promise<WebSocketResponse> => {
+  //   if (!stompClient) {
+  //     await roomApi.initializeWebSocket();
+  //   }
+
+  //   console.log('방 입장');
+  //   // 현재 방의 정보를 가져와서 다음 참가자 번호 계산
+  //   // await roomApi.getRoom(roomId);
+
+  //   return new Promise((resolve, reject) => {
+  //     try {
+  //       stompClient.send(
+  //         `/app/room/enter/${roomId}`,
+  //         {},
+  //         JSON.stringify({
+  //           password: password || null,
+  //         }),
+  //       );
+  //       resolve({ data: { isSuccess: true, result: [] } });
+  //     } catch (error) {
+  //       reject(error);
+  //     }
+  //   });
+  // },
   joinRoom: async (roomId: number, password?: string): Promise<WebSocketResponse> => {
     if (!stompClient) {
       await roomApi.initializeWebSocket();
     }
 
-    console.log('방 입장');
-    // 현재 방의 정보를 가져와서 다음 참가자 번호 계산
-    // await roomApi.getRoom(roomId);
+    console.log('방 입장 시도:', { roomId, password });
 
     return new Promise((resolve, reject) => {
       try {
@@ -155,7 +177,7 @@ const roomApi = {
           `/app/room/enter/${roomId}`,
           {},
           JSON.stringify({
-            password: password || null,
+            password: password || null, // 비밀번호 전달
           }),
         );
         resolve({ data: { isSuccess: true, result: [] } });

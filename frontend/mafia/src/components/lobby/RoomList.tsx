@@ -1,7 +1,5 @@
 // import React from 'react';
 import { Room } from '@/types/room';
-// import { RoomCard } from '@/components/lobby/RoomCard';
-
 import RoomCard from './RoomCard';
 
 interface RoomListProps {
@@ -23,8 +21,9 @@ export function RoomList({ rooms, searchTerm, onJoinRoom }: RoomListProps): JSX.
               roomTitle: room.roomTitle,
               curPlayers: room.peopleCnt || 0,
               requiredPlayers: room.requiredPlayers,
+              hasPassword: !!room.password, // 비밀번호 존재 여부 전달
             }}
-            onJoin={() => onJoinRoom(room.roomId)}
+            onJoin={onJoinRoom}
           />
         ))}
     </div>
@@ -32,3 +31,38 @@ export function RoomList({ rooms, searchTerm, onJoinRoom }: RoomListProps): JSX.
 }
 
 export default RoomList;
+
+// // import React from 'react';
+// import { Room } from '@/types/room';
+// // import { RoomCard } from '@/components/lobby/RoomCard';
+
+// import RoomCard from './RoomCard';
+
+// interface RoomListProps {
+//   rooms: Room[];
+//   searchTerm: string;
+//   onJoinRoom: (roomId: number) => void;
+// }
+
+// export function RoomList({ rooms, searchTerm, onJoinRoom }: RoomListProps): JSX.Element {
+//   return (
+//     <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+//       {rooms
+//         .filter((room) => room.roomTitle?.toLowerCase().includes(searchTerm?.toLowerCase() || ''))
+//         .map((room) => (
+//           <RoomCard
+//             key={room.roomId}
+//             room={{
+//               roomId: room.roomId,
+//               roomTitle: room.roomTitle,
+//               curPlayers: room.peopleCnt || 0,
+//               requiredPlayers: room.requiredPlayers,
+//             }}
+//             onJoin={() => onJoinRoom(room.roomId)}
+//           />
+//         ))}
+//     </div>
+//   );
+// }
+
+// export default RoomList;
