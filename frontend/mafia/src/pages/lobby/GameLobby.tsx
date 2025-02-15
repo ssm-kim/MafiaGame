@@ -119,45 +119,17 @@ function GameLobby() {
     }
   };
 
-  // const handleJoinRoom = async (roomId: number) => {
-  //   try {
-  //     // 방 참가자 수 체크
-  //     const roomResponse = await roomApi.getRoom(roomId);
-  //     // console.log('#############');
-  //     // console.log(roomResponse);
-  //     const room = roomResponse.data.result;
-  //     const currentPlayers = Object.keys(room.participant).length;
-  //     // console.log('**********');
-  //     // console.log(currentPlayers);
-
-  //     if (currentPlayers >= room.requiredPlayers) {
-  //       alert('방이 가득 찼습니다.');
-  //       return;
-  //     }
-
-  //     navigate(`/game/${roomId}`);
-  //   } catch (error) {
-  //     console.error('Failed to join room:', error);
-  //     if (error instanceof Error) {
-  //       alert(error.message);
-  //     } else {
-  //       alert('방 입장에 실패했습니다. 다시 시도해주세요.');
-  //     }
-  //   }
-  // };
   const handleJoinRoom = async (roomId: number) => {
     try {
+      // 방 참가자 수 체크
       const roomResponse = await roomApi.getRoom(roomId);
+      // console.log('#############');
+      // console.log(roomResponse);
       const room = roomResponse.data.result;
-
-      // 게임 상태 체크
-      if (room.roomStatus !== 'WAITING') {
-        alert('입장할 수 없는 방입니다.');
-        return;
-      }
-
-      // 인원 수 체크
       const currentPlayers = Object.keys(room.participant).length;
+      // console.log('**********');
+      // console.log(currentPlayers);
+
       if (currentPlayers >= room.requiredPlayers) {
         alert('방이 가득 찼습니다.');
         return;
