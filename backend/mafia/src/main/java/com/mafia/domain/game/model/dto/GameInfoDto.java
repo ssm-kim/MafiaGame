@@ -38,6 +38,7 @@ public class GameInfoDto {
             PlayerInfo playerInfo = new PlayerInfo();
             playerInfo.setPlayerNo(i);
             playerInfo.setNickname(player.getNickName());
+            playerInfo.setDead(player.isDead());
             playersInfo.put(i, playerInfo);
         }
         this.status = game.getStatus();
