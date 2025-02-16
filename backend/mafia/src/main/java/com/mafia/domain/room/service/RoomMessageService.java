@@ -26,29 +26,18 @@ public class RoomMessageService {
     private final RoomDbService roomDbService;
 
     /**
-     * 임의로 수정한 내용입니다.
-     */
-
-    public void sendHostLeftMessage(Long roomId) {
-        HashMap<String, String> message = new HashMap<>();
-        message.put("message", "방장이 나갔어요!");
-        messagingTemplate.convertAndSend("/topic/room/" + roomId, message);
-    }
-
-    /**
      * 로비의 전체 방 목록 전송 - 각 방의 현재 인원수 정보를 포함
      */
     public void sendRoomListToAll() {
         HashMap<Long, Integer> roomPlayerCounts = roomRedisService.getRoomPlayerCounts();
         List<RoomResponse> rooms = roomDbService.getAllRooms();
+
         // Redis 데이터로 현재 인원 업데이트
         for (RoomResponse room : rooms) {
             room.setPeopleCnt(roomPlayerCounts.getOrDefault(room.getRoomId(), 0));
         }
 
-        log.info("로비 방 목록 전송 - 총 {}개 방", rooms.size());
-
-        // 로비 유저들은 방 목록만 받음 (준비 상태 등 상세 정보 제외)
+        log.info("로비 방 목록 전송 - 전체 방 개수: {}\n", rooms.size());
         messagingTemplate.convertAndSend("/topic/lobby", rooms);
     }
 
@@ -57,9 +46,6 @@ public class RoomMessageService {
      */
     public void sendRoomUpdate(Long roomId) {
         RoomInfo roomInfo = roomRedisService.findById(roomId);
-        log.info("방 정보 업데이트 - 방 번호: {}", roomId);
-
-        // participantNo를 키로 하는 Map으로 구성하여 프론트엔드에서 쉽게 참가자 정보를 업데이트할 수 있도록 함
         Map<Integer, RoomParticipantResponse> participantInfo = new HashMap<>();
 
         for (Entry<Integer, Long> entry : roomInfo.getMemberMapping().entrySet()) {
@@ -75,7 +61,10 @@ public class RoomMessageService {
             participantInfo.put(participantNo, response);
         }
 
-        log.info("각 참가자 정보 : {}", participantInfo);
+        log.info("방 정보 업데이트 - roomId: {}, 총 참가자 수: {}, 준비된 참가자 수( 방장 제외 ): {}\n",
+            roomId,
+            participantInfo.size(),
+            participantInfo.values().stream().filter(RoomParticipantResponse::isReady).count());
 
         messagingTemplate.convertAndSend("/topic/room/" + roomId, participantInfo);
     }
@@ -89,7 +78,10 @@ public class RoomMessageService {
             }
         }
 
-        log.info("로비 게임 진행 중 목록 추가 - 총 개 방");
+        log.info("게임 시작 알림 - roomId: {}, 게임 진행중인 방 개수: {}\n",
+            roomId,
+            rooms.stream().filter(RoomResponse::isStart).count());
+
         messagingTemplate.convertAndSend("/topic/lobby", rooms);
     }
 }

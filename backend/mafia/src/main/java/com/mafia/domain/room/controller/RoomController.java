@@ -6,7 +6,6 @@ import com.mafia.domain.room.model.request.RoomRequest;
 import com.mafia.domain.room.model.response.RoomIdResponse;
 import com.mafia.domain.room.model.response.RoomResponse;
 import com.mafia.domain.room.service.RoomDbService;
-import com.mafia.domain.room.service.RoomRedisService;
 import com.mafia.global.common.model.dto.BaseResponse;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +30,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class RoomController {
 
     private final SimpMessageSendingOperations messagingTemplate;
-    private final RoomRedisService roomRedisService;
     private final RoomDbService roomDbService;
 
     /**
@@ -43,7 +41,6 @@ public class RoomController {
         @AuthenticationPrincipal AuthenticatedUser detail
     ) {
         RoomIdResponse response = roomDbService.createRoom(roomRequest, detail.getMemberId());
-        // 새로운 게임방 생성 후 로비의 구독자들에게 업데이트된 방 목록을 전송
         messagingTemplate.convertAndSend("/topic/lobby", roomDbService.getAllRooms());
         return ResponseEntity.ok(new BaseResponse<>(response));
     }

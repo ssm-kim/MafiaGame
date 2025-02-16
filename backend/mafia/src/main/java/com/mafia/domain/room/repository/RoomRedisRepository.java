@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
 public class RoomRedisRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private static final String ROOM_KEY_PREFIX = "room:list:";  // 상수로 분리
+    private static final String ROOM_KEY_PREFIX = "room:list:";
 
     /**
      * Redis key 생성
@@ -28,7 +28,7 @@ public class RoomRedisRepository {
      * 모든 방 정보 조회
      */
     public Set<String> getAllRooms() {
-        return redisTemplate.keys(ROOM_KEY_PREFIX + "*"); // 모든 방 키 가져오기
+        return redisTemplate.keys(ROOM_KEY_PREFIX + "*");  // 모든 방 키 가져오기
     }
 
     /**

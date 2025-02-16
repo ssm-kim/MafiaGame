@@ -1,8 +1,11 @@
 package com.mafia.domain.room.service;
 
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ALREADY_HAS_ROOM;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_PASSWORD;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.LENGTH_PASSWORD;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_INVALID_PLAYERS;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_NOT_FOUND;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_TITLE_INVALID;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_TITLE_LIMIT;
 
 import com.mafia.domain.room.model.entity.Room;
 import com.mafia.domain.room.model.redis.RoomInfo;
@@ -14,6 +17,7 @@ import com.mafia.global.common.exception.exception.BusinessException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,26 +39,50 @@ public class RoomDbService {
      * 새로운 게임방 생성 - 방 생성 후 RDB 저장 및 Redis 캐싱
      */
     public RoomIdResponse createRoom(RoomRequest roomRequest, Long memberId) {
+        log.info("방 생성 요청 - title: {}, requiredPlayers: {}, password: {}",
+            roomRequest.getTitle(),
+            roomRequest.getRequiredPlayers(),
+            (roomRequest.getPassword() != null ? "있음" : "없음")
+        );
 
-        // 유효성 검사
-        validateRoomCreation(roomRequest, memberId);
+        if (roomRequest.getTitle() == null || roomRequest.getTitle().isEmpty()) {
+            throw new BusinessException(ROOM_TITLE_INVALID);
+        }
+
+        if (roomRequest.getTitle().length() > 50) {
+            throw new BusinessException(ROOM_TITLE_LIMIT);
+        }
+
+        int requiredPlayers = roomRequest.getRequiredPlayers();
+        if (requiredPlayers < 6 || requiredPlayers > 8) {
+            throw new BusinessException(ROOM_INVALID_PLAYERS);
+        }
+
+        String password = roomRequest.getPassword();
+        if (password != null && (password.length() < 4 || password.length() > 16)) {
+            throw new BusinessException(LENGTH_PASSWORD);
+        }
+
+        if (roomRedisService.isMemberInRoom(memberId)) {
+            throw new BusinessException(ALREADY_HAS_ROOM);
+        }  // 중복 참여 체크
 
         // RDB 방 생성
         Room room = new Room();
         room.setHostId(memberId);
-        // room.setHostId(1L);  // 테스트 용
         room.setTitle(roomRequest.getTitle().trim());
         room.setPassword(roomRequest.getPassword());
         room.setRequiredPlayers(roomRequest.getRequiredPlayers());
         room.changeStatusToInActive();
         Room savedRoom = DbRoomRepository.save(room);
 
-        // Redis에 방 생성
+        // Redis 방 생성 ( Redis 만 게임 옵션 저장 )
         roomRedisService.createRoomInfo(savedRoom.getRoomId(), savedRoom.getHostId(),
             roomRequest.getRequiredPlayers(), savedRoom.getTitle(), savedRoom.getPassword(),
             roomRequest.getGameOption());
 
-        log.info("방 생성 완료 - 방 번호: {}, 방장: {}", savedRoom.getRoomId(), memberId);
+        log.info("방 생성 완료 - 방 번호: {}, 방장: {}, 게임 옵션: {}\n",
+            room.getRoomId(), room.getHostId(), roomRequest.getGameOption());
         return new RoomIdResponse(savedRoom.getRoomId());
     }
 
@@ -81,20 +109,38 @@ public class RoomDbService {
     }
 
     /**
+     * 특정 방 정보 조회
+     */
+    @Transactional(readOnly = true)
+    public RoomInfo getRoom(Long roomId) {
+
+        RoomInfo originRoomInfo = roomRedisService.findById(roomId);
+
+        // 새로운 RoomInfo 객체 생성 필요한 데이터만 복사
+        RoomInfo copyRoomInfo = new RoomInfo(
+            originRoomInfo.getRoomId(),
+            originRoomInfo.getTitle(),
+            originRoomInfo.getPassword(),
+            originRoomInfo.getRequiredPlayers(),
+            originRoomInfo.getGameOption()
+        );
+
+        // memberMapping 복사 및 값을 0으로 설정
+        HashMap<Integer, Long> newMemberMapping = new HashMap<>();
+        for (Entry<Integer, Long> entry : originRoomInfo.getMemberMapping().entrySet()) {
+            newMemberMapping.put(entry.getKey(), 0L);
+        }
+        copyRoomInfo.setMemberMapping(newMemberMapping);
+
+        return copyRoomInfo;
+    }
+
+    /**
      * 게임방 삭제 - RDB와 Redis에서 동시 삭제
      */
     public void deleteRoom(Long roomId) {
         DbRoomRepository.deleteById(roomId);
         roomRedisService.deleteById(roomId);
-        // messageService.sendRoomListToAll();
-    }
-
-    /**
-     * 특정 방 정보 조회
-     */
-    @Transactional(readOnly = true)
-    public RoomInfo getRoom(Long roomId) {
-        return roomRedisService.findById(roomId);
     }
 
     /**
@@ -105,23 +151,5 @@ public class RoomDbService {
             .orElseThrow(() -> new BusinessException(ROOM_NOT_FOUND));
 
         room.changeStatusToActive();
-    }
-
-    /**
-     * 유틸리티 메서드 방 생성 요청 유효성 검증
-     */
-    private void validateRoomCreation(RoomRequest roomRequest, Long memberId) {
-        // 비밀번호 유효성 검사
-        String password = roomRequest.getPassword();
-        if (password != null && (password.length() < 4 || password.length() > 16)) {
-            throw new BusinessException(INVALID_PASSWORD);
-        }
-
-        // 유저의 중복 참여 검사
-        if (roomRedisService.isMemberInRoom(memberId)) {
-            throw new BusinessException(ALREADY_HAS_ROOM);
-        }
-
-        // GameOption 검증 추가 검토?
     }
 }
