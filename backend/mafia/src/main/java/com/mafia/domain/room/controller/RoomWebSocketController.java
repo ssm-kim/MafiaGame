@@ -52,7 +52,6 @@ public class RoomWebSocketController {
         @AuthenticationPrincipal StompPrincipal detail
     ) {
         long memberId = Long.parseLong(detail.getName());
-        log.info("방 입장 요청 - 방 번호: {}, memberId: {}", roomId, memberId);
 
         roomRedisService.enterRoom(roomId, memberId, message.getPassword());
         messageService.sendRoomUpdate(roomId);
@@ -68,13 +67,12 @@ public class RoomWebSocketController {
         @AuthenticationPrincipal StompPrincipal detail
     ) {
         long memberId = Long.parseLong(detail.getName());
-        log.info("방 퇴장 요청 - 방 번호: {}, memberId: {}",
-            roomId, memberId);
 
         boolean isHost = roomRedisService.isHost(roomId, memberId);
         roomRedisService.leaveRoom(roomId, memberId);
         messageService.sendRoomUpdate(roomId);
         if (isHost) {
+            log.info("방장 퇴장 - 방 번호: {}, hostId: {}", roomId, memberId);
             roomDbService.deleteRoom(roomId);
         }
         messageService.sendRoomListToAll();
@@ -90,8 +88,6 @@ public class RoomWebSocketController {
         @AuthenticationPrincipal StompPrincipal detail
     ) {
         long memberId = Long.parseLong(detail.getName());
-        log.info("강제 퇴장 요청 - 방 번호: {}, 방장: {}, 대상: {}",
-            roomId, Long.parseLong(detail.getName()), message.getTargetParticipantNo());
 
         roomRedisService.kickMember(roomId, memberId, message.getTargetParticipantNo());
         messageService.sendRoomUpdate(roomId);
@@ -107,9 +103,6 @@ public class RoomWebSocketController {
         @AuthenticationPrincipal StompPrincipal detail
     ) {
         long memberId = Long.parseLong(detail.getName());
-        log.info("준비 상태 변경 - 방 번호: {}, memberId: {}, 참가자 번호: {}",
-            roomId, memberId);
-
         roomRedisService.toggleReady(roomId, memberId);
         messageService.sendRoomUpdate(roomId);
     }
@@ -124,7 +117,6 @@ public class RoomWebSocketController {
         @AuthenticationPrincipal StompPrincipal detail
     ) throws JsonProcessingException {
         long memberId = Long.parseLong(detail.getName());
-        log.info("게임 시작 요청 - 방 번호: {}, 방장 memberId: {}", roomId, memberId);
 
         roomRedisService.startGame(roomId, memberId);
         messageService.sendRoomUpdate(roomId);
