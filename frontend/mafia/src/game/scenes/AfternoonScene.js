@@ -1,6 +1,6 @@
-import BaseScene from '@/game/scenes/BaseScene';
+import Phaser from 'phaser';
 
-export default class AfternoonScene extends BaseScene {
+export default class AfternoonScene extends Phaser.Scene {
   constructor() {
     super({ key: 'AternoonScene' });
   }

@@ -1,12 +1,12 @@
 import axios from 'axios';
+import Phaser from 'phaser';
 import setBackground from '@/game/utils/map';
-import BaseScene from '@/game/scenes/BaseScene';
 import PlayerManager from '@/game/player/PlayerManager';
-import sceneChanger from '@/game/utils/time';
+import sceneChanger from '@/game/utils/sceneChange';
 import showFixedRoleText from '@/game/ui/role/UserRole';
 import showFixedClock from '@/game/ui/clock/BaseClock';
 
-export default class MainScene extends BaseScene {
+export default class MainScene extends Phaser.Scene {
   constructor() {
     super({
       key: 'MainScene',
@@ -43,9 +43,5 @@ export default class MainScene extends BaseScene {
     if (this.playerManager.localPlayer) {
       this.playerManager.localPlayer.move();
     }
-  }
-
-  destroy() {
-    console.log('##### MAINSCENE DESTROYED');
   }
 }

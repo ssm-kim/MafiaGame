@@ -239,4 +239,3 @@ export default class GameOverScene extends Phaser.Scene {
     this.scale.off('resize', this.resize);
   }
 }
-

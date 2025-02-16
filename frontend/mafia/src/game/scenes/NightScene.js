@@ -8,7 +8,7 @@ import showFixedRoleText from '@/game/ui/role/UserRole';
 import CitizenRole from '@/game/ui/role/CitizenRole';
 // import { sceneTimeout } from '@/game/utils/time';
 import showFixedClock from '@/game/ui/clock/BaseClock';
-import sceneChanger from '@/game/utils/time';
+import sceneChanger from '@/game/utils/sceneChange';
 
 export default class NightScene extends Phaser.Scene {
   constructor() {

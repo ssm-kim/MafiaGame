@@ -1,9 +1,9 @@
-import BaseScene from '@/game/scenes/BaseScene';
+import Phaser from 'phaser';
 import GamePhases from '@/types/game';
-import sceneChanger from '@/game/utils/time';
+import sceneChanger from '@/game/utils/sceneChange';
 import setBackground from '@/game/utils/map';
 
-export default class LoadingScene extends BaseScene {
+export default class LoadingScene extends Phaser.Scene {
   constructor() {
     super({ key: 'LoadingScene' });
   }
@@ -90,23 +90,23 @@ export default class LoadingScene extends BaseScene {
   }
 
   // handleEvents() {
-    // const eventEmitter = this.registry.get('eventEmitter');
-    // eventEmitter.on('VOTE_RESULT', (data) => {
-    //   console.log(data);
-    //   if (data.voteResult !== -1) {
-    //     this.scene.start('StatementScene', data);
-    //   } else {
-    //     this.scene.start('NightScene');
-    //   }
-    // });
-    // console.log(eventEmitter);
-    // eventEmitter.on('TIME', (data) => {
-    //   try {
-    //     const parsedData = JSON.parse(data);  // 문자열을 JSON 객체로 변환
-    //     console.log(parsedData);  // time 값 출력
-    //   } catch (error) {
-    //     console.error("Error parsing JSON:", error);
-    //   }
-    // });
+  // const eventEmitter = this.registry.get('eventEmitter');
+  // eventEmitter.on('VOTE_RESULT', (data) => {
+  //   console.log(data);
+  //   if (data.voteResult !== -1) {
+  //     this.scene.start('StatementScene', data);
+  //   } else {
+  //     this.scene.start('NightScene');
+  //   }
+  // });
+  // console.log(eventEmitter);
+  // eventEmitter.on('TIME', (data) => {
+  //   try {
+  //     const parsedData = JSON.parse(data);  // 문자열을 JSON 객체로 변환
+  //     console.log(parsedData);  // time 값 출력
+  //   } catch (error) {
+  //     console.error("Error parsing JSON:", error);
+  //   }
+  // });
   // }
 }

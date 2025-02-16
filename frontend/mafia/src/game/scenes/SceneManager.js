@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import axios from 'axios';
 import PlayerRole from '@/types/role';
 import getRandomCharacter from '@/game/utils/character';
-import sceneChanger from '@/game/utils/time';
+import sceneChanger from '@/game/utils/sceneChange';
 
 export default class SceneManager extends Phaser.Scene {
   constructor() {

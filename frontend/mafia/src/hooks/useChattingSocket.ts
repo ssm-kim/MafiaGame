@@ -21,6 +21,8 @@ const useChattingSocket = () => {
       const socket = new WebSocket(`ws://localhost:8080${endpoints.Chatting}`);
       const stompClient = Stomp.over(socket);
 
+      stompClient.debug = () => {};
+
       stompClient.connect({}, () => {
         setIsConnected(true);
       });

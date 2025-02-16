@@ -2,7 +2,7 @@ export default function sceneChanger(scene) {
   const eventEmitter = scene.registry.get('eventEmitter');
 
   // 이전 phase를 저장할 변수 추가
-  let previousPhase = null;
+  let previousPhase = scene.scene;
 
   const phaseMapping = {
     DAY_DISCUSSION: 'MainScene',
@@ -12,11 +12,18 @@ export default function sceneChanger(scene) {
     NIGHT_ACTION: 'NightScene',
   };
 
+  scene.events.on('shutdown', () => {
+    eventEmitter.removeAllListeners();
+  });
+
+  eventEmitter.off('TIME');
   eventEmitter.on('TIME', (data) => {
     try {
+      if (!data) return;
 
+      scene.registry.set('remainingTime', data.time);
       // phase가 이전과 다를 때만 scene 변경
-      if (data.phase !== previousPhase) {
+      if (previousPhase !== null && data.phase !== previousPhase) {
         const newSceneKey = phaseMapping[data.phase];
         const currentSceneKey = scene.scene.key;
 
@@ -24,6 +31,7 @@ export default function sceneChanger(scene) {
         console.log(`Current Scene: ${currentSceneKey}, New Scene: ${newSceneKey}`);
 
         if (newSceneKey !== currentSceneKey) {
+          eventEmitter.removeAllListeners();
           scene.scene.stop(currentSceneKey);
           scene.scene.start(newSceneKey);
           // 현재 phase를 이전 phase로 저장

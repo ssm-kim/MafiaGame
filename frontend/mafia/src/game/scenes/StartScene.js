@@ -1,8 +1,7 @@
 import Phaser from 'phaser';
 import PlayerRole from '@/types/role';
-import BaseScene from '@/game/scenes/BaseScene';
 
-export default class StartScene extends BaseScene {
+export default class StartScene extends Phaser.Scene {
   constructor() {
     super({ key: 'StartScene' });
   }

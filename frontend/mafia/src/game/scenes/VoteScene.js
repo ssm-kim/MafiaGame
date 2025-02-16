@@ -4,7 +4,7 @@ import showFixedClock from '@/game/ui/clock/BaseClock';
 import setBackground from '@/game/utils/map';
 import { resetVoteSelection, highlightVoteSelection } from '@/game/utils/voteUtils';
 import createVoteContainer from '@/game/ui/vote/VoteContainer';
-import sceneChanger from '@/game/utils/time';
+import sceneChanger from '@/game/utils/sceneChange';
 import showFixedRoleText from '@/game/ui/role/UserRole';
 // import { sceneTimeout } from '@/game/utils/time';
 
@@ -36,6 +36,7 @@ export default class VoteScene extends Phaser.Scene {
     this.setupSocketListeners();
     this.scale.on('resize', this.resize, this);
     this.cameras.main.fadeIn(400);
+    this.voteResult();
     sceneChanger(this);
   }
 
@@ -51,25 +52,8 @@ export default class VoteScene extends Phaser.Scene {
     // const { width, height } = this.scale.gameSize;
     const { width } = this.scale.gameSize;
 
-    // 1. 타이머 컨테이너
-    this.timerContainer = this.add.container(width / 2, this.getTimerY()).setDepth(1001);
-
-    // 게이지 바 설정
-    const barWidth = this.getBarWidth();
-    // const barHeight = this.getBarHeight();
-
-    // 게이지 바 배경
-    this.timerBarBg = this.add.graphics().setPosition(-barWidth / 2, 30);
-    this.updateTimerBar(this.timerBarBg, 0x666666, 0.8, 1);
-
-    // 게이지 바
-    this.timerBar = this.add.graphics().setPosition(-barWidth / 2, 30);
-    this.updateTimerBar(this.timerBar, 0x00ff00, 1, 1);
-
-    this.timerContainer.add([this.timerBarBg, this.timerBar]);
-
     // 2. 투표 UI
-    this.mainContainer = this.add.container(width / 2, this.getVoteContainerY()).setDepth(1000);
+    this.mainContainer = this.add.container(width / 2, this.getVoteContainerY());
 
     const voteGrid = createVoteContainer(
       this,
@@ -103,10 +87,19 @@ export default class VoteScene extends Phaser.Scene {
     highlightVoteSelection(this, playerNumber);
   }
 
-  voteResult(){
-  const eventEmitter = scene.registry.get('eventEmitter');
-    
-}
+  voteResult() {
+    const eventEmitter = this.registry.get('eventEmitter');
+
+    eventEmitter.on('VOTE_RESULT', (data) => {
+      try {
+        console.log(data);
+        this.registry.set('voteResult', data); // 데이터 저장
+      } catch (error) {
+        console.error('Error handling VOTE_RESULT:', error);
+      }
+    });
+  }
+
   async submitVote() {
     if (!this.target) {
       this.showMessage('투표할 대상을 선택해주세요');
@@ -142,66 +135,10 @@ export default class VoteScene extends Phaser.Scene {
       // 서버 응답 처리
       console.log('투표 전송 성공:', response.data);
     } catch (error) {
-      console.log('투표 전송 실패:', error.message);
-      this.showMessage('서버에 문제가 발생했습니다. 나중에 다시 시도해주세요.');
+      console.log('투표 전송 실패:', error.response.data.message);
+      this.showMessage(error.response.data.message);
     }
-
-    // 메시지 표시
-    const message = this.hasVoted ? '투표가 완료되었습니다' : '투표가 변경되었습니다';
-    this.showMessage(message);
-
     this.updateVoteDisplay();
-  }
-
-  updateVoteResults(data) {
-    this.voteResults[data.voter] = data.target;
-    this.updateVoteDisplay();
-  }
-
-  updateVoteDisplay() {
-    if (this.voteCountTexts) {
-      this.voteCountTexts.forEach((text) => text.destroy());
-    }
-    this.voteCountTexts = [];
-
-    const voteCounts = {};
-    Object.values(this.voteResults).forEach((targetId) => {
-      voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
-    });
-
-    Object.entries(voteCounts).forEach(([targetId, count]) => {
-      const text = this.add
-        .text(
-          this.scale.width - 100,
-          50 + parseInt(targetId, 10) * 30,
-          `생존자 ${targetId}: ${count}표`,
-          {
-            fontSize: '16px',
-            fill: '#FFD700',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            padding: { x: 5, y: 2 },
-          },
-        )
-        .setScrollFactor(0)
-        .setDepth(1002);
-
-      this.voteCountTexts.push(text);
-    });
-
-    // 현재 플레이어의 투표 상태 표시
-    if (this.voteResults[this.character]) {
-      const myVoteText = this.add
-        .text(10, this.scale.height - 40, `현재 투표: 생존자 ${this.voteResults[this.character]}`, {
-          fontSize: '16px',
-          fill: '#FFD700',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          padding: { x: 5, y: 2 },
-        })
-        .setScrollFactor(0)
-        .setDepth(1002);
-
-      this.voteCountTexts.push(myVoteText);
-    }
   }
 
   showMessage(text) {
@@ -213,11 +150,11 @@ export default class VoteScene extends Phaser.Scene {
         backgroundColor: '#000000',
         padding: { x: 20, y: 10 },
       })
-      .setOrigin(0.5);
+      .setOrigin(0.5)
+      .setDepth(100);
 
     this.time.delayedCall(2000, () => message.destroy());
   }
-
 
   // 반응형 크기 계산 메서드들
   getFontSize() {
