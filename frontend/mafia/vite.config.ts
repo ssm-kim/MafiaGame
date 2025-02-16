@@ -43,38 +43,38 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        secure: true,
-        ws: true
-      },
-      '/oauth2': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        secure: true
-      },
-      '/login': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        secure: true
-      }
       // '/api': {
-      //   target: 'https://i12d101.p.ssafy.io',
+      //   target: 'http://localhost:8080',
       //   changeOrigin: true,
       //   secure: true,
       //   ws: true
       // },
       // '/oauth2': {
-      //   target: 'https://i12d101.p.ssafy.io',
+      //   target: 'http://localhost:8080',
       //   changeOrigin: true,
       //   secure: true
       // },
       // '/login': {
-      //   target: 'https://i12d101.p.ssafy.io',
+      //   target: 'http://localhost:8080',
       //   changeOrigin: true,
       //   secure: true
       // }
+      '/api': {
+        target: 'https://i12d101.p.ssafy.io',
+        changeOrigin: true,
+        secure: true,
+        ws: true
+      },
+      '/oauth2': {
+        target: 'https://i12d101.p.ssafy.io',
+        changeOrigin: true,
+        secure: true
+      },
+      '/login': {
+        target: 'https://i12d101.p.ssafy.io',
+        changeOrigin: true,
+        secure: true
+      }
     }
   }
 });
