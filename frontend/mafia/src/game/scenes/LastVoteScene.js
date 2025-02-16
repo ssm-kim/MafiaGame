@@ -10,8 +10,8 @@ export default class LastVoteScene extends Phaser.Scene {
     super({ key: 'LastVoteScene' });
   }
 
-  init(data) {
-    this.targetPlayerId = data?.targetPlayerId;
+  init() {
+    this.hasVoted = false;
     this.voteResult = this.registry.get('voteResult');
     console.log(this.voteResult);
   }
@@ -137,12 +137,6 @@ export default class LastVoteScene extends Phaser.Scene {
 
     this.cameras.main.shake(500, 0.008);
     this.cameras.main.flash(300, 255, 0, 0, 0.4);
-
-    const finalResult = {
-      player: this.votedPlayer,
-      executed: voteType === '처형',
-    };
-    this.registry.set('executionResult', finalResult);
 
     this.confirmButton.setAlpha(0.5);
     this.cancelButton.setAlpha(0.5);

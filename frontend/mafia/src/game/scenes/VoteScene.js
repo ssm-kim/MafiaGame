@@ -33,19 +33,10 @@ export default class VoteScene extends Phaser.Scene {
     showFixedRoleText(this);
     showFixedClock(this);
     this.createLayout();
-    this.setupSocketListeners();
     this.scale.on('resize', this.resize, this);
     this.cameras.main.fadeIn(400);
     this.voteResult();
     sceneChanger(this);
-  }
-
-  setupSocketListeners() {
-    if (this.socketService && this.socketService.socket) {
-      this.socketService.socket.on('vote-update', (data) => {
-        this.updateVoteResults(data);
-      });
-    }
   }
 
   createLayout() {
@@ -114,7 +105,6 @@ export default class VoteScene extends Phaser.Scene {
     // 이전 투표 결과 제거 (재투표의 경우)
     if (this.hasVoted) {
       delete this.voteResults[this.character];
-      this.updateVoteDisplay(); // 투표 현황 업데이트
     }
 
     // 새로운 투표 등록
@@ -138,7 +128,6 @@ export default class VoteScene extends Phaser.Scene {
       console.log('투표 전송 실패:', error.response.data.message);
       this.showMessage(error.response.data.message);
     }
-    this.updateVoteDisplay();
   }
 
   showMessage(text) {
