@@ -4,12 +4,13 @@ interface RoomCardProps {
     roomTitle: string;
     curPlayers: number;
     requiredPlayers: number;
-    hasPassword?: boolean; // 비밀번호 존재 여부 추가
+    hasPassword: boolean;
   };
   onJoin: (roomId: number) => void;
 }
 
 function RoomCard({ room, onJoin }: RoomCardProps): JSX.Element {
+  console.log('Room hasPassword:', room.hasPassword);
   console.log('RoomCard received room:', room);
   return (
     <div

@@ -72,20 +72,31 @@ const roomApi = {
   },
 
   // 로비 구독
+  // subscribeLobby: (onRoomsUpdate: (rooms: Room[]) => void) => {
+  //   if (!stompClient) return;
+  //   return stompClient.subscribe('/topic/lobby', (message: any) => {
+  //     try {
+  //       const rooms = JSON.parse(message.body);
+  //       console.log('###############');
+  //       console.log(rooms);
+  //       onRoomsUpdate(rooms);
+  //     } catch (error) {
+  //       console.error('Error processing room list:', error);
+  //     }
+  //   });
+  // },
   subscribeLobby: (onRoomsUpdate: (rooms: Room[]) => void) => {
     if (!stompClient) return;
     return stompClient.subscribe('/topic/lobby', (message: any) => {
       try {
         const rooms = JSON.parse(message.body);
-        console.log('###############');
-        console.log(rooms);
+        console.log('방 목록 웹소켓 데이터:', JSON.stringify(rooms, null, 2));
         onRoomsUpdate(rooms);
       } catch (error) {
         console.error('Error processing room list:', error);
       }
     });
   },
-
   // // 방 구독
   // subscribeRoom: (roomId: number, onRoomUpdate: (roomInfo: Room) => void) => {
   //   console.log('방 구독');

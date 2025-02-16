@@ -2,7 +2,7 @@ export interface Room {
   roomId: number;
   roomTitle: string;
   initParticipantNo: number;
-  roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED'; // 문자열 타입으로 통일
+  roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
   roomOption: string;
   requiredPlayers: number;
   isVoice: boolean;
@@ -10,6 +10,7 @@ export interface Room {
   createdAt: string;
   peopleCnt: number;
   hostId: number;
+  hasPassword: boolean;
   participant: Record<string, Participant>;
   isNight?: boolean;
 }

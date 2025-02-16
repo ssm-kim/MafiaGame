@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { Info } from 'lucide-react';
 import api from '../../api/axios';
 import { Room } from '@/types/room';
 import { Header } from '@/components/lobby/Header';
@@ -10,6 +11,7 @@ import { CreateRoomModal } from '@/components/lobby/CreateRoomModal';
 import NicknameModal from '@/components/nickname/NicknameModal';
 import roomApi from '@/api/roomApi';
 import PasswordModal from '@/components/lobby/PasswordModal';
+import GameRulesModal from '@/components/lobby/GameRulesModal';
 
 export interface LoginResponse {
   memberId: number;
@@ -39,6 +41,7 @@ function GameLobby() {
   const [nickname, setNickname] = useState('');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [showRulesModal, setShowRulesModal] = useState(false);
 
   useEffect(() => {
     const initializeAndSubscribe = async () => {
@@ -46,8 +49,25 @@ function GameLobby() {
         await roomApi.initializeWebSocket();
 
         // 로비 구독
-        roomApi.subscribeLobby((updatedRooms) => {
-          setRooms(updatedRooms);
+        roomApi.subscribeLobby(async (updatedRooms) => {
+          // 각 방의 상세 정보 확인
+          const detailedRooms = await Promise.all(
+            updatedRooms.map(async (room) => {
+              try {
+                const detailResponse = await roomApi.getRoom(room.roomId);
+                return {
+                  ...room,
+                  hasPassword: Boolean(detailResponse.data.result.password),
+                };
+              } catch (error) {
+                return {
+                  ...room,
+                  hasPassword: false,
+                };
+              }
+            }),
+          );
+          setRooms(detailedRooms);
         });
 
         // 초기 데이터 로드
@@ -55,8 +75,26 @@ function GameLobby() {
           roomApi.getRooms(),
           api.get('/api/member'),
         ]);
-        console.log('roomApi.getRooms() response:', roomsResponse.data.result);
-        setRooms(roomsResponse.data.result);
+
+        // 초기 데이터도 같은 방식으로 처리
+        const initialDetailedRooms = await Promise.all(
+          roomsResponse.data.result.map(async (room) => {
+            try {
+              const detailResponse = await roomApi.getRoom(room.roomId);
+              return {
+                ...room,
+                hasPassword: Boolean(detailResponse.data.result.password),
+              };
+            } catch (error) {
+              return {
+                ...room,
+                hasPassword: false,
+              };
+            }
+          }),
+        );
+
+        setRooms(initialDetailedRooms);
         if (userResponse.data.isSuccess) {
           setNickname(userResponse.data.result.nickname);
         }
@@ -122,36 +160,12 @@ function GameLobby() {
     }
   };
 
-  // const handleJoinRoom = async (roomId: number) => {
-  //   try {
-  //     // 방 참가자 수 체크
-  //     const roomResponse = await roomApi.getRoom(roomId);
-  //     // console.log('#############');
-  //     // console.log(roomResponse);
-  //     const room = roomResponse.data.result;
-  //     const currentPlayers = Object.keys(room.participant).length;
-  //     // console.log('**********');
-  //     // console.log(currentPlayers);
-
-  //     if (currentPlayers >= room.requiredPlayers) {
-  //       alert('방이 가득 찼습니다.');
-  //       return;
-  //     }
-
-  //     navigate(`/game/${roomId}`);
-  //   } catch (error) {
-  //     console.error('Failed to join room:', error);
-  //     if (error instanceof Error) {
-  //       alert(error.message);
-  //     } else {
-  //       alert('방 입장에 실패했습니다. 다시 시도해주세요.');
-  //     }
-  //   }
-  // };
   const handleJoinRoom = async (roomId: number) => {
     try {
       // 방 참가자 수 체크
       const roomResponse = await roomApi.getRoom(roomId);
+      console.log('###############3');
+      console.log('Room detail response:', roomResponse.data.result);
       const room = roomResponse.data.result;
       const currentPlayers = Object.keys(room.participant).length;
 
@@ -290,6 +304,17 @@ function GameLobby() {
             onSearchChange={setSearchTerm}
             onCreateRoom={() => setShowCreateModal(true)}
           />
+          <button
+            type="button"
+            onClick={() => setShowRulesModal(true)}
+            className="ml-4 px-4 py-2 bg-gray-900 bg-opacity-90 text-gray-300 rounded-md 
+    hover:bg-gray-800 transition-all duration-300 border-2 border-gray-700 
+    hover:border-gray-500 shadow-lg hover:shadow-gray-900/50 flex items-center gap-2"
+            style={{ fontFamily: 'BMEuljiro10yearslater' }}
+          >
+            <Info size={18} />
+            생존 규칙
+          </button>
 
           <div
             className="mt-4 sm:mt-8 text-red-500 text-xs sm:text-sm text-center mb-4"
@@ -307,10 +332,7 @@ function GameLobby() {
             onJoinRoom={handleJoinRoom}
           /> */}
           <RoomList
-            rooms={rooms.map((room) => ({
-              ...room,
-              hasPassword: !!room.password,
-            }))}
+            rooms={rooms}
             searchTerm={searchTerm}
             onJoinRoom={handleJoinRoom}
           />
@@ -338,6 +360,10 @@ function GameLobby() {
           onClose={() => setShowPasswordModal(false)}
           onSubmit={handlePasswordSubmit}
           // roomTitle={selectedRoom?.roomTitle || ''}
+        />
+        <GameRulesModal
+          show={showRulesModal}
+          onClose={() => setShowRulesModal(false)}
         />
       </div>
     </div>
