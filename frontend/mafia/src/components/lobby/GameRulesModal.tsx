@@ -96,7 +96,7 @@ function GameRulesModal({ show, onClose }: GameRulesModalProps) {
                       추천 인원
                     </span>
                   </div>
-                  <p className="text-sm">4-8명의 생존자</p>
+                  <p className="text-sm">6-8명의 생존자</p>
                 </div>
                 <div className="bg-gray-800 p-4 rounded-lg border border-red-800">
                   <div className="flex items-center gap-2 mb-2">

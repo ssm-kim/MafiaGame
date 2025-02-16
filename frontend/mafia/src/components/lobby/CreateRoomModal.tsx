@@ -22,8 +22,6 @@ export interface CreateRoomModalProps {
 
 // 인원수별 역할 제한 설정
 const ROLE_LIMITS = {
-  4: { minZombie: 1, maxZombie: 1, minMutant: 0, maxMutant: 0, doctor: 2 },
-  5: { minZombie: 1, maxZombie: 1, minMutant: 0, maxMutant: 1, doctor: 2 },
   6: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1, doctor: 2 },
   7: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1, doctor: 2 },
   8: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1, doctor: 2 },
@@ -60,7 +58,7 @@ export function CreateRoomModal({
 
   const handleRequiredPlayersChange = (value: string) => {
     const players = parseInt(value);
-    if (players >= 4 && players <= 8) {
+    if (players >= 6 && players <= 8) {
       onRoomDataChange({ ...roomData, requiredPlayers: players });
     }
   };
@@ -125,7 +123,7 @@ export function CreateRoomModal({
   };
 
   const currentLimits =
-    ROLE_LIMITS[roomData.requiredPlayers as keyof typeof ROLE_LIMITS] || ROLE_LIMITS[4];
+    ROLE_LIMITS[roomData.requiredPlayers as keyof typeof ROLE_LIMITS] || ROLE_LIMITS[6];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50">
@@ -156,7 +154,7 @@ export function CreateRoomModal({
 
           <div>
             <label className="block text-gray-300 mb-2">
-              생존자 수 (4-8명)
+              생존자 수 (6-8명)
               <input
                 type="number"
                 min="4"
