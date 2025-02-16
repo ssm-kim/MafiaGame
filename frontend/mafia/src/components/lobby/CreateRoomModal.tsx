@@ -22,11 +22,11 @@ export interface CreateRoomModalProps {
 
 // 인원수별 역할 제한 설정
 const ROLE_LIMITS = {
-  4: { minZombie: 1, maxZombie: 1, minMutant: 0, maxMutant: 0, doctor: 1 },
-  5: { minZombie: 1, maxZombie: 1, minMutant: 0, maxMutant: 1, doctor: 1 },
-  6: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1, doctor: 1 },
-  7: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1, doctor: 1 },
-  8: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1, doctor: 1 },
+  4: { minZombie: 1, maxZombie: 1, minMutant: 0, maxMutant: 0, doctor: 2 },
+  5: { minZombie: 1, maxZombie: 1, minMutant: 0, maxMutant: 1, doctor: 2 },
+  6: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1, doctor: 2 },
+  7: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1, doctor: 2 },
+  8: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1, doctor: 2 },
 };
 
 export function CreateRoomModal({
