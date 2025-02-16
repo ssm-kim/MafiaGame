@@ -13,4 +13,7 @@ public class PlayerInfo {
     @Schema(description = "플레이어의 닉네임", example = "Gamer123")
     private String nickname;
 
+    @Schema(description = "플레이어의 사망 여부", example = "false")
+    private boolean isDead;
+
 }
