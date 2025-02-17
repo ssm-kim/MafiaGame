@@ -123,7 +123,7 @@ public class Game implements Serializable { // 필드정리
         log.info("[Game{}] Role distribution is completed", gameId);
     }
 
-    public void init_role(List<Role> role) {
+    private void init_role(List<Role> role) {
         for (int i = 0; i < setting.getZombie(); i++) {
             role.add(Role.ZOMBIE);
         }
