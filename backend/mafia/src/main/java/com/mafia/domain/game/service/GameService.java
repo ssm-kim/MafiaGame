@@ -7,7 +7,6 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_TIME_OVE
 import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_PHASE;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.MUTANT_CANNOT_VOTE;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.PHASE_NOT_FOUND;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.PLAYER_NOT_FOUND;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,9 +17,9 @@ import com.mafia.domain.game.model.dto.GameStartEvent;
 import com.mafia.domain.game.model.entity.GameLog;
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
+import com.mafia.domain.game.model.game.GameStatus;
 import com.mafia.domain.game.model.game.Player;
 import com.mafia.domain.game.model.game.Role;
-import com.mafia.domain.game.model.game.GameStatus;
 import com.mafia.domain.game.repository.GameLogRepository;
 import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
@@ -85,23 +84,6 @@ public class GameService {
             .orElseThrow(() -> new BusinessException(GAME_NOT_FOUND));
     }
 
-
-    /**
-     * 게임 조회
-     *
-     * @param gameId   방 ID
-     * @param memberId 플레이어 번호
-     * @return 플레이어 객체
-     */
-    public Player findMemberByGame(long gameId, Long memberId) {
-        Game game = findById(gameId);
-        return game.getPlayers().values().stream()
-            .filter(player -> player.getMemberId().equals(memberId))
-            .findFirst()
-            .orElseThrow(() -> new BusinessException(PLAYER_NOT_FOUND));
-    }
-
-
     /**
      * 게임 시작
      *
@@ -118,13 +100,6 @@ public class GameService {
         game.startGame();
         gameSeqRepository.savePhase(gameId, GamePhase.DAY_DISCUSSION); // 낮 토론 시작
         gameSeqRepository.saveTimer(gameId, game.getSetting().getDayDisTimeSec()); // 설정된 시간
-        log.info("Game started in Room {}: Phase set to {}, Timer set to {} seconds",
-            gameId, GamePhase.DAY_DISCUSSION, game.getSetting().getDayDisTimeSec());
-
-        //Redis 채팅방 생성
-        subscription.subscribe(gameId);
-
-        gameRepository.save(game);
 
         // 🔥 OpenVidu 세션 생성
         try {
@@ -140,8 +115,12 @@ public class GameService {
         } catch (Exception e) {
             log.error("Failed to create OpenVidu session: {}", e.getMessage());
         }
+
+        //Redis 채팅방 생성
+        subscription.subscribe(gameId);
         gameRepository.save(game);
-        log.info("Game started in Room {}.", gameId);
+        log.info("Game started in Room {}: Phase set to {}, Timer set to {} seconds",
+            gameId, GamePhase.DAY_DISCUSSION, game.getSetting().getDayDisTimeSec());
         applicationEventPublisher.publishEvent(new GameStartEvent(gameId));
         return true;
     }
@@ -167,8 +146,10 @@ public class GameService {
     @Transactional
     public void deleteGame(long gameId, String version) {
         Game game = findById(gameId);
-        getTime(gameId);
-        getPhase(gameId);
+        Optional.ofNullable(gameSeqRepository.getTimer(gameId))
+            .orElseThrow(() -> new BusinessException(PHASE_NOT_FOUND));
+        Optional.ofNullable(gameSeqRepository.getPhase(gameId))
+            .orElseThrow(() -> new BusinessException(PHASE_NOT_FOUND));
         List<Player> players =  new ArrayList<>(game.getPlayers().values());
 
         memberService.recordMembers(players, game.getGameStatus());
@@ -205,7 +186,7 @@ public class GameService {
      *
      * @param gameId   방 ID
      * @param playerNo 투표를 하는 사용자 ID
-     * @param targetNo 투표 대상 사용자 ID
+     * @param targetNo 투표 대상 사용자 번호
      * @throws BusinessException 유효하지 않은 투표 조건일 경우 예외 발생
      */
     public void vote(long gameId, Long playerNo, Integer targetNo) { // 투표 sync 고려
@@ -231,30 +212,6 @@ public class GameService {
         }
     }
 
-
-    /**
-     * 투표 결과 반환
-     *
-     * @param gameId 방 ID
-     *
-     */
-    public int getVoteResult(long gameId) throws JsonProcessingException {
-        int target = findById(gameId).voteResult();
-
-        String topic = "game-" + gameId + "-system";
-        // JSON 메시지 생성 및 publish
-        String message = objectMapper.writeValueAsString(
-            Map.of("voteresult", String.valueOf(target))
-        );
-        gamePublisher.publish(topic, message);
-
-        if (target == -1) log.info("[Game{}] No one is selected", gameId);
-        else log.info("[Game{}] Target is {}", gameId, target);
-
-        return target;
-    }
-
-
     /**
      * 최종 찬반 투표: 보내는거 자체가 수락임
      *
@@ -275,7 +232,7 @@ public class GameService {
      * @param gameId 방 ID
      *
      */
-    public void getFinalVoteResult(long gameId) throws JsonProcessingException {
+    protected void getFinalVoteResult(long gameId) throws JsonProcessingException {
         Game game = findById(gameId);
         boolean isKill = game.finalvoteResult();
 
@@ -295,13 +252,9 @@ public class GameService {
 
 
     /**
-     * 플레이어 사망 처리 - 테스트는 이렇게 냅두고
-     * 실 배포 시, param으로 Game객체만 사용 후 Scheduler에서만 이를 호출
-     * Controller 제거
-     *
      * @param game  방 ID가 있는 이벤트 객체
      */
-    public void killPlayer(Game game) throws JsonProcessingException {
+    protected void killPlayer(Game game) throws JsonProcessingException {
         Integer healedPlayer = game.getHealTarget();
         List<Integer> killList = game.killProcess();
 
@@ -334,7 +287,7 @@ public class GameService {
      *
      * @param gameId   방 ID
      * @param playerNo 사용자 ID
-     * @param targetNo 죽일 사용자 ID
+     * @param targetNo 죽일 사용자 번호
      * @throws BusinessException 유효하지 않은 조건일 경우 예외 발생
      */
     public String setTarget(long gameId, Long playerNo, Integer targetNo)
@@ -397,28 +350,6 @@ public class GameService {
         }
 
         gameSeqRepository.decrementTimer(gameId, sec);
-    }
-
-    /**
-     * 남은 타이머 확인
-     *
-     * @param gameId 방 ID
-     * @return 남은 시간 (초 단위)
-     */
-    public Long getTime(long gameId) {
-        return gameSeqRepository.getTimer(gameId);
-    }
-
-    /**
-     * 현재 페이즈 확인
-     *
-     * @param gameId 방 ID
-     * @return 현재 페이즈
-     * @throws BusinessException 페이즈가 존재하지 않을 경우 예외 발생
-     */
-    public GamePhase getPhase(long gameId) {
-        return Optional.ofNullable(gameSeqRepository.getPhase(gameId))
-            .orElseThrow(() -> new BusinessException(PHASE_NOT_FOUND));
     }
 
     /**

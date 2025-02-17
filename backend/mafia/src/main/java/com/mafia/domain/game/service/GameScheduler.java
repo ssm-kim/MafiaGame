@@ -131,7 +131,7 @@ public class GameScheduler {
      * @param gameId 게임 ID
      * @throws JsonProcessingException JSON 변환 오류 발생 시 예외 처리
      */
-    public void processTimers(long gameId) throws JsonProcessingException {
+    private void processTimers(long gameId) throws JsonProcessingException {
         int remainingTime = gameTimers.getOrDefault(gameId, 0);
         GamePhase phase = gameSeqRepository.getPhase(gameId);
 
@@ -161,7 +161,7 @@ public class GameScheduler {
      * @throws BusinessException 유효하지 않은 페이즈일 경우 예외 발생
      * @throws JsonProcessingException JSON 변환 오류 발생 시 예외 처리
      */
-    public void advanceGamePhase(long gameId) throws JsonProcessingException {
+    private void advanceGamePhase(long gameId) throws JsonProcessingException {
         Game game = gameRepository.findById(gameId)
             .orElseThrow(() -> new BusinessException(GAME_NOT_FOUND));
 
