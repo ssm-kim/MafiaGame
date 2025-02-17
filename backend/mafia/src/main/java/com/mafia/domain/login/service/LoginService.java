@@ -7,6 +7,7 @@ import com.mafia.global.common.service.RedisService;
 import com.mafia.global.common.utils.CookieUtil;
 import com.mafia.global.common.utils.JWTUtil;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,8 +36,8 @@ public class LoginService {
         String access = jwtUtil.createAccessToken(user.getProviderId(), user.getMemberId());
         String refresh = jwtUtil.createRefreshToken(user.getProviderId(), user.getMemberId());
 
-        // Refresh 토큰 저장
-        redisService.save(user.getProviderId(), refresh);
+        // Refresh 토큰 저장 게스트일 경우 6시간 후 만료
+        redisService.saveWithExpiry(user.getProviderId(), refresh, 6, TimeUnit.HOURS);
 
         // 쿠키 설정
         response.addCookie(cookieUtil.createCookie("ACCESS", access));
