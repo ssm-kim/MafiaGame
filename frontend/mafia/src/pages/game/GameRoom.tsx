@@ -191,7 +191,127 @@ function GameRoom(): JSX.Element {
         }
       });
     }
+<<<<<<< Updated upstream
   }, [roomId, gameState?.roomStatus, currentPlayerId]);
+=======
+  }, [roomId, gameState?.roomStatus, currentNickname]);
+
+  useEffect(() => {
+    console.log('실험----------------');
+    console.log('GameRoom - isHost 상태:', isHost);
+    console.log('GameRoom - players:', players);
+  }, [isHost, players]);
+
+  useEffect(() => {
+    let roomSubscription: any = null;
+    let chatSubscription: any = null;
+
+    const initializeRoom = async () => {
+      try {
+        if (!roomId) return;
+
+        await roomApi.initializeWebSocket();
+        const stompClient = roomApi.getStompClient();
+        stompClientRef.current = stompClient;
+
+        const responseNickname = await axios.get('/api/member');
+        const { nickname } = responseNickname.data.result;
+
+        if (stompClient) {
+          roomSubscription = roomApi.subscribeRoom(Number(roomId), (message) => {
+            if ('gameStart' in message && message.gameStart === 'true') {
+              setGameState((prevState) => {
+                if (!prevState) return null;
+                return {
+                  ...prevState,
+                  roomStatus: 'PLAYING',
+                };
+              });
+              return;
+            }
+
+            let isHostLeft = true;
+            Object.values(message as ParticipantMap).forEach((participantInfo) => {
+              if (participantInfo.participantNo === 1) {
+                isHostLeft = false;
+              }
+            });
+
+            if (isHostLeft) return navigate('/game-lobby');
+
+            const myNewInfo = Object.values(message).find((p) => p.nickname === nickname);
+
+            if (!myNewInfo) {
+              alert('강제 퇴장 당하였습니다.');
+              navigate('/game-lobby');
+            }
+
+            if (!message) {
+              alert('방이 삭제되었습니다.');
+              navigate('/game-lobby');
+              return;
+            }
+            setParticipants(message as ParticipantMap);
+          });
+
+          chatSubscription = stompClient.subscribe(
+            `/topic/room-${roomId}-chat`,
+            (msg: { body: string }) => handleMessage('ROOM', msg.body),
+          );
+
+          await roomApi.joinRoom(Number(roomId));
+        }
+
+        const response = await roomApi.getRoom(Number(roomId));
+        if (response.data.isSuccess) {
+          const room = response.data.result;
+          if (room) {
+            setGameState(room);
+            setRequiredPlayers(room.requiredPlayers);
+            try {
+              console.log('채팅 내역 요청 시작');
+              const chatResponse = await axios.get(`/api/chat`, {
+                params: {
+                  gameId: roomId,
+                  chatType: 'room', // 소문자로 변경
+                  count: 50,
+                },
+              });
+              console.log('채팅 API 응답:', chatResponse);
+
+              if (chatResponse?.data?.isSuccess) {
+                console.log('채팅 데이터:', chatResponse.data.result);
+                if (Array.isArray(chatResponse.data.result)) {
+                  setMessages(chatResponse.data.result);
+                } else {
+                  console.log('채팅 데이터가 배열이 아님:', chatResponse.data.result);
+                }
+              } else {
+                console.log('채팅 API 실패:', chatResponse?.data);
+              }
+            } catch (error) {
+              console.log('채팅 요청 에러:', error);
+            }
+          } else {
+            navigate('/game-lobby');
+          }
+        }
+      } catch (error) {
+        console.error('Failed to initialize room:', error);
+        navigate('/game-lobby');
+      }
+    };
+
+    initializeRoom();
+
+    return () => {
+      if (roomSubscription) roomSubscription.unsubscribe();
+      if (chatSubscription) chatSubscription.unsubscribe();
+      window.sessionStorage.removeItem(`room-${roomId}-entered`);
+      roomApi.disconnect();
+    };
+  }, [roomId, navigate]);
+>>>>>>> Stashed changes
 
   const handleLeaveRoom = async () => {
     try {
@@ -244,6 +364,8 @@ function GameRoom(): JSX.Element {
         };
         setGameState(convertedGameState);
       }
+
+      await roomApi.startGame(Number(roomId));
     } catch (error) {
       console.error('Failed to start game:', error);
       if (axios.isAxiosError(error) && error.response?.status === 400) {
@@ -298,7 +420,10 @@ function GameRoom(): JSX.Element {
               />
             ) : (
               <div className="w-full h-full bg-gray-900 bg-opacity-80 rounded-lg border border-gray-800">
+<<<<<<< Updated upstream
                 {/* <GameStatus gameState={gameState} /> */}
+=======
+>>>>>>> Stashed changes
                 <GameComponent />
               </div>
             )}

@@ -56,7 +56,8 @@ export const connectWebSocket = (
 ) => {
   try {
     // 웹소켓 연결
-    const socket = new WebSocket('wss://i12d101.p.ssafy.io/ws-mafia');
+    // const socket = new WebSocket('wss://i12d101.p.ssafy.io/ws-mafia');
+    const socket = new WebSocket('ws://localhost:8080/ws-mafia');
     stompClient = Stomp.over(socket);
 
     const onConnect = () => {
