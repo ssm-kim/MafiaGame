@@ -1,83 +1,3 @@
-## 첫번째 배포 테스트입니다.
-
-실패 원인 : 익명의 사용자가 빌드 권한이 없어서 발생 403
-
-## 두번째 배포 테스트입니다.
-
-똑같은 원인 발생
-
-## 세번째 배포 테스트입니다.
-
-sql init 설정완료
-
-## 네번째 배포 테스트입니다.
-
-## 다섯번째 배포 테스트입니다.
-
-(권한 실패 계속 발생) 권한 ->Anyone can do anything으로 변경
-
-## 여섯번째 배포 테스트입니다.
-
-build때 -x test 옵션 추가
-
-## 일곱번째 배포 테스트입니다.
-
-.env 파일 못읽음 -> Jenkins credentials db 확인\
-
-## 여덟번째 배포 테스트입니다.
-
-.env 파일 위치 /infra/docker/app
-
-## 아홉번째 배포 테스트입니다.
-
-profile blue green 고정
-
-## 열번째 배포 테스트입니다.
-
-compose 세미콜론 제거 및 withFileCredentials 이용
-
-## 열한번째 배포 테스트입니다.
-
-withCredentials 이용
-
-## 열두번째 배포 테스트입니다.
-
-## 열세번째 배포 테스트 입니다.
-
-git 브랜치가 master로 되어있는거 확인-> dev_BE로 수정
-
-## 열네번째 배포 테스트입니다.
-
-.env denied -> ㅇ chmod u+w . 추가 및 이후 600 설정
-
-## 열다섯번째 배포 테스트
-
-blue,green에 depends_on mysql 제거(이미 컨테이너 실행중)
-
-## 열여섯번째 배포 테스트
-
-컨테이너는 생성 -> 실행 에러 ARG PROFILE 인식이 안됨 -> profile
-
-## 열일곱번째 배포 테스트
-
-현재는 파일의 경로만 저장되어 있고 실제 내용이 복사되지 않음. -> pipeline 수정
-
-## 열여덟번째 배포 테스트
-
-무중단 배포(blue, green) 설정 테스트
-
-## 열아홉번째 배포 테스트
-
-green -> conf upstream으로 수정
-
-## 스무번째 배포 테스트
-
-green upstream.conf 에서 삭제
-
-## 시크릿파일 적용
-
-## Redis 비번 추가
-
 # 서비스 소개
 
 **[Web RTC 기반 화상 채팅 마피아 게임]**
@@ -216,16 +136,16 @@ green upstream.conf 에서 삭제
         <td>
           <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
             <li><img src="icons/mysql.png" alt="MySQL" width="20"/> MySQL</li>
-            <li><img src="icons/redis.png" alt="MySQL" width="20"/> Redis</li>
+            <li><img src="icons/redis.png" alt="Redis" width="20"/> Redis</li>
           </ul>
         </td>
         <td>
           <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
             <li><img src="icons/aws.png" alt="AWS" width="20"/> AWS</li>
             <li><img src="icons/docker.jpg" alt="Docker" width="20"/> Docker</li>
-            <li><img src="icons/nginx.png" alt="Docker" width="20"/> Nginx</li>
-            <li><img src="icons/prometheus.png" alt="Docker" width="20"/> Prometheus</li>
-            <li><img src="icons/grafana.png" alt="Docker" width="20"/> Grafana</li>
+            <li><img src="icons/nginx.png" alt="Nginx" width="20"/> Nginx</li>
+            <li><img src="icons/prometheus.png" alt="Prometheus" width="20"/> Prometheus</li>
+            <li><img src="icons/grafana.png" alt="Grafana" width="20"/> Grafana</li>
           </ul>
         </td>
         <td>
