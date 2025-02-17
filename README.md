@@ -187,6 +187,7 @@ green upstream.conf 에서 삭제
       <tr>
         <th>FrontEnd</th>
         <th>BackEnd</th>
+        <th>DB</th>
         <th>Infra</th>
         <th>Tools</th>
         <th>Collaboration</th>
@@ -207,7 +208,6 @@ green upstream.conf 에서 삭제
           <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
             <li><img src="https://img.icons8.com/color/48/000000/java-coffee-cup-logo.png" alt="Java" width="20"/> Java</li>
             <li><img src="icons/springboot.png" alt="SpringBoot" width="20"/> SpringBoot</li>
-            <li><img src="icons/mysql.png" alt="MySQL" width="20"/> MySQL</li>
             <li><img src="icons/jpa.png" alt="JPA" width="20"/> JPA</li>
             <li><img src="icons/hibernate.png" alt="Hibernate" width="20"/> Hibernate</li>
             <li><img src="icons/openvidu.png" alt="OpenVidu" width="20"/> OpenVidu</li>
@@ -215,8 +215,17 @@ green upstream.conf 에서 삭제
         </td>
         <td>
           <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
+            <li><img src="icons/mysql.png" alt="MySQL" width="20"/> MySQL</li>
+            <li><img src="icons/redis.png" alt="MySQL" width="20"/> Redis</li>
+          </ul>
+        </td>
+        <td>
+          <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
             <li><img src="icons/aws.png" alt="AWS" width="20"/> AWS</li>
             <li><img src="icons/docker.jpg" alt="Docker" width="20"/> Docker</li>
+            <li><img src="icons/nginx.png" alt="Docker" width="20"/> Nginx</li>
+            <li><img src="icons/prometheus.png" alt="Docker" width="20"/> Prometheus</li>
+            <li><img src="icons/grafana.png" alt="Docker" width="20"/> Grafana</li>
           </ul>
         </td>
         <td>
