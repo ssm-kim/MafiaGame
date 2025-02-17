@@ -5,7 +5,7 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_GUEST_ACC
 
 import com.mafia.domain.game.model.game.Player;
 import com.mafia.domain.game.model.game.Role;
-import com.mafia.domain.game.model.game.GAMESTATUS;
+import com.mafia.domain.game.model.game.GameStatus;
 import com.mafia.domain.member.model.dto.MemberDTO;
 import com.mafia.domain.member.model.dto.response.MemberResponse;
 import com.mafia.domain.member.model.dto.response.NicknameResponse;
@@ -71,12 +71,12 @@ public class MemberService {
     }
 
     @Transactional
-    public void recordMembers(List<Player> players, GAMESTATUS gameStatus) {
+    public void recordMembers(List<Player> players, GameStatus gameStatus) {
         List<Long> winMembers = players.stream()
             .filter(player -> (
-                (player.getRole() == Role.ZOMBIE && gameStatus == GAMESTATUS.ZOMBIE_WIN) ||
-                    (player.getRole() == Role.MUTANT && gameStatus == GAMESTATUS.MUTANT_WIN) ||
-                    (player.getRole() != Role.ZOMBIE && player.getRole() != Role.MUTANT && gameStatus == GAMESTATUS.CITIZEN_WIN)
+                (player.getRole() == Role.ZOMBIE && gameStatus == GameStatus.ZOMBIE_WIN) ||
+                    (player.getRole() == Role.MUTANT && gameStatus == GameStatus.MUTANT_WIN) ||
+                    (player.getRole() != Role.ZOMBIE && player.getRole() != Role.MUTANT && gameStatus == GameStatus.CITIZEN_WIN)
             ))
             .map(Player::getMemberId)
             .collect(Collectors.toList());

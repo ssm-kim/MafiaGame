@@ -1,6 +1,6 @@
 package com.mafia.domain.game.model.entity;
 
-import com.mafia.domain.game.model.game.GAMESTATUS;
+import com.mafia.domain.game.model.game.GameStatus;
 import com.mafia.global.common.model.entity.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -28,12 +28,12 @@ public class GameLog extends BaseEntity {
     private Long gameId;
     private Integer playerCnt;
     @Enumerated(EnumType.STRING)
-    private GAMESTATUS winRole;
+    private GameStatus winRole;
     private String version;
 
     protected GameLog(){}
 
-    public GameLog(Long gameId, GAMESTATUS winRole, Integer playerCnt, String version) {
+    public GameLog(Long gameId, GameStatus winRole, Integer playerCnt, String version) {
         this.gameId = gameId;
         this.winRole = winRole;
         this.playerCnt = playerCnt;

@@ -20,7 +20,7 @@ import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
 import com.mafia.domain.game.model.game.Player;
 import com.mafia.domain.game.model.game.Role;
-import com.mafia.domain.game.model.game.GAMESTATUS;
+import com.mafia.domain.game.model.game.GameStatus;
 import com.mafia.domain.game.repository.GameLogRepository;
 import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
@@ -171,9 +171,9 @@ public class GameService {
         getPhase(gameId);
         List<Player> players =  new ArrayList<>(game.getPlayers().values());
 
-        memberService.recordMembers(players, game.getGamestatus());
+        memberService.recordMembers(players, game.getGameStatus());
 
-        GameLog gameLog = new GameLog(gameId, game.getGamestatus(),
+        GameLog gameLog = new GameLog(gameId, game.getGameStatus(),
             game.getPlayers().size(), version);
 
 
@@ -378,9 +378,9 @@ public class GameService {
      * @param gameId 방 ID
      * @return 게임 상태 (STATUS)
      */
-    public GAMESTATUS isEnd(long gameId) {
+    public GameStatus isEnd(long gameId) {
         Game game = findById(gameId);
-        return game.getGamestatus();
+        return game.getGameStatus();
     }
 
     /**

@@ -3,7 +3,7 @@ package com.mafia.domain.game.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mafia.domain.game.model.dto.GameInfoDto;
 import com.mafia.domain.game.model.game.GamePhase;
-import com.mafia.domain.game.model.game.GAMESTATUS;
+import com.mafia.domain.game.model.game.GameStatus;
 import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.login.model.dto.AuthenticatedUser;
 import com.mafia.global.common.model.dto.BaseResponse;
@@ -101,8 +101,8 @@ public class GameController {
 
     @GetMapping("/{roomId}/isEnd")
     @Operation(summary = "Check game over", description = "게임이 끝났는지 확인합니다.")
-    public ResponseEntity<BaseResponse<GAMESTATUS>> isEnd(@PathVariable Long roomId) {
-        GAMESTATUS GAMESTATUS = gameService.isEnd(roomId);
+    public ResponseEntity<BaseResponse<GameStatus>> isEnd(@PathVariable Long roomId) {
+        GameStatus GAMESTATUS = gameService.isEnd(roomId);
         return ResponseEntity.ok(new BaseResponse<>(GAMESTATUS));
     }
 
