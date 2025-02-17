@@ -3,13 +3,13 @@ package com.mafia.domain.game.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mafia.domain.game.model.dto.GameInfoDto;
 import com.mafia.domain.game.model.game.GamePhase;
-import com.mafia.domain.game.model.game.STATUS;
+import com.mafia.domain.game.model.game.GameStatus;
 import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.login.model.dto.AuthenticatedUser;
 import com.mafia.global.common.model.dto.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -22,12 +22,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/game")
-@RequiredArgsConstructor
 @Tag(name = "Game Controller", description = "좀비 기반 마피아 게임의 로직을 처리하는 API입니다.")
 
 public class GameController {
 
     private final GameService gameService;
+    private final String gameVersion;
+
+    public GameController(GameService gameService,
+        @Value("${application.version}") String gameVersion){
+        this.gameService = gameService;
+        this.gameVersion = gameVersion;
+    }
 
     /*
     TODO:
@@ -52,7 +58,7 @@ public class GameController {
     @DeleteMapping("/{roomId}")
     @Operation(summary = "Delete game", description = "방 ID로 게임을 삭제합니다.")
     public ResponseEntity<BaseResponse<String>> deleteGame(@PathVariable Long roomId) {
-        gameService.deleteGame(roomId);
+        gameService.deleteGame(roomId, gameVersion);
         return ResponseEntity.ok(new BaseResponse<>("Room " + roomId + " deleted."));
     }
 
@@ -95,15 +101,9 @@ public class GameController {
 
     @GetMapping("/{roomId}/isEnd")
     @Operation(summary = "Check game over", description = "게임이 끝났는지 확인합니다.")
-    public ResponseEntity<BaseResponse<STATUS>> isEnd(@PathVariable Long roomId) {
-        STATUS status = gameService.isEnd(roomId);
-        if (status != STATUS.PLAYING) {
-            /*
-             * 게임 로그 저장 기능 구현하기
-             * */
-            gameService.deleteGame(roomId);
-        }
-        return ResponseEntity.ok(new BaseResponse<>(status));
+    public ResponseEntity<BaseResponse<GameStatus>> isEnd(@PathVariable Long roomId) {
+        GameStatus GAMESTATUS = gameService.isEnd(roomId);
+        return ResponseEntity.ok(new BaseResponse<>(GAMESTATUS));
     }
 
     @PostMapping("/{roomId}/test/target/set")
