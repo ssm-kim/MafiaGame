@@ -10,6 +10,7 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.ROOM_TITLE_LI
 import com.mafia.domain.room.model.entity.Room;
 import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.model.request.RoomRequest;
+import com.mafia.domain.room.model.response.RoomEnterResponse;
 import com.mafia.domain.room.model.response.RoomIdResponse;
 import com.mafia.domain.room.model.response.RoomResponse;
 import com.mafia.domain.room.repository.RoomRepository;
@@ -151,5 +152,22 @@ public class RoomDbService {
             .orElseThrow(() -> new BusinessException(ROOM_NOT_FOUND));
 
         room.changeStatusToActive();
+    }
+
+    /**
+     * 방 내부에서 참가자 번호(본인) 조회
+     */
+    public RoomEnterResponse searchParticipantNo(Long roomId, Long memberId) {
+        RoomInfo roomInfo = roomRedisService.findById(roomId);
+
+        int participantNo = roomInfo.getMemberMapping().entrySet().stream()
+            .filter(entry -> entry.getValue().equals(memberId))
+            .map(Entry::getKey)
+            .findFirst()
+            .orElse(0);
+
+        return RoomEnterResponse.builder()
+            .myParticipantNo(participantNo)
+            .build();
     }
 }
