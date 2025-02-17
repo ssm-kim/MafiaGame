@@ -20,7 +20,6 @@ function WaitingRoom({
   onStart,
   roomId,
 }: WaitingRoomProps): JSX.Element {
-  console.log('WaitingRoom - props:', { isHost, players });
   const paddedPlayers = [
     ...players,
     ...Array(Math.max(0, requiredPlayers - players.length)).fill(undefined),
