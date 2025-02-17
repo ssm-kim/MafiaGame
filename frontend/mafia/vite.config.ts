@@ -59,6 +59,7 @@ export default defineConfig({
       //   changeOrigin: true,
       //   secure: true
       // }
+      // 주석 1
       '/api': {
         target: 'https://i12d101.p.ssafy.io',
         changeOrigin: true,
