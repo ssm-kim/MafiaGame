@@ -43,7 +43,7 @@ public class ChatController {
     }
 
 
-    @GetMapping("/chat")
+    @GetMapping("/api/chat")
     @Operation(summary = "최근 채팅 메시지 조회", description = "특정 게임 채널의 최근 채팅 메시지를 조회합니다.")
     public ResponseEntity<BaseResponse<List<ChatMessage>>> getRecentMessages(
         @Parameter(description = "조회할 게임 ID와 타입") GetMessageRequest req,
