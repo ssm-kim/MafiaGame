@@ -1,49 +1,42 @@
-import { useEffect } from 'react';
-import { Stomp, Client as StompClient } from '@stomp/stompjs';
+import { useEffect, useRef, useState } from 'react';
+import { Stomp, CompatClient } from '@stomp/stompjs';
+import useChatting from './useChatting';
+import useRoom from './useRoomSocket';
 
-const endpoints = {
-  Chatting: '/ws-mafia',
-  PlayerPostion: '/mafia-game-ws',
-};
+const useWebSocket = (roomId: number) => {
+  const stompClient = useRef<CompatClient | null>(null);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
 
-const useWebSocket = () => {
-  const chattingSocket = useRef<StompClient | null>(null);
-  const playerPostionSocket = useRef<StompClient | null>(null);
+  const chatting = useChatting(stompClient, roomId);
+  const room = useRoom(stompClient, roomId);
 
   useEffect(() => {
-    if (!chattingSocket.current) {
-      const socket = new WebSocket(endpoints.Chatting);
-      const stompClient = new StompClient({
-        webSocketFactory: () => socket,
-        reconnectDelay: 5000,
-        onConnect: () => {
-          console.log('Chatting WebSocket Connected');
-        },
-      });
-      chattingSocket.current = stompClient;
-    }
-    if (!playerPostionSocket.current) {
-      const socket = new WebSocket(endpoints.PlayerPostion);
-      const stompClient = Stomp.over(socket);
+    if (!stompClient.current?.connected);
 
-      playerPostionSocket.current = stompClient;
-    }
+    const socket = new WebSocket('ws://localhost:8080/ws-mafia');
+    const newStompClient = Stomp.over(() => socket);
+
+    newStompClient.debug = () => {};
+
+    newStompClient.connect({}, () => {
+      setIsConnected(true);
+    });
+
+    stompClient.current = newStompClient;
 
     return () => {
-      if (chattingSocket.current) {
-        chattingSocket.current.deactivate();
-        chattingSocket.current = null;
-      }
-      if (playerPostionSocket.current) {
-        playerPostionSocket.current.deactivate();
-        playerPostionSocket.current = null;
-      }
+      if (stompClient.current)
+        stompClient.current.disconnect(() => {
+          setIsConnected(false);
+        });
     };
   }, []);
 
   return {
-    chattingSocket: chattingSocket.current,
-    playerPostionSocket: playerPostionSocket.current,
+    stompClient: stompClient.current,
+    isConnected,
+    chatting,
+    room,
   };
 };
 
