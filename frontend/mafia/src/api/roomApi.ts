@@ -1,186 +1,6 @@
-// import { Stomp } from '@stomp/stompjs';
-// import api from '@/api/axios';
-// import { Room, GameStartResponse } from '@/types/room';
-
-// interface ApiResponse<T> {
-//   isSuccess: boolean;
-//   code: number;
-//   message: string;
-//   result: T;
-// }
-
-// // interface CreateRoomRequest {
-// //   roomTitle: string;
-// //   requiredPlayer: number;
-// //   roomPassword?: string;
-// // }
-// interface CreateRoomRequest {
-//   title: string;
-//   requiredPlayers: number;
-//   password?: string;
-//   gameOption: {};
-// }
-
-// interface RoomIdResponse {
-//   roomId: number;
-// }
-
-// interface RoomLeaveResponse {
-//   host: boolean;
-// }
-
-// // const roomApi = {
-// //   // 게임방 조회
-// //   getRooms: () => api.get<ApiResponse<Room[]>>('/api/room'),
-// //   getRoom: (roomId: number) => api.get<ApiResponse<Room>>(`/api/room/${roomId}`),
-// //   // 게임방 생성
-// //   createRoom: (roomData: CreateRoomRequest) => {
-// //     console.log(roomData);
-// //     return api.post<ApiResponse<RoomIdResponse>>('/api/room', roomData);
-// //   },
-
-// //   // 게임방 삭제
-// //   deleteRoom: (roomId: number) => api.delete<ApiResponse<[]>>(`/api/room/${roomId}`),
-
-// //   // 입장
-// //   joinRoom: (roomId: number, password?: string) =>
-// //     api.post<ApiResponse<[]>>(
-// //       `/api/room/${roomId}/enter`,
-// //       password ? { roomPassword: password } : {},
-// //     ),
-
-// //   // 퇴장
-// //   leaveRoom: (roomId: number) =>
-// //     api.post<ApiResponse<RoomLeaveResponse>>(`/api/room/${roomId}/leave`),
-
-// //   // 준비상태변경
-// //   readyRoom: (roomId: number) => api.post<ApiResponse<[]>>(`/api/room/${roomId}/ready`),
-
-// //   // 게임시작
-// //   startGame: (roomId: number) =>
-// //     api.post<ApiResponse<GameStartResponse>>(`/api/room/${roomId}/start`),
-// // };
-// // export default roomApi;
-// let stompClient: any = null;
-
-// const initializeWebSocket = () => {
-//   const socket = new WebSocket('wss://i12d101.p.ssafy.io/ws-mafia');
-//   stompClient = Stomp.over(socket);
-//   return new Promise((resolve, reject) => {
-//     stompClient.connect({}, () => resolve(stompClient), reject);
-//   });
-// };
-
-// const roomApi = {
-//   // HTTP 요청으로 유지할 것들
-//   getRooms: () => api.get<ApiResponse<Room[]>>('/api/room'),
-//   getRoom: (roomId: number) => api.get<ApiResponse<Room>>(`/api/room/${roomId}`),
-//   createRoom: (roomData: CreateRoomRequest) => {
-//     console.log(roomData);
-//     return api.post<ApiResponse<RoomIdResponse>>('/api/room', roomData);
-//   },
-
-//   // WebSocket으로 변경할 것들
-//   joinRoom: async (roomId: number, password?: string) => {
-//     if (!stompClient) {
-//       await initializeWebSocket();
-//     }
-
-//     return new Promise((resolve, reject) => {
-//       try {
-//         stompClient.send(
-//           `/app/room/enter/${roomId}`,
-//           {},
-//           JSON.stringify({
-//             memberId: Number(localStorage.getItem('memberId')),
-//             password: password || null,
-//           }),
-//         );
-//         resolve({ data: { isSuccess: true, result: [] } });
-//       } catch (error) {
-//         reject(error);
-//       }
-//     });
-//   },
-
-//   leaveRoom: async (roomId: number) => {
-//     if (!stompClient) {
-//       await initializeWebSocket();
-//     }
-
-//     return new Promise((resolve, reject) => {
-//       try {
-//         stompClient.send(
-//           `/app/room/leave/${roomId}`,
-//           {},
-//           JSON.stringify({
-//             memberId: Number(localStorage.getItem('memberId')),
-//           }),
-//         );
-//         resolve({ data: { isSuccess: true, result: { host: false } } });
-//       } catch (error) {
-//         reject(error);
-//       }
-//     });
-//   },
-
-//   readyRoom: async (roomId: number) => {
-//     if (!stompClient) {
-//       await initializeWebSocket();
-//     }
-
-//     return new Promise((resolve, reject) => {
-//       try {
-//         stompClient.send(
-//           `/app/room/ready/${roomId}`,
-//           {},
-//           JSON.stringify({
-//             memberId: Number(localStorage.getItem('memberId')),
-//           }),
-//         );
-//         resolve({ data: { isSuccess: true, result: [] } });
-//       } catch (error) {
-//         reject(error);
-//       }
-//     });
-//   },
-
-//   startGame: async (roomId: number) => {
-//     if (!stompClient) {
-//       await initializeWebSocket();
-//     }
-
-//     return new Promise((resolve, reject) => {
-//       try {
-//         stompClient.send(
-//           `/app/room/start/${roomId}`,
-//           {},
-//           JSON.stringify({
-//             memberId: Number(localStorage.getItem('memberId')),
-//           }),
-//         );
-//         resolve({ data: { isSuccess: true, result: {} as GameStartResponse } });
-//       } catch (error) {
-//         reject(error);
-//       }
-//     });
-//   },
-
-//   // WebSocket 연결 관리
-//   disconnect: () => {
-//     if (stompClient) {
-//       stompClient.disconnect();
-//       stompClient = null;
-//     }
-//   },
-// };
-
-// export default roomApi;
-
 import { Stomp } from '@stomp/stompjs';
-// import { AxiosResponse } from 'axios';
 import api from '@/api/axios';
-import { Room, GameStartResponse } from '@/types/room';
+import { Room, GameStartResponse, ParticipantMap, GameStart } from '@/types/room';
 
 interface ApiResponse<T> {
   isSuccess: boolean;
@@ -216,36 +36,12 @@ interface WebSocketResponse {
 let stompClient: any = null;
 
 const roomApi = {
+  // HTTP 요청
   getRooms: () => api.get<ApiResponse<Room[]>>('/api/room'),
   getRoom: (roomId: number) => api.get<ApiResponse<Room>>(`/api/room/${roomId}`),
-  createRoom: async (roomData: CreateRoomRequest) => {
-    console.log('요청 데이터:', JSON.stringify(roomData, null, 2));
-    const response = await api.post<ApiResponse<RoomIdResponse>>('/api/room', roomData);
+  // deleteRoom: (roomId: number) => api.delete<ApiResponse<void>>(`/api/room/${roomId}`),
 
-    if (response.data.isSuccess) {
-      const { roomId } = response.data.result;
-      // 방 생성 후 자동으로 호스트로 입장
-      await stompClient.send(
-        `/app/room/enter/${roomId}`,
-        {},
-        JSON.stringify({
-          memberId: Number(localStorage.getItem('memberId')),
-          isHost: true, // 호스트 표시 추가
-        }),
-      );
-    }
-
-    return response;
-  },
-  deleteRoom: (roomId: number) => api.delete<ApiResponse<void>>(`/api/room/${roomId}`),
-
-  // initializeWebSocket: async () => {
-  //   const socket = new WebSocket('wss://i12d101.p.ssafy.io/ws-mafia');
-  //   stompClient = Stomp.over(socket);
-  //   return new Promise<any>((resolve, reject) => {
-  //     stompClient.connect({}, () => resolve(stompClient), reject);
-  //   });
-  // },
+  // WebSocket 초기화
   initializeWebSocket: async () => {
     try {
       // const socket = new WebSocket('wss://i12d101.p.ssafy.io/ws-mafia');
@@ -253,7 +49,6 @@ const roomApi = {
       stompClient = Stomp.over(socket);
 
       return await new Promise<any>((resolve, reject) => {
-        // await 추가
         const connectCallback = () => resolve(stompClient);
         const errorCallback = (error: any) => {
           console.error('WebSocket connection error:', error);
@@ -268,34 +63,124 @@ const roomApi = {
     }
   },
 
+  // 방 생성
+  createRoom: async (roomData: CreateRoomRequest) => {
+    console.log('요청 데이터:', JSON.stringify(roomData, null, 2));
+    const response = await api.post<ApiResponse<RoomIdResponse>>('/api/room', roomData);
+
+    return response;
+  },
+
+  // 로비 구독
+  // subscribeLobby: (onRoomsUpdate: (rooms: Room[]) => void) => {
+  //   if (!stompClient) return;
+  //   return stompClient.subscribe('/topic/lobby', (message: any) => {
+  //     try {
+  //       const rooms = JSON.parse(message.body);
+  //       console.log('###############');
+  //       console.log(rooms);
+  //       onRoomsUpdate(rooms);
+  //     } catch (error) {
+  //       console.error('Error processing room list:', error);
+  //     }
+  //   });
+  // },
   subscribeLobby: (onRoomsUpdate: (rooms: Room[]) => void) => {
     if (!stompClient) return;
     return stompClient.subscribe('/topic/lobby', (message: any) => {
       try {
         const rooms = JSON.parse(message.body);
+        console.log('방 목록 웹소켓 데이터:', JSON.stringify(rooms, null, 2));
         onRoomsUpdate(rooms);
       } catch (error) {
         console.error('Error processing room list:', error);
       }
     });
   },
+  // // 방 구독
+  // subscribeRoom: (roomId: number, onRoomUpdate: (roomInfo: Room) => void) => {
+  //   console.log('방 구독');
+  //   if (!stompClient) return;
+  //   const stompClientSubscription = stompClient.subscribe(
+  //     `/topic/room/${roomId}`,
+  //     (message: any) => {
+  //       console.log(JSON.parse(message.body));
+  //       try {
+  //         const roomInfo = JSON.parse(message.body);
+  //         onRoomUpdate(roomInfo);
+  //       } catch (error) {
+  //         console.error('Error processing room info:', error);
+  //       }
+  //     },
+  //   );
 
-  subscribeRoom: (roomId: number, onRoomUpdate: (roomInfo: Room) => void) => {
+  //   return stompClientSubscription;
+  // },
+  // 방 구독
+  subscribeRoom: (roomId: number, onRoomUpdate: (roomInfo: ParticipantMap | GameStart) => void) => {
+    console.log('방 구독');
     if (!stompClient) return;
-    return stompClient.subscribe(`/topic/room/${roomId}`, (message: any) => {
-      try {
-        const roomInfo = JSON.parse(message.body);
-        onRoomUpdate(roomInfo);
-      } catch (error) {
-        console.error('Error processing room info:', error);
-      }
-    });
+    const stompClientSubscription = stompClient.subscribe(
+      `/topic/room/${roomId}`,
+      (message: any) => {
+        console.log('받은 메시지:', JSON.parse(message.body));
+        try {
+          const roomInfo = JSON.parse(message.body);
+
+          // 강퇴 메시지인 경우
+          if ('message' in roomInfo) {
+            console.log('메시지 확인:', roomInfo.message);
+            if (roomInfo.message && typeof roomInfo.message === 'string') {
+              if (roomInfo.message.includes('강제퇴장') || roomInfo.message.includes('강퇴')) {
+                alert('강퇴되었습니다.');
+                // 상위 컴포넌트에 강퇴 상태를 전달
+                onRoomUpdate({ ...roomInfo, isKicked: true });
+                return;
+              }
+            }
+          }
+
+          onRoomUpdate(roomInfo);
+        } catch (error) {
+          console.error('Error processing room info:', error);
+        }
+      },
+    );
+
+    return stompClientSubscription;
   },
 
+  // 방 입장
+  // joinRoom: async (roomId: number, password?: string): Promise<WebSocketResponse> => {
+  //   if (!stompClient) {
+  //     await roomApi.initializeWebSocket();
+  //   }
+
+  //   console.log('방 입장');
+  //   // 현재 방의 정보를 가져와서 다음 참가자 번호 계산
+  //   // await roomApi.getRoom(roomId);
+
+  //   return new Promise((resolve, reject) => {
+  //     try {
+  //       stompClient.send(
+  //         `/app/room/enter/${roomId}`,
+  //         {},
+  //         JSON.stringify({
+  //           password: password || null,
+  //         }),
+  //       );
+  //       resolve({ data: { isSuccess: true, result: [] } });
+  //     } catch (error) {
+  //       reject(error);
+  //     }
+  //   });
+  // },
   joinRoom: async (roomId: number, password?: string): Promise<WebSocketResponse> => {
     if (!stompClient) {
       await roomApi.initializeWebSocket();
     }
+
+    console.log('방 입장 시도:', { roomId, password });
 
     return new Promise((resolve, reject) => {
       try {
@@ -303,8 +188,7 @@ const roomApi = {
           `/app/room/enter/${roomId}`,
           {},
           JSON.stringify({
-            memberId: Number(localStorage.getItem('memberId')),
-            password: password || null,
+            password: password || null, // 비밀번호 전달
           }),
         );
         resolve({ data: { isSuccess: true, result: [] } });
@@ -314,58 +198,23 @@ const roomApi = {
     });
   },
 
-  // leaveRoom: async (roomId: number): Promise<WebSocketResponse> => {
-  //   if (!stompClient) {
-  //     await roomApi.initializeWebSocket();
-  //   }
-
-  //   return new Promise((resolve, reject) => {
-  //     try {
-  //       stompClient.send(
-  //         `/app/room/leave/${roomId}`,
-  //         {},
-  //         JSON.stringify({
-  //           memberId: Number(localStorage.getItem('memberId')),
-  //         }),
-  //       );
-  //       resolve({ data: { isSuccess: true, result: { host: false } } });
-  //     } catch (error) {
-  //       reject(error);
-  //     }
-  //   });
-  // },
+  // 방 나가기
   leaveRoom: async (roomId: number): Promise<WebSocketResponse> => {
     if (!stompClient) {
       await roomApi.initializeWebSocket();
     }
 
     try {
-      // 먼저 현재 사용자의 memberId를 가져옴
-      const userResponse = await api.get('/api/member');
-      const myId = userResponse.data.result.memberId;
+      stompClient.send(`/app/room/leave/${roomId}`, {}, JSON.stringify({}));
 
-      const currentRoom = await api.get<ApiResponse<Room>>(`/api/room/${roomId}`);
-      const isHost = currentRoom.data.result.hostId === myId;
-
-      console.log('=== 방 나가기 디버깅 ===');
-      console.log('현재 사용자 ID:', myId);
-      console.log('현재 방 정보:', currentRoom.data.result);
-      console.log('호스트 여부:', isHost);
-
-      stompClient.send(
-        `/app/room/leave/${roomId}`,
-        {},
-        JSON.stringify({
-          memberId: myId,
-        }),
-      );
-
-      return { data: { isSuccess: true, result: { host: isHost } } };
+      return { data: { isSuccess: true, result: {} } };
     } catch (error) {
       console.error('방 나가기/삭제 실패:', error);
       throw error;
     }
   },
+
+  // 준비 상태 변경
   readyRoom: async (roomId: number): Promise<WebSocketResponse> => {
     if (!stompClient) {
       await roomApi.initializeWebSocket();
@@ -373,13 +222,7 @@ const roomApi = {
 
     return new Promise((resolve, reject) => {
       try {
-        stompClient.send(
-          `/app/room/ready/${roomId}`,
-          {},
-          JSON.stringify({
-            memberId: Number(localStorage.getItem('memberId')),
-          }),
-        );
+        stompClient.send(`/app/room/ready/${roomId}`, {}, JSON.stringify({}));
         resolve({ data: { isSuccess: true, result: [] } });
       } catch (error) {
         reject(error);
@@ -387,20 +230,28 @@ const roomApi = {
     });
   },
 
+  // 게임 시작
   startGame: async (roomId: number): Promise<WebSocketResponse> => {
     if (!stompClient) {
       await roomApi.initializeWebSocket();
     }
 
+    // // 게임 시작 전 조건 체크
+    // const roomResponse = await roomApi.getRoom(roomId);
+    // const room = roomResponse.data.result;
+
+    // // 호스트를 제외한 모든 참가자가 준비 상태인지 확인
+    // const participants = Object.values(room.participant);
+    // const nonHostParticipants = participants.filter((p) => p.participantNo !== 1);
+    // const allReady = nonHostParticipants.every((p) => p.ready);
+
+    // if (!allReady) {
+    //   throw new Error('모든 참가자가 준비를 완료하지 않았습니다.');
+    // }
+
     return new Promise((resolve, reject) => {
       try {
-        stompClient.send(
-          `/app/room/start/${roomId}`,
-          {},
-          JSON.stringify({
-            memberId: Number(localStorage.getItem('memberId')),
-          }),
-        );
+        stompClient.send(`/app/room/start/${roomId}`);
         resolve({ data: { isSuccess: true, result: {} as GameStartResponse } });
       } catch (error) {
         reject(error);
@@ -408,6 +259,42 @@ const roomApi = {
     });
   },
 
+  // 강퇴
+
+  kickMember: async (roomId: number, targetParticipantNo: number): Promise<WebSocketResponse> => {
+    if (!stompClient) {
+      await roomApi.initializeWebSocket();
+    }
+
+    if (!roomId) {
+      console.error('방 ID가 없습니다.');
+      throw new Error('방 ID가 필요합니다.');
+    }
+
+    console.log('강퇴 요청 파라미터:', {
+      roomId,
+      targetParticipantNo,
+      destination: `/app/room/kick/${roomId}`,
+      message: { targetParticipantNo },
+    });
+
+    return new Promise((resolve, reject) => {
+      try {
+        stompClient.send(
+          `/app/room/kick/${roomId}`,
+          {},
+          JSON.stringify({
+            targetParticipantNo: Number(targetParticipantNo),
+          }),
+        );
+        resolve({ data: { isSuccess: true, result: [] } });
+      } catch (error) {
+        console.error('강퇴 요청 실패:', error);
+        reject(error);
+      }
+    });
+  },
+  // WebSocket 연결 해제
   disconnect: () => {
     if (stompClient) {
       stompClient.disconnect();

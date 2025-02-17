@@ -43,6 +43,22 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
+      // '/api': {
+      //   target: 'http://localhost:8080',
+      //   changeOrigin: true,
+      //   secure: true,
+      //   ws: true
+      // },
+      // '/oauth2': {
+      //   target: 'http://localhost:8080',
+      //   changeOrigin: true,
+      //   secure: true
+      // },
+      // '/login': {
+      //   target: 'http://localhost:8080',
+      //   changeOrigin: true,
+      //   secure: true
+      // }
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,

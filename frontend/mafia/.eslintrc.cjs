@@ -51,5 +51,6 @@ module.exports = {
       endOfLine: 'auto',
     }],
     'import/extensions': 'off',
+    "react/react-in-jsx-scope": "off"
   }
  }

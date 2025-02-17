@@ -1,24 +1,33 @@
-// import React from 'react';
 import { Player } from '@/types/player';
 
-interface WatingButtonProps {
+interface WaitingButtonProps {
   isHost: boolean;
   players: Player[];
-  onReady: () => void;
-  onStart: () => void;
+  onReady: () => Promise<void>;
+  onStart: () => Promise<void>;
 }
 
-function WatingButton({ isHost, players, onReady, onStart }: WatingButtonProps): JSX.Element {
+function WaitingButton({ isHost, players, onReady, onStart }: WaitingButtonProps): JSX.Element {
+  // 호스트를 제외한 다른 플레이어들의 준비 상태 확인
+  const nonHostPlayers = players.filter((p) => !p.isHost);
+  const allPlayersReady = nonHostPlayers.length > 0 && nonHostPlayers.every((p) => p.isReady);
+
+  // 현재 플레이어의 준비 상태 확인
+  const currentPlayerReady = players.find((p) => !p.isHost)?.isReady || false;
+
   if (isHost) {
-    const allReady = players.every((p) => p.isReady || p.isHost);
     return (
       <button
         type="button"
-        onClick={onStart}
-        disabled={!allReady}
+        onClick={() => onStart()}
+        disabled={!allPlayersReady || players.length < 2}
         className={`px-8 py-3 rounded-lg text-white font-bold
-            ${allReady ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-600 cursor-not-allowed'}
-            transition-colors duration-200`}
+          ${
+            allPlayersReady && players.length >= 2
+              ? 'bg-red-600 hover:bg-red-700'
+              : 'bg-gray-600 cursor-not-allowed'
+          }
+          transition-colors duration-200`}
         style={{ fontFamily: 'BMEuljiro10yearslater' }}
       >
         게임 시작
@@ -29,13 +38,15 @@ function WatingButton({ isHost, players, onReady, onStart }: WatingButtonProps):
   return (
     <button
       type="button"
-      onClick={onReady}
-      className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors duration-200"
+      onClick={() => onReady()}
+      className={`px-8 py-3 rounded-lg text-white font-bold
+        ${currentPlayerReady ? 'bg-gray-600 hover:bg-gray-700' : 'bg-red-600 hover:bg-red-700'}
+        transition-colors duration-200`}
       style={{ fontFamily: 'BMEuljiro10yearslater' }}
     >
-      준비
+      {currentPlayerReady ? '준비 완료' : '준비'}
     </button>
   );
 }
 
-export default WatingButton;
+export default WaitingButton;
