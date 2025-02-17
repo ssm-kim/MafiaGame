@@ -7,6 +7,7 @@ import com.mafia.global.common.utils.JWTUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,8 +42,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String access = jwtUtil.createAccessToken(providerId, memberId);
         String refresh = jwtUtil.createRefreshToken(providerId, memberId);
 
-        // Refresh 토큰 저장
-        redisService.save(providerId, refresh);
+        // 일반 유저의 경우 7일 만료
+        redisService.saveWithExpiry(providerId, refresh, 7, TimeUnit.DAYS);
 
         // 응답 설정
         response.addCookie(cookieUtil.createCookie("ACCESS", access));
