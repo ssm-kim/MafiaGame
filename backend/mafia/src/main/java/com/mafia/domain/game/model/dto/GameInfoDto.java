@@ -2,7 +2,7 @@ package com.mafia.domain.game.model.dto;
 
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.Player;
-import com.mafia.domain.game.model.game.STATUS;
+import com.mafia.domain.game.model.game.GameStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +21,7 @@ public class GameInfoDto {
 
     @Schema(description = "게임의 현재 상태", example = "STARTED",
         allowableValues = {"PLAYING", "CITIZEN_WIN", "ZOMBIE_WIN", "MUTANT_WIN"})
-    private final STATUS status;
+    private final GameStatus GAMESTATUS;
 
     @Schema(description = "인게임 내 정보")
     private final MyInfo myInfo; // 나만의 개인정보
@@ -41,7 +41,7 @@ public class GameInfoDto {
             playerInfo.setDead(player.isDead());
             playersInfo.put(i, playerInfo);
         }
-        this.status = game.getStatus();
+        this.GAMESTATUS = game.getGameStatus();
         this.myInfo = new MyInfo(game.getPlayerNoByMemberId(memberId), players.get(memberId));
     }
 }

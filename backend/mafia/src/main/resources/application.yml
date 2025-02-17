@@ -48,6 +48,10 @@ management:
     export:
       prometheus:
         enabled: true
+
+application:
+  version: 1.0.0
+
 ---
 spring:
   config:

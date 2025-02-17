@@ -31,6 +31,9 @@ public class Member extends BaseEntity {
     private String email;
     private String nickname;
 
+    private Long win;
+    private Long lose;
+
     // lastActivityTime은 게스트일 때만 사용됨
     @Column
     private LocalDateTime lastActivityTime;
@@ -40,11 +43,12 @@ public class Member extends BaseEntity {
     }
 
     @Builder
-    public Member(String providerId, String nickname, String email,
-        LocalDateTime lastActivityTime) {
+    public Member(String providerId, String nickname, String email) {
         this.providerId = providerId;
         this.nickname = nickname;
         this.email = email;
+        this.win = 0L;
+        this.lose = 0L;
         // providerId가 guest로 시작할 경우에만 lastActivityTime 설정
         if (providerId.startsWith("guest_")) {
             this.lastActivityTime = LocalDateTime.now();
@@ -56,6 +60,8 @@ public class Member extends BaseEntity {
             .providerId(providerId)
             .nickname(nickname)
             .email(email)
+            .win(0L)
+            .lose(0L)
             .build();
     }
 
@@ -69,5 +75,9 @@ public class Member extends BaseEntity {
         this.nickname = nickname;
     }
 
+    public void recordGame(boolean isWin){
+        if(isWin) this.win++;
+        else this.lose++;
+    }
 
 }
