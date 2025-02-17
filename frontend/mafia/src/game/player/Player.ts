@@ -1,3 +1,4 @@
+import { CompatClient } from '@stomp/stompjs';
 import Phaser from 'phaser';
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
@@ -186,10 +187,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
   sendPosition(movement) {
     if (!this.isStop) {
-      const { socketService } = this.scene;
+      const roomId = this.scene.registry.get('roomId');
 
       const updatedPlayerData = {
-        ...this.playerData,
+        playerNo: this.playerData.playerNo,
+        character: this.playerData.character,
         x: this.x,
         y: this.y,
         velocityX: movement.velocityX,
@@ -197,7 +199,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         lastDirection: this.lastDirection,
       };
 
-      socketService.sendPosition(updatedPlayerData);
+      const stompClient: CompatClient = this.scene.registry.get('stompClient');
+      stompClient.send(`/app/game/${roomId}/pos`, {}, JSON.stringify(updatedPlayerData));
     }
   }
 

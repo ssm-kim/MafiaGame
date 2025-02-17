@@ -1,5 +1,5 @@
 export default function showFixedRoleText(scene) {
-  const gameData = scene.registry.get('gameData');
+  const playerInfo = scene.registry.get('playerInfo');
 
   const roleMapping = {
     ZOMBIE: '감염자',
@@ -9,13 +9,13 @@ export default function showFixedRoleText(scene) {
     CITIZEN: '생존자',
   };
 
-  const role = roleMapping[gameData.result.myInfo.role];
+  const role = roleMapping[playerInfo.role];
 
   // 역할에 따라 문구 색상 설정
   let textColor;
-  if (gameData.result.myInfo.role === 'ZOMBIE') {
+  if (playerInfo.role === 'ZOMBIE') {
     textColor = '#ff0000'; // 빨간색
-  } else if (gameData.result.myInfo.role === 'MUTANT') {
+  } else if (playerInfo.role === 'MUTANT') {
     textColor = '#aeb404'; // 노란색
   } else {
     textColor = '#ffffff'; // 기본 흰색

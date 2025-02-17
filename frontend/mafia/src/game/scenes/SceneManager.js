@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import axios from 'axios';
 import PlayerRole from '@/types/role';
-import getRandomCharacter from '@/game/utils/character';
 import sceneChanger from '@/game/utils/sceneChange';
 
 export default class SceneManager extends Phaser.Scene {
@@ -12,8 +11,7 @@ export default class SceneManager extends Phaser.Scene {
   async init() {
     this.roomId = this.registry.get('roomId');
     this.userId = this.registry.get('userId');
-    this.getgameData();
-    this.loadSceneData('LoadingScene');
+    this.loadGameData();
   }
 
   preload() {
@@ -45,48 +43,6 @@ export default class SceneManager extends Phaser.Scene {
   create() {
     sceneChanger(this);
     this.createAnims();
-  }
-
-  async getgameData() {
-    try {
-      const response = await axios.get('http://localhost:8080/api/game/2', {
-        withCredentials: true, // 쿠키 포함 옵션
-      });
-
-      console.log('게임 데이터:', response.data);
-
-      // response.data를 registry에 저장
-      this.registry.set('gameData', response.data);
-
-      return response.data;
-    } catch (error) {
-      console.error('게임 데이터를 불러오는 중 오류 발생:', error.message);
-      return null;
-    }
-  }
-
-  async loadSceneData(nextSceneName) {
-    try {
-      this.gameAPI = this.registry.get('gameAPI');
-      await this.loadGameData();
-
-      if (nextSceneName === 'NightScene') {
-        const isEnd = await this.gameAPI.getGameEndState();
-
-        if (isEnd.result.ex !== 'PLAYING') {
-          scene.scene.start('GameOverScene');
-          return;
-        }
-      }
-
-      this.setPlayerData();
-
-      // 다음 씬 시작
-      // this.scene.start(nextSceneName);
-    } catch (error) {
-      // console.error('Failed to load game data:', error);
-      // 에러 처리
-    }
   }
 
   createAnims() {
@@ -122,30 +78,26 @@ export default class SceneManager extends Phaser.Scene {
   }
 
   async loadGameData() {
-    const gameData = await this.gameAPI.getGameData();
-    const gameStatus = await this.gameAPI.getGameStatus();
+    try {
+      const response = await axios.get(`/api/game/${this.roomId}`);
 
-    // 데이터 저장
-    this.gameData = gameData;
-    this.gameStatus = gameStatus;
+      const localPlayerInfo = response.data.result.myInfo;
+      const { playersInfo } = response.data.result;
 
-    // 데이터를 레지스트리에 저장
-    this.registry.set('gameData', gameData);
-    this.registry.set('gameStatus', gameStatus);
-  }
+      console.log(localPlayerInfo);
 
-  async setPlayerData() {
-    // 플레이어 데이터 레지스트리에 저장
-    this.playerInfo = this.gameData.result.players[this.userId];
+      const newPlayerInfo = {
+        playerNo: localPlayerInfo.playerNo,
+        nickname: localPlayerInfo.nickname,
+        role: PlayerRole[localPlayerInfo.role],
+        character: `character${(localPlayerInfo.playerNo % 4) + 1}`,
+      };
 
-    const newPlayerInfo = {
-      ...this.playerInfo,
-      role: PlayerRole[this.playerInfo.role],
-      character: getRandomCharacter(),
-    };
-
-    delete newPlayerInfo.userId;
-
-    this.registry.set('playerInfo', newPlayerInfo);
+      // 데이터를 레지스트리에 저장
+      this.registry.set('playersInfo', playersInfo);
+      this.registry.set('playerInfo', newPlayerInfo);
+    } catch (error) {
+      console.error('게임 데이터 가져오는 중 에러 발생', error);
+    }
   }
 }

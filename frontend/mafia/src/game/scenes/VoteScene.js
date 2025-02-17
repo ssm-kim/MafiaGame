@@ -15,6 +15,7 @@ export default class VoteScene extends Phaser.Scene {
 
   init() {
     const playerInfo = this.registry.get('playerInfo');
+    this.playersInfo = this.registry.get('playersInfo');
 
     this.character = playerInfo.character;
     this.role = playerInfo.role;
@@ -52,10 +53,7 @@ export default class VoteScene extends Phaser.Scene {
       0,
       this.getVoteGridWidth(),
       this.getVoteGridHeight(),
-      Array.from({ length: 9 }, (_, i) => ({
-        id: i + 1,
-        nickname: `생존자 ${i + 1}`,
-      })),
+      Object.values(this.playersInfo),
     );
 
     this.mainContainer.add(voteGrid);

@@ -1,12 +1,10 @@
+import { CompatClient } from '@stomp/stompjs';
 import Player from '@/game/player/Player';
-import { PlayerData } from '@/types/game';
 
 export default class PlayerManager {
-  localPlayerInfo: PlayerData;
-
-  constructor(scene, localPlayerInfo) {
+  constructor(scene) {
     this.scene = scene;
-    this.localPlayerInfo = localPlayerInfo;
+    this.localPlayerInfo = this.scene.registry.get('playerInfo');
 
     this.players = new Map();
     this.localPlayer = null;
@@ -18,35 +16,37 @@ export default class PlayerManager {
   setupPhaserEventListeners() {
     const eventEmitter = this.scene.registry.get('eventEmitter');
 
-    // events.on('CONNECTED', this.createLocalPlayer.bind(this));
     eventEmitter.on('PLAYER_DATA_UPDATED', this.updateCharacters.bind(this));
   }
 
   createLocalPlayer() {
     if (this.localPlayer) return;
 
+    const roomId = this.scene.registry.get('roomId');
     const userId = this.scene.registry.get('userId');
 
     const data = {
-      nickname: this.localPlayerInfo.nickname,
-      character: this.localPlayerInfo.character,
+      ...this.localPlayerInfo,
+      isLocal: true,
       x: 0,
       y: 0,
       velocityX: 0,
       velocityY: 0,
       lastDirection: 'down',
-      isLocal: true,
     };
 
     const player = new Player(this.scene, data);
     this.localPlayer = player;
 
+    const stompClient: CompatClient = this.scene.registry.get('stompClient');
+    stompClient.send(`/app/game/${roomId}/pos`, {}, JSON.stringify(data));
+
     this.players.set(userId, player);
-    this.scene.socketService.sendPosition(data);
   }
 
   createPlayer(playerId: number, playerData: PlayerData) {
-    const userData = this.scene.playersData[playerId];
+    const playersData = this.scene.registry.get('playersInfo');
+    const userData = playersData[playerId];
 
     const data = {
       ...playerData,
@@ -67,38 +67,32 @@ export default class PlayerManager {
     this.players.set(playerId, player);
   }
 
-  updateCharacters(positions) {
-    Object.keys(positions).forEach((playerId) => {
-      const numericId = parseInt(playerId, 10);
-      if (numericId === this.localPlayerInfo.playerId) {
-        return;
-      }
+  updateCharacters(data) {
+    if (data.playerNo === this.localPlayerInfo.playerNo) return;
 
-      const playerData = positions[playerId];
-      const player = this.players.get(numericId);
+    const player = this.players.get(data.playerNo);
 
-      if (!player) {
-        this.createPlayer(playerId, playerData);
-        return;
-      }
+    if (!player) {
+      this.createPlayer(data.playerNo, data);
+      return;
+    }
 
-      this.scene.tweens.add({
-        targets: player,
-        duration: 100,
-        ease: 'Linear',
-      });
-
-      player.nonLocalMove({
-        x: playerData.x,
-        y: playerData.y,
-        velocityX: playerData.velocityX,
-        velocityY: playerData.velocityY,
-      });
-
-      if (Math.abs(player.x - playerData.x) > 3 || Math.abs(player.y - playerData.y) > 3) {
-        player.setPosition(playerData.x, playerData.y);
-      }
+    this.scene.tweens.add({
+      targets: player,
+      duration: 100,
+      ease: 'Linear',
     });
+
+    player.nonLocalMove({
+      x: data.x,
+      y: data.y,
+      velocityX: data.velocityX,
+      velocityY: data.velocityY,
+    });
+
+    if (Math.abs(player.x - data.x) > 3 || Math.abs(player.y - data.y) > 3) {
+      player.setPosition(data.x, data.y);
+    }
   }
 
   update() {

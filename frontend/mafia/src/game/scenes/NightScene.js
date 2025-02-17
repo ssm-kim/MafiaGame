@@ -82,9 +82,9 @@ export default class NightScene extends Phaser.Scene {
   }
 
   assignRoles() {
-    const gameData = this.registry.get('gameData');
+    const playerInfo = this.registry.get('playerInfo');
 
-    const { role } = gameData.result.myInfo;
+    const { role } = playerInfo;
 
     if (role === 'CITIZEN') {
       // 일반 시민을 위한 메시지 표시

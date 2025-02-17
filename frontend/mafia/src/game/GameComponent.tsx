@@ -1,25 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
-import { useParams } from 'react-router-dom';
 // import SocketService from '@/game/socket/SocketService';
 
+import { CompatClient } from '@stomp/stompjs';
 import GameAPIFactory from '@/api/gameApiFactory';
 import gameConfig from '@/game/gameConfig';
-import usePlayerPostionSocket from '@/hooks/usePlayerPostionSocket';
-import useChattingSocket from '@/hooks/useChattingSocket';
 
-function GameComponent() {
-  const { roomId } = useParams();
-  const [userId, setUserId] = useState(null);
+interface GameComponentProps {
+  roomId: string;
+  playerId: string;
+  stompClient: CompatClient | null;
+  eventEmitter: Phaser.Events.EventEmitter;
+  subscribeTopics: any;
+}
 
+function GameComponent({
+  roomId,
+  playerId,
+  stompClient,
+  eventEmitter,
+  subscribeTopics,
+}: GameComponentProps) {
   const gameContainer = useRef(null);
   const gameInstance = useRef(null);
-
-  const [eventEmitter, setEventEmitter] = useState(null);
-
-  const positinoSocketService = usePlayerPostionSocket(roomId);
-
-  const chattingSocketService = useChattingSocket(roomId, eventEmitter);
 
   useEffect(() => {}, []);
 
@@ -29,35 +32,47 @@ function GameComponent() {
   };
 
   useEffect(() => {
-    if (chattingSocketService.isConnected) {
-      chattingSocketService.subscribeToTopic([
-        {
-          topic: `/topic/game-${roomId}-system`,
-          onReceiveMessage: (message) => {
-            try {
-              // 받은 메시지가 JSON 문자열이라면 파싱
-              const parsedMessage = JSON.parse(message);
-
-              // 파싱한 데이터로 분기 처리
-              if (parsedMessage.phase) {
-                eventEmitter.emit('TIME', parsedMessage);
-              } else if (parsedMessage.voteresult) {
-                eventEmitter.emit('VOTE_RESULT', parsedMessage.voteresult);
-              }
-            } catch (error) {
-              console.error('Error parsing message:', error);
-            }
-          },
+    if (stompClient?.connected) {
+      const positionSubscription = stompClient?.subscribe(
+        `/topic/game/${roomId}/positions`,
+        (message) => {
+          const data = JSON.parse(message.body);
+          eventEmitter.emit('PLAYER_DATA_UPDATED', data);
         },
-      ]);
+      );
     }
-  }, [chattingSocketService.isConnected]);
+
+    return () => {
+      positionSubscription?.unsubscribe();
+    };
+  }, [stompClient]);
+
+  // useEffect(() => {
+  //   if (chattingSocketService.isConnected) {
+  //     chattingSocketService.subscribeToTopic([
+  //       {
+  //         topic: `/topic/game-${roomId}-system`,
+  //         onReceiveMessage: (message) => {
+  //           try {
+  //             // 받은 메시지가 JSON 문자열이라면 파싱
+  //             const parsedMessage = JSON.parse(message);
+
+  //             // 파싱한 데이터로 분기 처리
+  //             if (parsedMessage.phase) {
+  //               eventEmitter.emit('TIME', parsedMessage);
+  //             } else if (parsedMessage.voteresult) {
+  //               eventEmitter.emit('VOTE_RESULT', parsedMessage.voteresult);
+  //             }
+  //           } catch (error) {
+  //             console.error('Error parsing message:', error);
+  //           }
+  //         },
+  //       },
+  //     ]);
+  //   }
+  // }, [chattingSocketService.isConnected]);
 
   useEffect(() => {
-    setEventEmitter(new Phaser.Events.EventEmitter());
-
-    console.log(chattingSocketService);
-    setUserId(prompt('유저 아이디 입력 (숫자 1~8)'));
     window.addEventListener('beforeunload', preventClose);
     return () => {
       window.removeEventListener('beforeunload', preventClose);
@@ -65,15 +80,15 @@ function GameComponent() {
   }, []);
 
   useEffect(() => {
-    if (gameContainer.current && userId && positinoSocketService.playerPostionSocket) {
+    if (gameContainer.current && playerId) {
       const gameAPI = GameAPIFactory.create();
 
       const config = gameConfig({
         parent: gameContainer.current,
-        socketService: positinoSocketService,
+        stompClient,
         gameAPI,
         roomId,
-        userId,
+        userId: playerId,
         eventEmitter,
       });
 
@@ -82,9 +97,8 @@ function GameComponent() {
 
     return () => {
       gameInstance.current?.destroy(true);
-      positinoSocketService.disconnect();
     };
-  }, [gameContainer?.current, userId, positinoSocketService.playerPostionSocket]);
+  }, [gameContainer?.current, playerId]);
 
   useEffect(() => {
     let resizeObserver;
@@ -109,25 +123,9 @@ function GameComponent() {
   }, []);
 
   return (
-    // <div
-    //   id="game-container"
-    //   ref={gameContainer}
-    //   style={{
-    //     position: 'relative',
-    //     width: '100%',
-    //     height: '100%',
-    //     overflow: 'hidden',
-    //   }}
-    // />
     <>
-      {/* <button
-        onClick={() => {
-          eventEmitter.emit('VOTE_RESULT', { targetPlayerId: 7 });
-        }}
-      >
-        CLICK
-      </button> */}
-      {userId ? (
+      {' '}
+      {playerId ? (
         <div
           id="game-container"
           ref={gameContainer}

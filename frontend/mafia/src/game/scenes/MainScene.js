@@ -25,7 +25,7 @@ export default class MainScene extends Phaser.Scene {
     this.character = character;
 
     this.socketService = this.registry.get('socketService');
-    this.playerManager = new PlayerManager(this, playerInfo);
+    this.playerManager = new PlayerManager(this);
   }
 
   create() {

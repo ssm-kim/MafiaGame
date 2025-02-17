@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import UIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin';
+import { CompatClient } from '@stomp/stompjs';
 import GameOverScene from '@/game/scenes/GameOverScene';
 import MainScene from '@/game/scenes/MainScene';
 // import LoadingScene from '@/game/scenes/LoadingScene';
@@ -9,8 +10,6 @@ import StatementScene from '@/game/scenes/StatementScene';
 import LastVoteScene from '@/game/scenes/LastVoteScene';
 import AfternoonScene from '@/game/scenes/AfternoonScene';
 import SceneManager from '@/game/scenes/SceneManager';
-import SocketService from '@/game/socket/SocketService';
-import GameAPI from '@/interfaces/gameApi';
 import NightScene from '@/game/scenes/NightScene';
 
 const scenes = [
@@ -28,21 +27,13 @@ const scenes = [
 
 interface GameConfigParams {
   parent?: HTMLDivElement;
-  socketService: SocketService;
-  gameAPI: GameAPI;
+  stompClient: CompatClient | null;
   roomId: string;
   userId: string;
   eventEmitter: Phaser.Events.EventEmitter;
 }
 
-const gameConfig = ({
-  parent,
-  socketService,
-  gameAPI,
-  roomId,
-  userId,
-  eventEmitter,
-}: GameConfigParams) => ({
+const gameConfig = ({ parent, stompClient, roomId, userId, eventEmitter }: GameConfigParams) => ({
   type: Phaser.CANVAS,
   parent,
   pixelArt: true,
@@ -60,9 +51,8 @@ const gameConfig = ({
   },
   callbacks: {
     preBoot: (game) => {
-      game.registry.set('socketService', socketService);
+      game.registry.set('stompClient', stompClient);
       game.registry.set('eventEmitter', eventEmitter);
-      game.registry.set('gameAPI', gameAPI);
       game.registry.set('roomId', roomId);
       game.registry.set('userId', userId);
     },

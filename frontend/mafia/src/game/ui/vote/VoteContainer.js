@@ -15,8 +15,94 @@ const ZOMBIE_THEME = {
   },
 };
 
-export default function createVoteContainer(scene, x, y, width, height, options) {
-  const playerCount = options.length;
+function createZombieButton(scene, text, style, gridSizer) {
+  const button = scene.rexUI.add
+    .label({
+      background: scene.rexUI.add
+        .roundRectangle(0, 0, style.width, style.height, 10, ZOMBIE_THEME.colors.background)
+        .setStrokeStyle(2, ZOMBIE_THEME.colors.blood),
+      text: scene.add.text(0, 0, text, {
+        fontSize: style.fontSize,
+        color: ZOMBIE_THEME.colors.text,
+        fontFamily: 'Arial',
+        stroke: '#000000',
+        strokeThickness: 1,
+      }),
+      space: style.padding,
+    })
+    .setInteractive({ useHandCursor: true });
+
+  button.playerNumber = parseInt(text.split(' ')[1]);
+
+  button
+    .on('pointerover', function () {
+      if (!this.selected) {
+        // 호버 시 떨림 효과
+        scene.tweens.add({
+          targets: this,
+          x: '+=1',
+          y: '+=1',
+          duration: 50,
+          yoyo: true,
+          repeat: 3,
+        });
+
+        this.getElement('background')
+          .setFillStyle(ZOMBIE_THEME.colors.hover)
+          .setStrokeStyle(2, ZOMBIE_THEME.colors.bloodLight);
+
+        this.getElement('text').setColor(ZOMBIE_THEME.colors.textHighlight);
+      }
+    })
+    .on('pointerout', function () {
+      if (!this.selected) {
+        this.getElement('background')
+          .setFillStyle(ZOMBIE_THEME.colors.background)
+          .setStrokeStyle(2, ZOMBIE_THEME.colors.blood);
+
+        this.getElement('text').setColor(ZOMBIE_THEME.colors.text);
+      }
+    })
+    .on('pointerdown', function () {
+      // 화면 흔들림 효과
+      scene.cameras.main.shake(200, 0.003);
+
+      // 클릭 시 플래시 효과
+      scene.cameras.main.flash(100, 128, 0, 0, 0.3);
+
+      gridSizer.buttons.forEach((btn) => {
+        if (btn !== this && btn.selected) {
+          btn.selected = false;
+          btn
+            .getElement('background')
+            .setFillStyle(ZOMBIE_THEME.colors.background)
+            .setStrokeStyle(2, ZOMBIE_THEME.colors.blood);
+          btn.getElement('text').setColor(ZOMBIE_THEME.colors.text);
+        }
+      });
+
+      this.selected = !this.selected;
+
+      if (this.selected) {
+        this.getElement('background')
+          .setFillStyle(ZOMBIE_THEME.colors.blood)
+          .setStrokeStyle(2, ZOMBIE_THEME.colors.bloodLight);
+        this.getElement('text').setColor(ZOMBIE_THEME.colors.textHighlight);
+      } else {
+        this.getElement('background')
+          .setFillStyle(ZOMBIE_THEME.colors.background)
+          .setStrokeStyle(2, ZOMBIE_THEME.colors.blood);
+        this.getElement('text').setColor(ZOMBIE_THEME.colors.text);
+      }
+
+      scene.handlePlayerSelection(this.playerNumber);
+    });
+
+  return button;
+}
+
+export default function createVoteContainer(scene, x, y, width, height, playersInfo) {
+  const playerCount = playersInfo.length;
   const containerWidth = width * 0.6;
   const containerHeight = height * 0.7;
 
@@ -93,9 +179,9 @@ export default function createVoteContainer(scene, x, y, width, height, options)
   gridSizer.buttons = [];
 
   // 플레이어 버튼 생성
-  for (let i = 0; i < playerCount; i++) {
-    if (options[i]) {
-      const button = createZombieButton(scene, `생존자 ${i + 1}`, buttonStyle, gridSizer);
+  for (let i = 0; i < playerCount; i += 1) {
+    if (playersInfo[i]) {
+      const button = createZombieButton(scene, playersInfo[i].nickname, buttonStyle, gridSizer);
       gridSizer.add(button, {
         column: i % columns,
         row: Math.floor(i / columns),
@@ -181,90 +267,4 @@ export default function createVoteContainer(scene, x, y, width, height, options)
 
   sizer.layout();
   return sizer;
-}
-
-function createZombieButton(scene, text, style, gridSizer) {
-  const button = scene.rexUI.add
-    .label({
-      background: scene.rexUI.add
-        .roundRectangle(0, 0, style.width, style.height, 10, ZOMBIE_THEME.colors.background)
-        .setStrokeStyle(2, ZOMBIE_THEME.colors.blood),
-      text: scene.add.text(0, 0, text, {
-        fontSize: style.fontSize,
-        color: ZOMBIE_THEME.colors.text,
-        fontFamily: 'Arial',
-        stroke: '#000000',
-        strokeThickness: 1,
-      }),
-      space: style.padding,
-    })
-    .setInteractive({ useHandCursor: true });
-
-  button.playerNumber = parseInt(text.split(' ')[1]);
-
-  button
-    .on('pointerover', function () {
-      if (!this.selected) {
-        // 호버 시 떨림 효과
-        scene.tweens.add({
-          targets: this,
-          x: '+=1',
-          y: '+=1',
-          duration: 50,
-          yoyo: true,
-          repeat: 3,
-        });
-
-        this.getElement('background')
-          .setFillStyle(ZOMBIE_THEME.colors.hover)
-          .setStrokeStyle(2, ZOMBIE_THEME.colors.bloodLight);
-
-        this.getElement('text').setColor(ZOMBIE_THEME.colors.textHighlight);
-      }
-    })
-    .on('pointerout', function () {
-      if (!this.selected) {
-        this.getElement('background')
-          .setFillStyle(ZOMBIE_THEME.colors.background)
-          .setStrokeStyle(2, ZOMBIE_THEME.colors.blood);
-
-        this.getElement('text').setColor(ZOMBIE_THEME.colors.text);
-      }
-    })
-    .on('pointerdown', function () {
-      // 화면 흔들림 효과
-      scene.cameras.main.shake(200, 0.003);
-
-      // 클릭 시 플래시 효과
-      scene.cameras.main.flash(100, 128, 0, 0, 0.3);
-
-      gridSizer.buttons.forEach((btn) => {
-        if (btn !== this && btn.selected) {
-          btn.selected = false;
-          btn
-            .getElement('background')
-            .setFillStyle(ZOMBIE_THEME.colors.background)
-            .setStrokeStyle(2, ZOMBIE_THEME.colors.blood);
-          btn.getElement('text').setColor(ZOMBIE_THEME.colors.text);
-        }
-      });
-
-      this.selected = !this.selected;
-
-      if (this.selected) {
-        this.getElement('background')
-          .setFillStyle(ZOMBIE_THEME.colors.blood)
-          .setStrokeStyle(2, ZOMBIE_THEME.colors.bloodLight);
-        this.getElement('text').setColor(ZOMBIE_THEME.colors.textHighlight);
-      } else {
-        this.getElement('background')
-          .setFillStyle(ZOMBIE_THEME.colors.background)
-          .setStrokeStyle(2, ZOMBIE_THEME.colors.blood);
-        this.getElement('text').setColor(ZOMBIE_THEME.colors.text);
-      }
-
-      scene.handlePlayerSelection(this.playerNumber);
-    });
-
-  return button;
 }
