@@ -1,21 +1,19 @@
+import axios from 'axios';
+import Phaser from 'phaser';
 import setBackground from '@/game/utils/map';
-import BaseScene from '@/game/scenes/BaseScene';
 import PlayerManager from '@/game/player/PlayerManager';
-import { sceneTimeout } from '@/game/utils/time';
+import sceneChanger from '@/game/utils/sceneChange';
+import showFixedRoleText from '@/game/ui/role/UserRole';
+import showFixedClock from '@/game/ui/clock/BaseClock';
 
-export default class MainScene extends BaseScene {
+export default class MainScene extends Phaser.Scene {
   constructor() {
     super({
       key: 'MainScene',
-      // physics: {
-      //   arcade: {
-      //     debug: true,
-      //   },
-      // },
     });
 
     this.players = new Map();
-    this.remainingTime = sceneTimeout.DAY_DISCUSSION;
+    // this.remainingTime = sceneTimeout.DAY_DISCUSSION;
   }
 
   init() {
@@ -31,38 +29,13 @@ export default class MainScene extends BaseScene {
   }
 
   create() {
-    this.time.addEvent({
-      delay: this.remainingTime,
-      callback() {
-        this.scene.get('SceneManager').loadSceneData(this, 'VoteScene');
-        // this.scene.start('VoteScene');
-      },
-      callbackScope: this,
-    });
-
     // 배경 설정
     setBackground(this);
-
-    this.showFixedRoleText();
-
+    showFixedClock(this);
+    showFixedRoleText(this);
+    sceneChanger(this);
     // 렌더링 최적화
     this.game.renderer.roundPixels = true;
-
-    // 타이머 표시용 텍스트 추가
-    const duration = 30;
-
-    this.add
-      .text(this.cameras.main.width - 150, 10, `남은 시간: ${duration}`, {
-        font: '18px Arial',
-        fill: '#ffffff',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        padding: { left: 5, right: 5, top: 2, bottom: 2 },
-      })
-      .setScrollFactor(0)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => {
-        this.scene.start('NightScene');
-      }); // 카메라 고정
   }
 
   update() {
@@ -70,21 +43,5 @@ export default class MainScene extends BaseScene {
     if (this.playerManager.localPlayer) {
       this.playerManager.localPlayer.move();
     }
-  }
-
-  showFixedRoleText() {
-    // 역할에 따라 문구 색상 설정
-    const textColor = this.role === '마피아' ? '#ff0000' : '#ffffff';
-
-    // 좌측 상단에 역할 문구 표시
-    this.fixedRoleText = this.add.text(10, 10, `${this.role}`, {
-      font: '18px Arial',
-      fill: textColor,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      padding: { left: 5, right: 5, top: 5, bottom: 2 },
-    });
-
-    // 문구를 화면 좌측 상단에 고정
-    this.fixedRoleText.setScrollFactor(0);
   }
 }

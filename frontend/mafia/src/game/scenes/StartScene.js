@@ -1,8 +1,7 @@
 import Phaser from 'phaser';
 import PlayerRole from '@/types/role';
-import BaseScene from '@/game/scenes/BaseScene';
 
-export default class StartScene extends BaseScene {
+export default class StartScene extends Phaser.Scene {
   constructor() {
     super({ key: 'StartScene' });
   }
@@ -14,7 +13,6 @@ export default class StartScene extends BaseScene {
     console.log(this.gameData);
     console.log(this.gameStatus);
     console.log(this.registry.get('playerInfo'));
-
     const { role, character } = this.registry.get('playerInfo');
     this.role = role;
     this.character = character;
@@ -41,7 +39,7 @@ export default class StartScene extends BaseScene {
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.get('SceneManager').loadSceneData('MainScene');
 
-      // this.scene.start('MainScene');
+      this.scene.start('MainScene');
     });
   }
 }
