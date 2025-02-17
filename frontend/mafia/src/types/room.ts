@@ -13,6 +13,7 @@ export interface Room {
   hasPassword: boolean;
   participant: Record<string, Participant>;
   isNight?: boolean;
+  active?: boolean;
 }
 
 export interface GameStart {
