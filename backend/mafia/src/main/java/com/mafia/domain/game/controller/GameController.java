@@ -62,7 +62,7 @@ public class GameController {
         return ResponseEntity.ok(new BaseResponse<>("Room " + roomId + " deleted."));
     }
 
-    @GetMapping("/{roomId}/vote")
+    @PostMapping("/{roomId}/vote")
     @Operation(summary = "Vote", description = "유저 ID와 타겟 ID를 받아 투표합니다.(투표 시간에만 가능합니다.")
     public ResponseEntity<BaseResponse<String>> vote(@PathVariable Long roomId,
         @AuthenticationPrincipal AuthenticatedUser detail, @RequestParam Integer targetNo) {
