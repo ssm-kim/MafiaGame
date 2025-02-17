@@ -170,92 +170,39 @@ export default class VoteScene extends Phaser.Scene {
       this.showMessage('투표할 대상을 선택해주세요');
       return;
     }
-
-    // 이전 투표 결과 제거 (재투표의 경우)
+  
     if (this.hasVoted) {
-      delete this.voteResults[this.character];
-      this.updateVoteDisplay(); // 투표 현황 업데이트
+      this.showMessage('이미 투표하셨습니다');
+      return;
     }
-
-    // 새로운 투표 등록
-    this.hasVoted = true;
-    this.voteResults[this.character] = this.target;
-
-    // 레지스트리 업데이트
-    this.registry.set('voteResults', this.voteResults);
-
-    // 서버에 투표 정보 전송
+  
+    const roomId = this.registry.get('roomId');
+    
     try {
-      const gameAPI = this.registry.get('gameAPI');
-      await gameAPI.vote(this.target);
+      // 요청 방식 변경
+      const response = await axios({
+        method: 'post',
+        url: `http://localhost:8080/api/game/${roomId}/vote`,
+        params: {
+          targetNo: this.target
+        },
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true
+      });
+  
+      if (response.data.isSuccess) {
+        this.hasVoted = true;
+        this.showMessage('투표가 완료되었습니다');
+      }
     } catch (error) {
-      console.log(error.message);
-    }
-
-    // if (this.socketService && this.socketService.socket) {
-    //   this.socketService.socket.emit('vote', {
-    //     voter: this.character,
-    //     target: this.target,
-    //     room: this.registry.get('roomId'),
-    //     isChange: this.hasVoted, // 재투표 여부 전달
-    //   });
-    // }
-
-    // 메시지 표시
-    const message = this.hasVoted ? '투표가 변경되었습니다' : '투표가 완료되었습니다';
-    this.showMessage(message);
-
-    this.updateVoteDisplay();
-  }
-
-  updateVoteResults(data) {
-    this.voteResults[data.voter] = data.target;
-    this.updateVoteDisplay();
-  }
-
-  updateVoteDisplay() {
-    if (this.voteCountTexts) {
-      this.voteCountTexts.forEach((text) => text.destroy());
-    }
-    this.voteCountTexts = [];
-
-    const voteCounts = {};
-    Object.values(this.voteResults).forEach((targetId) => {
-      voteCounts[targetId] = (voteCounts[targetId] || 0) + 1;
-    });
-
-    Object.entries(voteCounts).forEach(([targetId, count]) => {
-      const text = this.add
-        .text(
-          this.scale.width - 100,
-          50 + parseInt(targetId, 10) * 30,
-          `생존자 ${targetId}: ${count}표`,
-          {
-            fontSize: '16px',
-            fill: '#FFD700',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            padding: { x: 5, y: 2 },
-          },
-        )
-        .setScrollFactor(0)
-        .setDepth(1002);
-
-      this.voteCountTexts.push(text);
-    });
-
-    // 현재 플레이어의 투표 상태 표시
-    if (this.voteResults[this.character]) {
-      const myVoteText = this.add
-        .text(10, this.scale.height - 40, `현재 투표: 생존자 ${this.voteResults[this.character]}`, {
-          fontSize: '16px',
-          fill: '#FFD700',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          padding: { x: 5, y: 2 },
-        })
-        .setScrollFactor(0)
-        .setDepth(1002);
-
-      this.voteCountTexts.push(myVoteText);
+      console.log('전체 에러 정보:', error);
+      console.log('요청 설정:', error.config);
+      console.log('응답 데이터:', error.response?.data);
+      
+      const errorMessage = error.response?.data?.message || '투표 중 오류가 발생했습니다';
+      this.showMessage(errorMessage);
     }
   }
 

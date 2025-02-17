@@ -28,11 +28,14 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
     this.initializePlayer(playerData);
   }
+  
 
   initializePlayer(playerData) {
     this.setTexture(this.texture.key, Player.TEXTURE_MAPPING[this.lastDirection]);
     this.createNicknameText(playerData.nickname);
     this.setupPhysics();
+    this.createAnimations(); // 애니메이션 초기 생성
+    
     if (playerData.isLocal) {
       this.setupCamera();
       this.cursors = this.scene.input.keyboard.createCursorKeys();
@@ -40,16 +43,47 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
+  createAnimations() {
+    if (!this.scene || !this.scene.anims) return;
+
+    const directions = ['left', 'right', 'up', 'down'];
+    const frames = {
+      left: [3, 4, 5],
+      right: [9, 10, 11],
+      up: [6, 7, 8],
+      down: [0, 1, 2],
+    };
+
+    directions.forEach(direction => {
+      const animKey = `${this.character}_${direction}`;
+      if (!this.scene.anims.exists(animKey)) {
+        this.scene.anims.create({
+          key: animKey,
+          frames: this.scene.anims.generateFrameNumbers(this.character, {
+            frames: frames[direction]
+          }),
+          frameRate: 10,
+          repeat: -1,
+        });
+      }
+    });
+  }
+
   setupPhysics() {
+    if (!this.scene) return;
+
+    // 기존 physics body가 있다면 제거
+    if (this.body) {
+      this.scene.physics.world.remove(this.body);
+    }
+
     this.scene.add.existing(this);
     this.scene.physics.add.existing(this);
 
     this.scale = 1.5;
     this.setPushable(false);
-
     this.setCollideWorldBounds(true);
     this.setCollideObject('locker');
-
     this.setBodySize(16, 15);
     this.setOffset(8, 45);
     this.setGroupDepth();
@@ -86,6 +120,8 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   move() {
+    if (!this.scene || !this.body) return; // 추가된 안전 검사
+
     const movement = this.calculateMovement();
 
     if (movement.velocityX || movement.velocityY) {
@@ -170,23 +206,32 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   updateAnimation() {
-    if (this.isMoving()) {
-      this.anims.play(`${this.character}_${this.lastDirection}`, true);
-    } else {
-      const textureMapping = {
-        left: 3,
-        right: 9,
-        up: 6,
-        down: 0,
-      };
-      this.setTexture(this.texture.key, textureMapping[this.lastDirection]);
-      this.anims.stop();
+    if (!this.scene || !this.scene.anims) return;
+
+    try {
+      if (this.isMoving()) {
+        const animKey = `${this.character}_${this.lastDirection}`;
+        
+        // 정적 프레임으로 대체
+        this.setTexture(this.character, Player.TEXTURE_MAPPING[this.lastDirection]);
+        
+        // 애니메이션 시스템이 완전히 초기화된 경우에만 애니메이션 재생
+        if (this.scene.anims.exists(animKey) && this.anims && typeof this.anims.play === 'function') {
+          this.anims.play(animKey, true);
+        }
+      } else {
+        this.setTexture(this.character, Player.TEXTURE_MAPPING[this.lastDirection]);
+      }
+    } catch (error) {
+      console.error('Animation error:', error);
+      // 오류 발생 시 기본 프레임 설정
+      this.setTexture(this.character, Player.TEXTURE_MAPPING[this.lastDirection]);
     }
   }
 
   sendPosition(movement) {
     if (!this.isStop) {
-      const { socketService } = this.scene;
+      // const { socketService } = this.scene;
 
       const updatedPlayerData = {
         ...this.playerData,
@@ -197,9 +242,10 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         lastDirection: this.lastDirection,
       };
 
-      socketService.sendPosition(updatedPlayerData);
+      // socketService.sendPosition(updatedPlayerData);
     }
   }
+
 
   destroy() {
     super.destroy();

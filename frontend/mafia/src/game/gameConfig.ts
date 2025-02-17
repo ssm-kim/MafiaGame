@@ -41,7 +41,7 @@ const gameConfig = ({
   userId,
   eventEmitter,
 }: GameConfigParams) => ({
-  type: Phaser.CANVAS,
+  type: Phaser.WEBGL,
   parent,
   pixelArt: true,
   scale: {

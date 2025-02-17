@@ -1,4 +1,22 @@
 export default function showFixedRoleText(scene) {
+  const gameData = scene.registry.get('gameData');
+
+  // 데이터 유효성 검사 추가
+  if (!gameData || !gameData.result || !gameData.result.myInfo) {
+    console.warn('게임 데이터가 아직 로드되지 않았습니다.');
+    return null;
+  }
+
+  const roleMapping = {
+    ZOMBIE: '감염자',
+    MUTANT: '돌연변이',
+    POLICE: '연구원',
+    PLAGUE_DOCTOR: '의사',
+    CITIZEN: '생존자',
+  };
+
+  const role = roleMapping[gameData.result.myInfo.role];
+
   // 역할에 따라 문구 색상 설정
   let textColor;
   if (scene.playerInfo.role === '감염자') {
