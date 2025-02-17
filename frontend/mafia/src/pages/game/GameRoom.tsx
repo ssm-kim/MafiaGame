@@ -191,9 +191,6 @@ function GameRoom(): JSX.Element {
         }
       });
     }
-<<<<<<< Updated upstream
-  }, [roomId, gameState?.roomStatus, currentPlayerId]);
-=======
   }, [roomId, gameState?.roomStatus, currentNickname]);
 
   useEffect(() => {
@@ -311,7 +308,6 @@ function GameRoom(): JSX.Element {
       roomApi.disconnect();
     };
   }, [roomId, navigate]);
->>>>>>> Stashed changes
 
   const handleLeaveRoom = async () => {
     try {
@@ -420,10 +416,6 @@ function GameRoom(): JSX.Element {
               />
             ) : (
               <div className="w-full h-full bg-gray-900 bg-opacity-80 rounded-lg border border-gray-800">
-<<<<<<< Updated upstream
-                {/* <GameStatus gameState={gameState} /> */}
-=======
->>>>>>> Stashed changes
                 <GameComponent />
               </div>
             )}

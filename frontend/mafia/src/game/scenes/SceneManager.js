@@ -82,11 +82,7 @@ export default class SceneManager extends Phaser.Scene {
       this.setPlayerData();
 
       // 다음 씬 시작
-<<<<<<< HEAD
-      scene.scene.start(nextSceneName);
-=======
       // this.scene.start(nextSceneName);
->>>>>>> 594daa1a85e7f905a7e32eff6557355e9cc70ff8
     } catch (error) {
       // console.error('Failed to load game data:', error);
       // 에러 처리
