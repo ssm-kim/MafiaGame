@@ -16,7 +16,6 @@ export default function sceneChanger(scene) {
     eventEmitter.removeAllListeners();
   });
 
-  eventEmitter.off('TIME');
   eventEmitter.on('TIME', (data) => {
     try {
       if (!data) return;

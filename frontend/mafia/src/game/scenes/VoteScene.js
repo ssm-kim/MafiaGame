@@ -14,18 +14,12 @@ export default class VoteScene extends Phaser.Scene {
   }
 
   init() {
-    const playerInfo = this.registry.get('playerInfo');
-
-    this.character = playerInfo.character;
-    this.role = playerInfo.role;
-
     this.target = null;
     this.voteSelections = {};
 
     this.barProgress = 1;
     this.hasVoted = false;
     this.voteResults = {};
-    this.socketService = this.registry.get('socketService');
   }
 
   create() {
@@ -54,7 +48,6 @@ export default class VoteScene extends Phaser.Scene {
       this.getVoteGridHeight(),
       Array.from({ length: 9 }, (_, i) => ({
         id: i + 1,
-        nickname: `생존자 ${i + 1}`,
       })),
     );
 
@@ -62,6 +55,7 @@ export default class VoteScene extends Phaser.Scene {
   }
 
   handlePlayerSelection(playerNumber) {
+    console.log(playerNumber);
     // 이미 같은 대상을 선택한 경우
     if (this.target === playerNumber) {
       resetVoteSelection(this, playerNumber);

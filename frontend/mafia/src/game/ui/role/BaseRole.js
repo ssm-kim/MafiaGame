@@ -1,9 +1,11 @@
+import axios from 'axios';
+import { getGameData } from '@/game/utils/gameData';
+
 export default class BaseRole {
   constructor(scene) {
     this.scene = scene;
     this.selectedPlayer = null;
     this.gameObjects = {};
-
     // 리사이즈 이벤트 리스너 등록
     this.scene.scale.on('resize', this.handleResize, this);
   }
@@ -24,7 +26,7 @@ export default class BaseRole {
     );
 
     this.gameObjects.border = this.scene.rexUI.add.roundRectangle(0, 0, 500, 400, 20, 0xffffff, 0);
-
+    getGameData(this);
     // 제목 텍스트
     this.createTitle();
 
@@ -53,31 +55,41 @@ export default class BaseRole {
   // 플레이어 버튼 생성 (조건만 자식 클래스에서 오버라이드)
   createPlayerButtons() {
     this.gameObjects.playerButtons = [];
-
-    this.players.forEach((player, index) => {
+    const maxButtons = 9; // 고정된 9개의 버튼
+    const gameData = this.scene.registry.get('gameData');
+    // 최대 9명까지 플레이어가 존재하도록 제한
+    for (let i = 0; i < maxButtons; i++) {
+      const player = gameData.result.playersInfo[i + 1] || null; // 플레이어가 없으면 null로 처리
       const button = this.scene.rexUI.add.roundRectangle(
         0,
         0,
         160,
         50,
         7,
-        this.getButtonColor(player),
+        player ? this.getButtonColor(player) : 0x2c2c32, // 플레이어가 있으면 색상 적용, 없으면 회색
       );
 
       const text = this.scene.add
-        .text(0, 0, player.nickname, {
+        .text(0, 0, player ? player.nickname : '', {
           fontFamily: 'BMEuljiro10yearslater',
           fontSize: '20px',
-          fill: this.getTextColor(player),
+          fill: player ? this.getTextColor(player) : '#999999', // 플레이어가 있으면 텍스트 색상, 없으면 회색
         })
         .setOrigin(0.5);
 
-      if (this.isPlayerSelectable(player)) {
+      if (player && this.isPlayerSelectable(player)) {
         this.addButtonInteractivity(button, text, player);
+      } else {
+        // button.setInteractive(false); // 빈 버튼은 클릭 불가능하게 설정
       }
 
-      this.gameObjects.playerButtons.push({ button, text, index, role: player.role });
-    });
+      this.gameObjects.playerButtons.push({
+        button,
+        text,
+        index: i,
+        role: player ? player.role : null,
+      });
+    }
   }
 
   // 버튼 상호작용 추가
@@ -85,17 +97,17 @@ export default class BaseRole {
     button
       .setInteractive()
       .on('pointerover', () => {
-        if (this.selectedPlayer !== player.userId) {
+        if (this.selectedPlayer !== player.playerNo) {
           button.setFillStyle(this.getHoverColor());
         }
       })
       .on('pointerout', () => {
-        if (this.selectedPlayer !== player.userId) {
+        if (this.selectedPlayer !== player.playerNo) {
           button.setFillStyle(this.getButtonColor(player));
         }
       })
       .on('pointerdown', () => {
-        this.handlePlayerSelection(player.userId, button, text, player.role);
+        this.handlePlayerSelection(player.playerNo, button, text, player.role);
       });
   }
 
@@ -128,9 +140,9 @@ export default class BaseRole {
       .on('pointerdown', () => this.handleVote());
   }
 
-  handleVote() {
+  handleVote = async () => {
     if (this.selectedPlayer) {
-      const selectedPlayer = this.players.find((player) => player.userId === this.selectedPlayer);
+      const selectedPlayer = this.players.find((player) => player.playerNo === this.selectedPlayer);
 
       // 버튼 비활성화
       this.gameObjects.playerButtons.forEach(({ button, text }) => {
@@ -140,9 +152,21 @@ export default class BaseRole {
       });
 
       // 결과 처리는 하위 클래스에서 구현
-      this.selcetedResult(selectedPlayer);
+      this.selectedResult(selectedPlayer);
+
+      // 서버에 투표 정보 전송
+      try {
+        const response = await axios.post(
+          `http://localhost:8080/api/game/2/test/vote?playerNo=1&targetNo=${this.selectedPlayer}`,
+        );
+        // 서버 응답 처리
+        console.log('투표 전송 성공:', response.data);
+      } catch (error) {
+        console.log('투표 전송 실패:', error.response?.data?.message || error.message);
+        this.showMessage(error.response?.data?.message || '투표 전송 실패');
+      }
     }
-  }
+  };
 
   // 화면 크기에 따른 위치 업데이트
   updatePositions() {
@@ -159,7 +183,8 @@ export default class BaseRole {
     this.gameObjects.title.setPosition(centerX, centerY - modalHeight * 0.35);
 
     // 플레이어 버튼 위치 업데이트
-    const cols = screenWidth < 600 ? 2 : 3;
+    const rows = 3; // 3개의 행 고정
+    const cols = 3; // 3개의 열 고정
     const buttonWidth = Math.min(150, (modalWidth - 60) / cols);
     const buttonSpacing = buttonWidth + 20;
 
@@ -187,8 +212,9 @@ export default class BaseRole {
   };
 
   handlePlayerSelection(playerId, selectedButton, selectedText) {
+    const gameData = this.scene.registry.get('gameData');
     this.gameObjects.playerButtons.forEach(({ button, text, index }) => {
-      const player = this.players[index];
+      const player = gameData.result.playersInfo[index + 1];
       if (this.isPlayerSelectable(player) && this.selectedPlayer !== playerId) {
         button.setFillStyle(this.getButtonColor(player));
         text.setColor(this.getTextColor(player));

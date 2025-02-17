@@ -30,10 +30,11 @@ export default class LastVoteScene extends Phaser.Scene {
     this.add
       .rectangle(width / 2, height / 2, width * 0.8, height * 0.6, 0x000000, 0.9)
       .setStrokeStyle(4, 0x8b0000); // 더 진한 붉은색 테두리
-
+    const gameData = this.registry.get('gameData');
+    const { nickname } = gameData.result.playersInfo[this.voteResult];
     // 처형 확인 메시지 (떨림 효과 추가)
     const messageText = this.add
-      .text(width / 2, height * 0.45, `생존자${this.voteResult}의 최후 변론`, {
+      .text(width / 2, height * 0.45, `${nickname}의 최후 변론`, {
         fontSize: '32px',
         fill: '#ff0000',
         fontFamily: 'Arial Black',

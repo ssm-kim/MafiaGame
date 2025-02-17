@@ -1,61 +1,66 @@
-export default class CitizenRole {
+import BaseRole from '@/game/ui/role/BaseRole';
+import { getGameData } from '@/game/utils/gameData';
+
+export default class CitizenRole extends BaseRole {
   constructor(scene) {
-    this.scene = scene;
-    this.gameObjects = {};
+    super(scene);
+    getGameData(this);
     this.createUI();
-
-    // 리사이즈 이벤트 리스너 등록
-    this.scene.scale.on('resize', this.handleResize, this);
   }
 
-  createUI() {
-    // 어두운 배경 오버레이
-    this.gameObjects.background = this.scene.rexUI.add.roundRectangle(
-      0,
-      0,
-      500,
-      400,
-      20,
-      0x000000,
-      0,
-    );
-
-    // 메시지 텍스트
-    this.gameObjects.messageText = this.scene.add
-      .text(0, 0, '감염자가 활동 중입니다.', {
-        fontFamily: 'BMEuljiro10yearslater',
-        fontSize: '36px',
-        fill: '#ff0000',
-        align: 'center',
-      })
-      .setOrigin(0.5);
-
-    this.updatePositions();
+  isPlayerSelectable(player) {
+    return !player.dead;
   }
 
-  updatePositions() {
-    const screenWidth = this.scene.scale.width;
-    const screenHeight = this.scene.scale.height;
-    const centerX = screenWidth / 2;
-    const centerY = screenHeight / 2;
-
-    this.gameObjects.background.setPosition(centerX, centerY).setSize(screenWidth, screenHeight);
-    this.gameObjects.messageText.setPosition(centerX, centerY);
+  getTitleText() {
+    return '감염자 투표';
   }
 
-  handleResize = () => {
-    this.updatePositions();
-  };
+  getTitleColor() {
+    return '#ff0000';
+  }
 
-  destroy() {
-    // 리사이즈 이벤트 리스너 제거
-    this.scene.scale.off('resize', this.handleResize, this);
+  getBorderColor() {
+    return 0xff0000;
+  }
 
-    // 게임 오브젝트들 제거
-    Object.values(this.gameObjects).forEach((object) => {
-      if (object.destroy) {
-        object.destroy();
-      }
-    });
+  getButtonColor(player) {
+    return !player.dead ? 0x1a1a1a : 0x666666;
+  }
+
+  getHoverColor() {
+    return 0x333333;
+  }
+
+  getTextColor(player) {
+    return !player.dead ? '#ffffff' : '#999999';
+  }
+
+  getSelectedTextColor() {
+    return '#ffffff'; // 의사 역할의 경우 선택된 텍스트 색상을 검은색으로
+  }
+
+  getSelectedButtonColor() {
+    return 0xffffff;
+  }
+
+  getActionButtonText() {
+    return '투표하기';
+  }
+
+  getActionButtonTextColor() {
+    return '#ffffff';
+  }
+
+  getActionButtonColor() {
+    return 0xff0000;
+  }
+
+  getActionButtonHoverColor() {
+    return 0xff3333;
+  }
+
+  selcetedResult() {
+    this.scene.events.emit('doctorActionComplete', this.selectedPlayer);
   }
 }

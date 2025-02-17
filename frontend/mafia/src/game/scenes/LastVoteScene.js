@@ -30,9 +30,10 @@ export default class LastVoteScene extends Phaser.Scene {
     this.add
       .rectangle(width / 2, height / 2, width * 0.8, height * 0.6, 0x000000, 0.9)
       .setStrokeStyle(4, 0x8b0000);
-
+    const gameData = this.registry.get('gameData');
+    const { nickname } = gameData.result.playersInfo[this.voteResult];
     const messageText = this.add
-      .text(width / 2, height * 0.45, `생존자${this.voteResult}를 처형 시키겠습니까?`, {
+      .text(width / 2, height * 0.45, `${nickname}를 처형 시키겠습니까?`, {
         fontSize: '32px',
         fill: '#ff0000',
         fontFamily: 'Arial Black',
