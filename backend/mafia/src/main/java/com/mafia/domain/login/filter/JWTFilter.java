@@ -30,7 +30,7 @@ public class JWTFilter extends OncePerRequestFilter {
     private final RedisService redisService;
 
     private static final String ACTIVITY_KEY_PREFIX = "guest_activity:";
-    private static final int UPDATE_INTERVAL = 300; // 5분 (초 단위)
+    private static final int UPDATE_INTERVAL = 1800; // 30분 (초 단위)
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,

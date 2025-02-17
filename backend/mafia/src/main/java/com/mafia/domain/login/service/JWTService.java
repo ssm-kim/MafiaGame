@@ -35,8 +35,14 @@ public class JWTService {
         String newRefresh = jwtUtil.createRefreshToken(member.getProviderId(),
             member.getMemberId());
 
-        redisService.saveWithExpiry(member.getProviderId(), newRefresh, 14, TimeUnit.DAYS);
-
+        // 게스트와 일반 유저 구분
+        if (member.getProviderId().startsWith("guest_")) {
+            // 게스트 유저의 경우 60분 만료 (CustomSuccessHandler와 동일하게)
+            redisService.saveWithExpiry(member.getProviderId(), newRefresh, 6, TimeUnit.HOURS);
+        } else {
+            // 일반 유저의 경우 7일 만료
+            redisService.saveWithExpiry(member.getProviderId(), newRefresh, 7, TimeUnit.DAYS);
+        }
         return ReissueDto.builder()
             .newAccessToken(newAccess)
             .newRefreshToken(newRefresh)
