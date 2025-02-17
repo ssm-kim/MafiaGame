@@ -47,7 +47,7 @@ public class Game implements Serializable { // 필드정리
 
     @Schema(description = "게임의 현재 상태", example = "STARTED",
         allowableValues = {"PLAYING", "CITIZEN_WIN", "ZOMBIE_WIN", "MUTANT_WIN"})
-    private STATUS status;
+    private GAMESTATUS gamestatus;
 
     @Schema(description = "현재 라운드에서 의사가 치료 대상으로 지정한 플레이어의 ID", example = "101")
     private Integer healTarget = 0;
@@ -97,7 +97,7 @@ public class Game implements Serializable { // 필드정리
     }
 
     public void startGame() {
-        this.status = STATUS.PLAYING;
+        this.gamestatus = GAMESTATUS.PLAYING;
         // 1. 직업 분배
         List<Role> role = new ArrayList<>();
         init_role(role);
@@ -257,17 +257,17 @@ public class Game implements Serializable { // 필드정리
             .count();
 
         if (zombie == 0 && mutant == 0) {
-            this.status = STATUS.CITIZEN_WIN;
+            this.gamestatus = GAMESTATUS.CITIZEN_WIN;
         } else if (mutant == 0 && zombie >= citizen) {
-            this.status = STATUS.ZOMBIE_WIN;
+            this.gamestatus = GAMESTATUS.ZOMBIE_WIN;
         } else if (mutant > 0 && citizen + zombie <= mutant) {
-            this.status = STATUS.MUTANT_WIN;
+            this.gamestatus = GAMESTATUS.MUTANT_WIN;
         } else {
             log.info("[Game{}] Game is still in progress", gameId);
         }
 
-        if (this.status != STATUS.PLAYING) {
-            log.info("[Game{}] Game over with status: {}", gameId, this.status);
+        if (this.gamestatus != GAMESTATUS.PLAYING) {
+            log.info("[Game{}] Game over with status: {}", gameId, this.gamestatus);
         }
     }
 

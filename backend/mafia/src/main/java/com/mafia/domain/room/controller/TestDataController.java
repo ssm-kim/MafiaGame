@@ -1,5 +1,6 @@
 package com.mafia.domain.room.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mafia.domain.game.model.game.GameOption;
 import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.room.model.redis.Participant;
@@ -28,14 +29,14 @@ public class TestDataController {
     private final GameService gameService;
 
     @PostMapping("/init-dummy-data")
-    public ResponseEntity<String> initDummyData() {
+    public ResponseEntity<String> initDummyData() throws JsonProcessingException {
         try {
             // 첫 번째 방 (길동의 방)
             RoomInfo room1 = new RoomInfo(1L, "테스트방 1", null, 4, new GameOption());
-            Participant host1 = new Participant(5L, "길동");  // member_id: 5
+            Participant host1 = new Participant(1L, "길동");  // member_id: 5
             host1.setReady(true);
-            room1.getParticipant().put(5L, host1);
-            room1.getMemberMapping().put(1, 5L);
+            room1.getParticipant().put(1L, host1);
+            room1.getMemberMapping().put(1, 1L);
 
             // 두 번째 방 (준표의 방)
             RoomInfo room2 = new RoomInfo(2L, "테스트방 2", null, 7, new GameOption());
@@ -71,7 +72,7 @@ public class TestDataController {
             redisRepository.save(4L, room4);
 
             log.info("더미 데이터 초기화 완료 - 네 개의 방이 생성됨");
-
+            gameService.startGame(1L);
             return ResponseEntity.ok("더미 데이터 초기화 완료");
 
         } catch (Exception e) {
@@ -79,6 +80,7 @@ public class TestDataController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("더미 데이터 초기화 실패: " + e.getMessage());
         }
+
     }
 
     /**

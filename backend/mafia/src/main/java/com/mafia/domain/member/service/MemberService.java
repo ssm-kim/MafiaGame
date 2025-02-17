@@ -3,6 +3,9 @@ package com.mafia.domain.member.service;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.MEMBER_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_GUEST_ACCOUNT;
 
+import com.mafia.domain.game.model.game.Player;
+import com.mafia.domain.game.model.game.Role;
+import com.mafia.domain.game.model.game.GAMESTATUS;
 import com.mafia.domain.member.model.dto.MemberDTO;
 import com.mafia.domain.member.model.dto.response.MemberResponse;
 import com.mafia.domain.member.model.dto.response.NicknameResponse;
@@ -65,5 +68,29 @@ public class MemberService {
         }
 
         memberRepository.delete(member);
+    }
+
+    @Transactional
+    public void recordMembers(List<Player> players, GAMESTATUS gameStatus) {
+        List<Long> winMembers = players.stream()
+            .filter(player -> (
+                (player.getRole() == Role.ZOMBIE && gameStatus == GAMESTATUS.ZOMBIE_WIN) ||
+                    (player.getRole() == Role.MUTANT && gameStatus == GAMESTATUS.MUTANT_WIN) ||
+                    (player.getRole() != Role.ZOMBIE && player.getRole() != Role.MUTANT && gameStatus == GAMESTATUS.CITIZEN_WIN)
+            ))
+            .map(Player::getMemberId)
+            .collect(Collectors.toList());
+
+        List<Long> loseMembers = players.stream()
+            .filter(player -> !winMembers.contains(player.getMemberId()))
+            .map(Player::getMemberId)
+            .collect(Collectors.toList());
+
+        if (!winMembers.isEmpty()) {
+            memberRepository.updateWinCounts(winMembers);
+        }
+        if (!loseMembers.isEmpty()) {
+            memberRepository.updateLoseCounts(loseMembers);
+        }
     }
 }

@@ -15,17 +15,22 @@ import com.mafia.domain.game.event.GamePublisher;
 import com.mafia.domain.game.model.dto.GameEndEvent;
 import com.mafia.domain.game.model.dto.GameInfoDto;
 import com.mafia.domain.game.model.dto.GameStartEvent;
+import com.mafia.domain.game.model.entity.GameLog;
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
 import com.mafia.domain.game.model.game.Player;
 import com.mafia.domain.game.model.game.Role;
-import com.mafia.domain.game.model.game.STATUS;
+import com.mafia.domain.game.model.game.GAMESTATUS;
+import com.mafia.domain.game.repository.GameLogRepository;
 import com.mafia.domain.game.repository.GameRepository;
 import com.mafia.domain.game.repository.GameSeqRepository;
+import com.mafia.domain.member.service.MemberService;
 import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.service.RoomRedisService;
 import com.mafia.global.common.exception.exception.BusinessException;
 import com.mafia.global.common.service.GameSubscription;
+import jakarta.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,8 +50,10 @@ import org.springframework.stereotype.Service;
 public class GameService {
 
     private final RoomRedisService roomService;
+    private final MemberService memberService;
     private final GameRepository gameRepository; // 게임 데이터를 관리하는 리포지토리
     private final GameSeqRepository gameSeqRepository; // 게임 상태 및 시간 정보를 관리하는 리포지토리
+    private final GameLogRepository gameLogRepository;
     private final VoiceService voiceService; // 🔥 OpenVidu 연동 추가
     private final GamePublisher gamePublisher; // Game Websocket
     private final GameSubscription subscription;
@@ -157,10 +164,21 @@ public class GameService {
      * @param gameId 방 ID
      * @throws BusinessException 게임이 존재하지 않을 경우 예외 발생
      */
-    public void deleteGame(long gameId) {
-        findById(gameId);
+    @Transactional
+    public void deleteGame(long gameId, String version) {
+        Game game = findById(gameId);
         getTime(gameId);
         getPhase(gameId);
+        List<Player> players =  new ArrayList<>(game.getPlayers().values());
+
+        memberService.recordMembers(players, game.getGamestatus());
+
+        GameLog gameLog = new GameLog(gameId, game.getGamestatus(),
+            game.getPlayers().size(), version);
+
+
+        gameLogRepository.save(gameLog);
+
 
         // 게임 스레드 풀 반납
         applicationEventPublisher.publishEvent(new GameEndEvent(gameId));
@@ -360,9 +378,9 @@ public class GameService {
      * @param gameId 방 ID
      * @return 게임 상태 (STATUS)
      */
-    public STATUS isEnd(long gameId) {
+    public GAMESTATUS isEnd(long gameId) {
         Game game = findById(gameId);
-        return game.getStatus();
+        return game.getGamestatus();
     }
 
     /**

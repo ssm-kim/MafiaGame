@@ -13,7 +13,7 @@ spring:
   jpa:
     generate-ddl: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
@@ -48,6 +48,10 @@ management:
     export:
       prometheus:
         enabled: true
+
+application:
+  version: 1.0.0
+
 ---
 spring:
   config:
