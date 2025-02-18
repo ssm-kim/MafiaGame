@@ -147,7 +147,7 @@ export default function createVoteContainer(scene, x, y, width, height, playersI
   });
 
   // 그리드 설정
-  const columns = 2;
+  const columns = 3;
   const rows = Math.ceil(playerCount / columns);
   const gridSizer = scene.rexUI.add.gridSizer({
     column: columns,
@@ -175,7 +175,7 @@ export default function createVoteContainer(scene, x, y, width, height, playersI
 
   // 버튼 배열
   gridSizer.buttons = [];
-
+  const gameData = scene.registry.get('gameData');
   // 플레이어 버튼 생성
   for (let i = 0; i < playerCount; i += 1) {
     if (playersInfo[i]) {
@@ -270,4 +270,90 @@ export default function createVoteContainer(scene, x, y, width, height, playersI
 
   sizer.layout();
   return sizer;
+}
+
+function createZombieButton(scene, text, style, gridSizer) {
+  const button = scene.rexUI.add
+    .label({
+      background: scene.rexUI.add
+        .roundRectangle(0, 0, style.width, style.height, 10, ZOMBIE_THEME.colors.background)
+        .setStrokeStyle(2, ZOMBIE_THEME.colors.blood),
+      text: scene.add.text(0, 0, text, {
+        fontSize: style.fontSize,
+        color: ZOMBIE_THEME.colors.text,
+        fontFamily: 'Arial',
+        stroke: '#000000',
+        strokeThickness: 1,
+      }),
+      space: style.padding,
+    })
+    .setInteractive({ useHandCursor: true });
+
+  button.playerNumber = parseInt(text.split(' ')[1]);
+
+  button
+    .on('pointerover', function () {
+      if (!this.selected) {
+        // 호버 시 떨림 효과
+        scene.tweens.add({
+          targets: this,
+          x: '+=1',
+          y: '+=1',
+          duration: 50,
+          yoyo: true,
+          repeat: 3,
+        });
+
+        this.getElement('background')
+          .setFillStyle(ZOMBIE_THEME.colors.hover)
+          .setStrokeStyle(2, ZOMBIE_THEME.colors.bloodLight);
+
+        this.getElement('text').setColor(ZOMBIE_THEME.colors.textHighlight);
+      }
+    })
+    .on('pointerout', function () {
+      if (!this.selected) {
+        this.getElement('background')
+          .setFillStyle(ZOMBIE_THEME.colors.background)
+          .setStrokeStyle(2, ZOMBIE_THEME.colors.blood);
+
+        this.getElement('text').setColor(ZOMBIE_THEME.colors.text);
+      }
+    })
+    .on('pointerdown', function () {
+      // 화면 흔들림 효과
+      scene.cameras.main.shake(200, 0.003);
+
+      // 클릭 시 플래시 효과
+      scene.cameras.main.flash(100, 128, 0, 0, 0.3);
+
+      gridSizer.buttons.forEach((btn) => {
+        if (btn !== this && btn.selected) {
+          btn.selected = false;
+          btn
+            .getElement('background')
+            .setFillStyle(ZOMBIE_THEME.colors.background)
+            .setStrokeStyle(2, ZOMBIE_THEME.colors.blood);
+          btn.getElement('text').setColor(ZOMBIE_THEME.colors.text);
+        }
+      });
+
+      this.selected = !this.selected;
+
+      if (this.selected) {
+        this.getElement('background')
+          .setFillStyle(ZOMBIE_THEME.colors.blood)
+          .setStrokeStyle(2, ZOMBIE_THEME.colors.bloodLight);
+        this.getElement('text').setColor(ZOMBIE_THEME.colors.textHighlight);
+      } else {
+        this.getElement('background')
+          .setFillStyle(ZOMBIE_THEME.colors.background)
+          .setStrokeStyle(2, ZOMBIE_THEME.colors.blood);
+        this.getElement('text').setColor(ZOMBIE_THEME.colors.text);
+      }
+
+      scene.handlePlayerSelection(this.playerNumber);
+    });
+
+  return button;
 }

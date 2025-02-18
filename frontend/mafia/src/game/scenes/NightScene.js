@@ -6,9 +6,9 @@ import DoctorRole from '@/game/ui/role/DoctorRole.js';
 import MutantRole from '@/game/ui/role/MutantRole.js';
 import showFixedRoleText from '@/game/ui/role/UserRole';
 import CitizenRole from '@/game/ui/role/CitizenRole';
-// import { sceneTimeout } from '@/game/utils/time';
 import showFixedClock from '@/game/ui/clock/BaseClock';
 import sceneChanger from '@/game/utils/sceneChange';
+import { getGameData } from '@/game/utils/gameData';
 
 export default class NightScene extends Phaser.Scene {
   constructor() {
@@ -17,9 +17,7 @@ export default class NightScene extends Phaser.Scene {
   }
 
   init() {
-    this.gameData = this.registry.get('gameData');
-    this.character = this.registry.get('playerInfo').character;
-    this.playerInfo = this.registry.get('playerInfo');
+    getGameData(this);
   }
 
   create() {
@@ -82,14 +80,10 @@ export default class NightScene extends Phaser.Scene {
   }
 
   assignRoles() {
-    const playerInfo = this.registry.get('playerInfo');
+    const gameData = this.registry.get('gameData');
+    const { role } = gameData.result.myInfo;
 
-    const { role } = playerInfo;
-
-    if (role === 'CITIZEN') {
-      // 일반 시민을 위한 메시지 표시
-      this.currentRole = new CitizenRole(this);
-    } else if (role === 'ZOMBIE') {
+    if (role === 'ZOMBIE') {
       // 특수 역할 UI 생성
       this.role = new MafiaRole(this);
     } else if (role === 'POLICE') {

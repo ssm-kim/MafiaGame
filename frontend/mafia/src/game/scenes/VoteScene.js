@@ -26,7 +26,6 @@ export default class VoteScene extends Phaser.Scene {
     this.barProgress = 1;
     this.hasVoted = false;
     this.voteResults = {};
-    this.socketService = this.registry.get('socketService');
   }
 
   create() {
@@ -60,6 +59,7 @@ export default class VoteScene extends Phaser.Scene {
   }
 
   handlePlayerSelection(playerNumber) {
+    console.log(playerNumber);
     // 이미 같은 대상을 선택한 경우
     if (this.target === playerNumber) {
       resetVoteSelection(this, playerNumber);

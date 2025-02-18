@@ -1,6 +1,4 @@
 import Phaser from 'phaser';
-import axios from 'axios';
-import PlayerRole from '@/types/role';
 import sceneChanger from '@/game/utils/sceneChange';
 
 export default class SceneManager extends Phaser.Scene {
@@ -11,7 +9,7 @@ export default class SceneManager extends Phaser.Scene {
   async init() {
     this.roomId = this.registry.get('roomId');
     this.userId = this.registry.get('userId');
-    this.loadGameData();
+    getGameData(this);
   }
 
   preload() {
