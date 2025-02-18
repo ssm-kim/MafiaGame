@@ -1,9 +1,9 @@
 package com.mafia.domain.game.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.mafia.domain.game.model.dto.EndGameInfoDto;
 import com.mafia.domain.game.model.dto.GameInfoDto;
 import com.mafia.domain.game.model.game.GamePhase;
-import com.mafia.domain.game.model.game.GameStatus;
 import com.mafia.domain.game.service.GameService;
 import com.mafia.domain.login.model.dto.AuthenticatedUser;
 import com.mafia.global.common.model.dto.BaseResponse;
@@ -55,9 +55,17 @@ public class GameController {
         return ResponseEntity.ok(new BaseResponse<>(gameInfo));
     }
 
+    @GetMapping("/{roomId}/ending")
+    @Operation(summary = "Get EndSence Data", description = "방 ID로 게임 종료 데이터를 가져옵니다.")
+    public ResponseEntity<BaseResponse<EndGameInfoDto>> getEndPlayers(@PathVariable Long roomId) {
+        EndGameInfoDto gameInfo = gameService.getEndGamePlayers(roomId);
+        return ResponseEntity.ok(new BaseResponse<>(gameInfo));
+    }
+
     @DeleteMapping("/{roomId}")
     @Operation(summary = "Delete game", description = "방 ID로 게임을 삭제합니다.")
-    public ResponseEntity<BaseResponse<String>> deleteGame(@PathVariable Long roomId) {
+    public ResponseEntity<BaseResponse<String>> deleteGame(@PathVariable Long roomId)
+        throws JsonProcessingException {
         gameService.deleteGame(roomId, gameVersion);
         return ResponseEntity.ok(new BaseResponse<>("Room " + roomId + " deleted."));
     }
@@ -99,13 +107,6 @@ public class GameController {
             new BaseResponse<>(result));
     }
 
-    @GetMapping("/{roomId}/isEnd")
-    @Operation(summary = "Check game over", description = "게임이 끝났는지 확인합니다.")
-    public ResponseEntity<BaseResponse<GameStatus>> isEnd(@PathVariable Long roomId) {
-        GameStatus GAMESTATUS = gameService.isEnd(roomId);
-        return ResponseEntity.ok(new BaseResponse<>(GAMESTATUS));
-    }
-
     @PostMapping("/{roomId}/test/target/set")
     @Operation(summary = "set target player", description = "타겟을 설정합니다.(밤 페이즈)")
     public ResponseEntity<BaseResponse<String>> setTarget(@PathVariable Long roomId,
@@ -126,6 +127,13 @@ public class GameController {
         return ResponseEntity.ok(new BaseResponse<>(
             "Player " + playerNo + " voted for " + targetNo + " in Room " + roomId + "."));
     }
+
+//    @GetMapping("/{roomId}/isEnd")
+//    @Operation(summary = "Check game over", description = "게임이 끝났는지 확인합니다.")
+//    public ResponseEntity<BaseResponse<GameStatus>> isEnd(@PathVariable Long roomId) {
+//        GameStatus GAMESTATUS = gameService.isEnd(roomId);
+//        return ResponseEntity.ok(new BaseResponse<>(GAMESTATUS));
+//    }
 
 //    @GetMapping("/{roomId}/voteresult")
 //    @Operation(summary = "Get vote result", description = "투표 집계 결과를 가져옵니다(테스트 용)")
