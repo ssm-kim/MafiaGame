@@ -23,7 +23,7 @@ public class GameOption {
     public GameOption() {
         this.zombie = 2;
         this.mutant = 1;
-        this.doctorSkillUsage = 2;
+        this.doctorSkillUsage = 9999;
         this.nightTimeSec = 20;
         this.dayDisTimeSec = 60;
     }
