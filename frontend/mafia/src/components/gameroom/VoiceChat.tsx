@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { OpenVidu, Publisher, Session } from 'openvidu-browser';
 
-const OPENVIDU_SERVER_URL = 'https://i12d101.p.ssafy.io:5443';
+const OPENVIDU_SERVER_URL = 'https://i12d101.p.ssafy.io';
 
 interface VoiceChatProps {
   roomId: string | number;
