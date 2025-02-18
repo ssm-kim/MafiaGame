@@ -34,7 +34,7 @@ interface GameConfigParams {
 }
 
 const gameConfig = ({ parent, stompClient, roomId, playerId, eventEmitter }: GameConfigParams) => ({
-  type: Phaser.CANVAS,
+  type: Phaser.WEBGL,
   parent,
   pixelArt: true,
   scale: {

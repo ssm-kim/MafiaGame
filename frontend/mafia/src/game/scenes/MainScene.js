@@ -5,6 +5,7 @@ import PlayerManager from '@/game/player/PlayerManager';
 import sceneChanger from '@/game/utils/sceneChange';
 import showFixedRoleText from '@/game/ui/role/UserRole';
 import showFixedClock from '@/game/ui/clock/BaseClock';
+import getGameData from '@/game/utils/gameData';
 
 export default class MainScene extends Phaser.Scene {
   constructor() {
@@ -17,8 +18,12 @@ export default class MainScene extends Phaser.Scene {
   }
 
   init() {
-    const gameData = this.registry.get('gameData');
-    const playerInfo = gameData.result.playersInfo;
+    getGameData(this);
+
+    const playerInfo = this.registry.get('playerInfo');
+
+    console.log(playerInfo);
+
     this.roomId = this.registry.get('roomId');
 
     const { role, character } = playerInfo;

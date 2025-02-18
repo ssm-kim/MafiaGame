@@ -4,7 +4,7 @@ import setBackground from '@/game/utils/map';
 import sceneChanger from '@/game/utils/sceneChange';
 import showFixedRoleText from '@/game/ui/role/UserRole';
 import CitizenRole from '@/game/ui/role/CitizenRole';
-import { getGameData } from '@/game/utils/gameData';
+import getGameData from '@/game/utils/gameData';
 
 export default class VoteScene extends Phaser.Scene {
   constructor() {

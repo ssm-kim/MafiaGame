@@ -8,7 +8,7 @@ import showFixedRoleText from '@/game/ui/role/UserRole';
 import CitizenRole from '@/game/ui/role/CitizenRole';
 import showFixedClock from '@/game/ui/clock/BaseClock';
 import sceneChanger from '@/game/utils/sceneChange';
-import { getGameData } from '@/game/utils/gameData';
+import getGameData from '@/game/utils/gameData';
 
 export default class NightScene extends Phaser.Scene {
   constructor() {
@@ -80,8 +80,9 @@ export default class NightScene extends Phaser.Scene {
   }
 
   assignRoles() {
-    const gameData = this.registry.get('gameData');
-    const { role } = gameData.result.myInfo;
+    // const gameData = this.registry.get('gameData');
+    const playerInfo = this.registry.get('playerInfo');
+    const { role } = playerInfo;
 
     if (role === 'ZOMBIE') {
       // 특수 역할 UI 생성

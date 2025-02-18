@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
 import sceneChanger from '@/game/utils/sceneChange';
+import getGameData from '@/game/utils/gameData';
 
 export default class SceneManager extends Phaser.Scene {
   constructor() {
     super({ key: 'SceneManager' });
   }
 
-  async init() {
+  init() {
     this.roomId = this.registry.get('roomId');
     this.userId = this.registry.get('userId');
     getGameData(this);
@@ -72,30 +73,6 @@ export default class SceneManager extends Phaser.Scene {
         frameRate: 10,
         repeat: -1,
       });
-    }
-  }
-
-  async loadGameData() {
-    try {
-      const response = await axios.get(`/api/game/${this.roomId}`);
-
-      const localPlayerInfo = response.data.result.myInfo;
-      const { playersInfo } = response.data.result;
-
-      console.log(localPlayerInfo);
-
-      const newPlayerInfo = {
-        playerNo: localPlayerInfo.playerNo,
-        nickname: localPlayerInfo.nickname,
-        role: PlayerRole[localPlayerInfo.role],
-        character: `character${(localPlayerInfo.playerNo % 4) + 1}`,
-      };
-
-      // 데이터를 레지스트리에 저장
-      this.registry.set('playersInfo', playersInfo);
-      this.registry.set('playerInfo', newPlayerInfo);
-    } catch (error) {
-      console.error('게임 데이터 가져오는 중 에러 발생', error);
     }
   }
 }

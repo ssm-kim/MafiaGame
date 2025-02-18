@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { getGameData } from '@/game/utils/gameData';
 
 export default class BaseRole {
   constructor(scene) {
@@ -26,7 +25,7 @@ export default class BaseRole {
     );
 
     this.gameObjects.border = this.scene.rexUI.add.roundRectangle(0, 0, 500, 400, 20, 0xffffff, 0);
-    getGameData(this);
+
     // 제목 텍스트
     this.createTitle();
 

@@ -1,10 +1,8 @@
 import BaseRole from '@/game/ui/role/BaseRole';
-import { getGameData } from '@/game/utils/gameData';
 
 export default class CitizenRole extends BaseRole {
   constructor(scene) {
     super(scene);
-    getGameData(this);
     this.createUI();
   }
 
