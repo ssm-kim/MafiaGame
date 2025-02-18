@@ -355,7 +355,7 @@ function GameRoom(): JSX.Element {
                 onReady={handleReadyState}
                 onStart={handleGameStart}
                 roomId={Number(roomId)}
-                currentNickname={currentNickname}
+                // currentNickname={currentNickname}
                 participantNo={participantNo}
               />
             ) : (

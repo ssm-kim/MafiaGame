@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 import roomApi from '@/api/roomApi';
 import PlayerCard from './PlayerCard';
 import WaitingButton from './WatingButton';
@@ -11,7 +11,7 @@ interface WaitingRoomProps {
   onReady: () => Promise<void>;
   onStart: () => Promise<void>;
   roomId: number;
-  currentNickname?: string;
+  // currentNickname?: string;
   participantNo?: number | null;
 }
 
@@ -22,7 +22,7 @@ function WaitingRoom({
   onReady,
   onStart,
   roomId,
-  currentNickname,
+  // currentNickname,
   participantNo,
 }: WaitingRoomProps): JSX.Element {
   const paddedPlayers = [
