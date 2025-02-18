@@ -20,7 +20,7 @@ export default class MafiaRole extends BaseRole {
   }
 
   getTitleText() {
-    return '누구를 감염시키겠습니까';
+    return '감염자 투표';
   }
 
   getTitleColor() {
@@ -53,7 +53,7 @@ export default class MafiaRole extends BaseRole {
   }
 
   getActionButtonText() {
-    return '감염시키기';
+    return '투표하기';
   }
 
   getActionButtonTextColor() {

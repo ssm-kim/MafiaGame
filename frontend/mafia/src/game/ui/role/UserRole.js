@@ -23,7 +23,7 @@ export default function showFixedRoleText(scene) {
 
   // 좌측 상단에 역할 문구 표시
   const fixedRoleText = scene.add.text(10, 10, role, {
-    font: '20px Arial',
+    font: '22px BMEuljiro10yearslater',
     fill: textColor,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     padding: { left: 5, right: 5, top: 5, bottom: 2 },

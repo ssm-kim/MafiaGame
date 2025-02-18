@@ -6,7 +6,7 @@ export default function sceneChanger(scene) {
 
   const phaseMapping = {
     DAY_DISCUSSION: 'MainScene',
-    DAY_VOTE: 'VoteScene',
+    DAY_VOTE: 'VotedScene',
     DAY_FINAL_STATEMENT: 'StatementScene',
     DAY_FINAL_VOTE: 'LastVoteScene',
     NIGHT_ACTION: 'NightScene',
