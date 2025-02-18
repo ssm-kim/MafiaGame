@@ -42,9 +42,9 @@ export default function sceneChanger(scene) {
     }
   });
 
-  eventEmitter.on('SYSTEM_MESSAGE', (data) => {
-    console.log('#####################');
-    console.log(data);
-    console.log('#####################');
-  });
+  // eventEmitter.on('SYSTEM_MESSAGE', (data) => {
+  //   console.log('#####################');
+  //   console.log(data);
+  //   console.log('#####################');
+  // });
 }

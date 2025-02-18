@@ -3,12 +3,8 @@ import PlayerRole from '@/types/role';
 
 const getGameData = async (scene) => {
   try {
-    if (!scene.registry) return;
-
     const roomId = scene.registry.get('roomId');
     const response = await api.get(`/api/game/${roomId}`);
-
-    console.log(response);
 
     const localPlayerInfo = response.data.result.myInfo;
     const { playersInfo } = response.data.result;
@@ -21,8 +17,8 @@ const getGameData = async (scene) => {
     };
 
     // 데이터를 레지스트리에 저장
-    this.registry.set('playersInfo', playersInfo);
-    this.registry.set('playerInfo', newPlayerInfo);
+    scene.registry.set('playersInfo', playersInfo);
+    scene.registry.set('playerInfo', newPlayerInfo);
 
     // Phaser 씬의 registry에 저장
     scene.registry.set('gameData', response.data);
