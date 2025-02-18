@@ -36,6 +36,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
             headers: {
               'Content-Type': 'application/json',
               'Access-Control-Allow-Origin': '*',
+              Authorization: `Basic ${btoa('OPENVIDUAPP:fuckauth')}`,
             },
           });
           const sessionId = await sessionResponse.text();
@@ -61,39 +62,39 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
           const token = await tokenResponse.text();
           console.log('토큰 발급됨:', token);
 
-          const session = OV.initSession();
+          const initialSession = OV.initSession();
 
           // 다른 참가자의 스트림 구독 (죽은 사람도 들을 수 있음)
-          session.on('streamCreated', (event) => {
+          initialSession.on('streamCreated', (event) => {
             const streamData = JSON.parse(event.stream.connection.data);
             console.log(`${streamData.nickname} 음성 채팅 참여`);
-            session.subscribe(event.stream, undefined);
+            initialSession.subscribe(event.stream, undefined);
           });
 
-          session.on('streamDestroyed', (event) => {
+          initialSession.on('streamDestroyed', (event) => {
             const streamData = JSON.parse(event.stream.connection.data);
             console.log(`${streamData.nickname} 음성 채팅 종료`);
           });
 
-          await session.connect(token);
+          await initialSession.connect(token);
           setConnectionStatus('connected');
           console.log('세션 연결 완료');
 
           // 살아있는 사람만 음성 전송 가능
           if (!gameState.participant[nickname]?.isDead) {
-            const publisher = await OV.initPublisher(undefined, {
+            const initialPublisher = await OV.initPublisher(undefined, {
               audioSource: undefined,
               videoSource: false,
               publishAudio: true,
               publishVideo: false,
             });
 
-            await session.publish(publisher);
+            await initialSession.publish(initialPublisher);
             console.log('스트림 발행 완료');
-            setPublisher(publisher);
+            setPublisher(initialPublisher);
           }
 
-          setSession(session);
+          setSession(initialSession);
         } catch (error) {
           console.error('음성 채팅 초기화 오류:', error);
           setConnectionStatus('error');
