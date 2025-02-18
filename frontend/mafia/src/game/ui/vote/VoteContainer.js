@@ -63,7 +63,7 @@ export default function createVoteContainer(scene, x, y, width, height, options)
   });
 
   // 그리드 설정
-  const columns = 2;
+  const columns = 3;
   const rows = Math.ceil(playerCount / columns);
   const gridSizer = scene.rexUI.add.gridSizer({
     column: columns,
@@ -91,11 +91,14 @@ export default function createVoteContainer(scene, x, y, width, height, options)
 
   // 버튼 배열
   gridSizer.buttons = [];
-
+  const gameData = scene.registry.get('gameData');
   // 플레이어 버튼 생성
   for (let i = 0; i < playerCount; i++) {
     if (options[i]) {
-      const button = createZombieButton(scene, `생존자 ${i + 1}`, buttonStyle, gridSizer);
+      const playerNumber = i + 1;
+      const { nickname } = gameData.result.playersInfo[playerNumber] || { nickname: '' };
+      const { playerNo } = gameData.result.playersInfo[playerNumber] || { playerNo: '' }; // playerNo 추가
+      const button = createZombieButton(scene, `${nickname}`, playerNo, buttonStyle, gridSizer);
       gridSizer.add(button, {
         column: i % columns,
         row: Math.floor(i / columns),
@@ -183,24 +186,31 @@ export default function createVoteContainer(scene, x, y, width, height, options)
   return sizer;
 }
 
-function createZombieButton(scene, text, style, gridSizer) {
+function createZombieButton(scene, text, playerNo, style, gridSizer) {
   const button = scene.rexUI.add
     .label({
       background: scene.rexUI.add
         .roundRectangle(0, 0, style.width, style.height, 10, ZOMBIE_THEME.colors.background)
         .setStrokeStyle(2, ZOMBIE_THEME.colors.blood),
-      text: scene.add.text(0, 0, text, {
-        fontSize: style.fontSize,
-        color: ZOMBIE_THEME.colors.text,
-        fontFamily: 'Arial',
-        stroke: '#000000',
-        strokeThickness: 1,
-      }),
+      text: scene.add
+        .text(0, 0, text, {
+          fontSize: style.fontSize,
+          color: ZOMBIE_THEME.colors.text,
+          fontFamily: 'Arial',
+          stroke: '#000000',
+          strokeThickness: 1,
+        })
+        .setOrigin(0.5, 0.5), // 중앙 정렬
       space: style.padding,
+      align: 'center', // 라벨 내부 요소 정렬
     })
     .setInteractive({ useHandCursor: true });
 
-  button.playerNumber = parseInt(text.split(' ')[1]);
+  button.playerNumber = playerNo;
+
+  // 게임 데이터에서 해당 플레이어의 죽음 상태 확인
+  const gameData = scene.registry.get('gameData');
+  const isDead = gameData.result.playersInfo[button.playerNumber]?.dead;
 
   button
     .on('pointerover', function () {
@@ -266,5 +276,16 @@ function createZombieButton(scene, text, style, gridSizer) {
       scene.handlePlayerSelection(this.playerNumber);
     });
 
+  // 플레이어가 죽은 상태라면 버튼 비활성화 및 회색으로 설정
+  console.log(isDead)
+  if (isDead) {
+    button
+      .getElement('background')
+      .setFillStyle(0x808080) // 회색으로 변경
+      .setStrokeStyle(2, 0x6b6b6b); // 어두운 회색 테두리
+
+    button.getElement('text').setColor(0x666666); // 텍스트를 더 어두운 회색으로 설정
+    button.setInteractive(false); // 클릭할 수 없도록 설정
+  }
   return button;
 }

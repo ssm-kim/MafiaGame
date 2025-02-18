@@ -39,7 +39,6 @@ const usePlayerPostionSocket = (roomId) => {
 
     playerPostionSocket.current.subscribe(`/topic/game/${roomId}/positions`, (message) => {
       const positions = JSON.parse(message.body);
-      console.log(`Message from '${newTopic}':`, JSON.paser(message.body));
       onReceiveMessage(positions);
     });
   };

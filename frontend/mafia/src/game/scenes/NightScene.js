@@ -24,16 +24,18 @@ export default class NightScene extends Phaser.Scene {
     // Light2D 파이프라인 활성화
     this.lights.enable();
     this.lights.setAmbientColor(0x000000);
-    
+
     setBackground(this);
+    // 밤 전환 효과 추가
     this.createNightTransition();
-    
+
     // 모든 게임 오브젝트에 Light2D 적용
-    this.children.list.forEach(child => {
+    this.children.list.forEach((child) => {
       if (child.setPipeline) {
         child.setPipeline('Light2D');
       }
     });
+
     this.time.delayedCall(3000, () => {
       this.setupManagers();
       this.setupInteraction();
@@ -46,16 +48,14 @@ export default class NightScene extends Phaser.Scene {
   setupLighting() {
     // 플레이어 주변 조명 생성
     const lightRadius = this.playerInfo.role === 'ZOMBIE' ? 300 : 200;
-    this.playerLight = this.lights.addLight(
-      this.playerManager.localPlayer.x,
-      this.playerManager.localPlayer.y,
-      lightRadius
-    ).setIntensity(3);
+    this.playerLight = this.lights
+      .addLight(this.playerManager.localPlayer.x, this.playerManager.localPlayer.y, lightRadius)
+      .setIntensity(3);
   }
 
   updateLighting() {
     if (!this.playerManager?.localPlayer || !this.playerLight) return;
-    
+
     // 플레이어 위치로 라이트 이동
     this.playerLight.x = this.playerManager.localPlayer.x;
     this.playerLight.y = this.playerManager.localPlayer.y;
@@ -72,7 +72,7 @@ export default class NightScene extends Phaser.Scene {
       0,
       this.cameras.main.width,
       this.cameras.main.height,
-      0x000000
+      0x000000,
     );
     overlay.setOrigin(0);
     overlay.setAlpha(1);
@@ -85,8 +85,8 @@ export default class NightScene extends Phaser.Scene {
       {
         font: '60px BMEuljiro10yearslater',
         fill: '#ff0000',
-        backgroundColor: null // 배경 제거
-      }
+        backgroundColor: null, // 배경 제거
+      },
     );
     nightText.setOrigin(0.5);
 
@@ -95,7 +95,7 @@ export default class NightScene extends Phaser.Scene {
     this.transitionContainer.setScrollFactor(0); // 화면에 고정
 
     // Light2D 파이프라인에서 제외
-    this.transitionContainer.list.forEach(child => {
+    this.transitionContainer.list.forEach((child) => {
       if (child.setPipeline) {
         child.resetPipeline();
       }
@@ -109,7 +109,7 @@ export default class NightScene extends Phaser.Scene {
         duration: 1000,
         onComplete: () => {
           nightText.destroy();
-        }
+        },
       });
     });
 
@@ -123,19 +123,19 @@ export default class NightScene extends Phaser.Scene {
         onComplete: () => {
           // 트랜지션 완료 후 컨테이너 제거
           this.transitionContainer.destroy();
-        }
+        },
       });
     });
   }
 
   setupManagers() {
     this.playerManager = new PlayerManager(this, this.playerInfo);
-  
+
     // // 모든 플레이어의 애니메이션 재설정
     // this.playerManager.players.forEach(player => {
     //   player.anims = this.anims;
     // });
-  
+
     this.skillManager = new SkillManager(this);
   }
 
@@ -155,7 +155,7 @@ export default class NightScene extends Phaser.Scene {
   findNearestPlayer() {
     if (!this.playerManager.localPlayer) return null;
 
-    const localPlayer = this.playerManager.localPlayer;
+    const { localPlayer } = this.playerManager;
     let nearest = null;
     let minDistance = 100; // 상호작용 범위
 
@@ -166,7 +166,7 @@ export default class NightScene extends Phaser.Scene {
         localPlayer.x,
         localPlayer.y,
         player.x,
-        player.y
+        player.y,
       );
 
       if (distance < minDistance) {
