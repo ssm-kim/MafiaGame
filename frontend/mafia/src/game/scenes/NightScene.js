@@ -3,6 +3,8 @@ import setBackground from '@/game/utils/map';
 import PlayerManager from '@/game/player/PlayerManager';
 import SkillManager from '@/game/skills/SkillManager';
 import sceneChanger from '@/game/utils/sceneChange';
+import showFixedRoleText from '@/game/ui/role/UserRole';
+import showFixedClock from '@/game/ui/clock/BaseClock';
 
 export default class NightScene extends Phaser.Scene {
   constructor() {
@@ -14,51 +16,88 @@ export default class NightScene extends Phaser.Scene {
     this.playerInfo = this.registry.get('playerInfo');
     this.socketService = this.registry.get('socketService');
     this.roomId = this.registry.get('roomId');
-
+  
+    // 현재 플레이어 상태 저장
     if (this.playerManager) {
       this.registry.set('players', this.playerManager.players);
+    }
+
+    // 이전 씬의 플레이어 매니저 정리
+    if (this.playerManager) {
+      this.playerManager.destroy();
+    }
+
+    // registry 데이터 정리
+    if (this.registry.get('players')) {
+      this.registry.remove('players');
     }
   }
 
   create() {
-    // Light2D 파이프라인 활성화
+    // Light2D 파이프라인 활성화 및 주변광 설정
     this.lights.enable();
-    this.lights.setAmbientColor(0x000000);
-
+    this.lights.setAmbientColor(0x000000);  // 완전한 어둠
+    
     setBackground(this);
-    // 밤 전환 효과 추가
+    sceneChanger(this);
+    this.setupManagers();
     this.createNightTransition();
-
-    // 모든 게임 오브젝트에 Light2D 적용
-    this.children.list.forEach((child) => {
+    // // 렌더링 최적화
+    // this.game.renderer.roundPixels = true;
+    
+    // Light2D 파이프라인 적용
+    this.children.list.forEach(child => {
       if (child.setPipeline) {
         child.setPipeline('Light2D');
+        child.setAlpha(1); // 전체적인 투명도 조절 (0.0 ~ 1.0)
       }
     });
-
+    
     this.time.delayedCall(3000, () => {
-      this.setupManagers();
       this.setupInteraction();
       this.setupLighting();
     });
+    showFixedClock(this);
+    showFixedRoleText(this);
 
-    sceneChanger(this);
+    this.children.list.forEach(child => {
+      if (child.type === 'Text' || child.type === 'Container') {
+        // child.resetPipeline();
+        child.setDepth(1000); // UI 요소들을 최상단에 표시
+      }
+    });
   }
-
+  
   setupLighting() {
-    // 플레이어 주변 조명 생성
     const lightRadius = this.playerInfo.role === 'ZOMBIE' ? 300 : 200;
-    this.playerLight = this.lights
-      .addLight(this.playerManager.localPlayer.x, this.playerManager.localPlayer.y, lightRadius)
-      .setIntensity(3);
+    this.playerLight = this.lights.addLight(
+      this.playerManager.localPlayer.x,
+      this.playerManager.localPlayer.y,
+      lightRadius
+    )
+    .setIntensity(3)     // 빛의 강도를 더 낮게 설정
+    // .setColor(0x333333)    // 더 어두운 회색 조명
+    .setScrollFactor(1);
   }
-
+  
   updateLighting() {
     if (!this.playerManager?.localPlayer || !this.playerLight) return;
-
+    
     // 플레이어 위치로 라이트 이동
     this.playerLight.x = this.playerManager.localPlayer.x;
     this.playerLight.y = this.playerManager.localPlayer.y;
+    
+    // 선택적: 거리에 따른 빛 강도 조절
+    const distanceFromCenter = Phaser.Math.Distance.Between(
+      this.cameras.main.centerX,
+      this.cameras.main.centerY,
+      this.playerLight.x,
+      this.playerLight.y
+    );
+    
+    // 거리에 따라 빛 강도 동적 조절
+    const intensity = Math.max(0.8, 1.5 - (distanceFromCenter / 1000));
+    this.playerLight.setIntensity(intensity);
   }
 
   createNightTransition() {
@@ -147,32 +186,39 @@ export default class NightScene extends Phaser.Scene {
 
       const nearestPlayer = this.findNearestPlayer();
       if (nearestPlayer) {
+        console.log('상호작용 시도:', nearestPlayer); // 디버깅 로그 추가
         this.skillManager.handleInteraction(nearestPlayer);
       }
     });
   }
+
 
   findNearestPlayer() {
     if (!this.playerManager.localPlayer) return null;
 
     const { localPlayer } = this.playerManager;
     let nearest = null;
-    let minDistance = 100; // 상호작용 범위
+    let minDistance = 100;
 
     this.playerManager.players.forEach((player, playerId) => {
-      if (playerId === this.playerInfo.playerId) return;
+        // 더 엄격한 자기 자신 체크
+        if (playerId === this.playerInfo.playerId || player === localPlayer) {
+            return;
+        }
 
-      const distance = Phaser.Math.Distance.Between(
-        localPlayer.x,
-        localPlayer.y,
-        player.x,
-        player.y,
-      );
+        const distance = Phaser.Math.Distance.Between(
+            localPlayer.x,
+            localPlayer.y,
+            player.x,
+            player.y
+        );
 
-      if (distance < minDistance) {
-        minDistance = distance;
-        nearest = player;
-      }
+        console.log(`Distance to player ${playerId}: ${distance}`);
+
+        if (distance < minDistance) {
+            minDistance = distance;
+            nearest = player;
+        }
     });
 
     return nearest;
@@ -183,5 +229,24 @@ export default class NightScene extends Phaser.Scene {
       this.playerManager.update();
       this.updateLighting();
     }
+  }
+
+  // 씬이 종료될 때 정리
+  shutdown() {
+    if (this.playerManager) {
+      this.playerManager.destroy();
+    }
+    if (this.playerLight) {
+      this.playerLight.destroy();
+    }
+    // 씬의 모든 게임 오브젝트 정리
+    this.children.removeAll(true);
+  }
+
+  destroy() {
+    if (this.playerManager) {
+      this.playerManager.destroy();
+    }
+    super.destroy();
   }
 }

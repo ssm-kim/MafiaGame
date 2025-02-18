@@ -31,17 +31,28 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   
 
   initializePlayer(playerData) {
-    this.setTexture(this.texture.key, Player.TEXTURE_MAPPING[this.lastDirection]);
-    this.createNicknameText(playerData.nickname);
-    this.setupPhysics();
-    this.createAnimations(); // 애니메이션 초기 생성
+    if (!this.character) {
+      console.error('No character specified');
+      this.character = 'character1';
+    }
     
-    if (playerData.isLocal) {
-      this.setupCamera();
-      this.cursors = this.scene.input.keyboard.createCursorKeys();
-      this.shift = this.scene.input.keyboard.addKey('SHIFT');
+    try {
+      this.setTexture(this.character, Player.TEXTURE_MAPPING[this.lastDirection]);
+      this.createNicknameText(playerData.nickname);
+      this.setupPhysics();
+      this.createAnimations(); // 애니메이션 초기 생성
+      
+      if (playerData.isLocal) {
+        this.setupCamera();
+        this.cursors = this.scene.input.keyboard.createCursorKeys();
+        this.shift = this.scene.input.keyboard.addKey('SHIFT');
+      }
+    } catch (error) {
+      console.error('Texture error:', error);
+      this.setTexture('character1', Player.TEXTURE_MAPPING[this.lastDirection]);
     }
   }
+  
 
   createAnimations() {
     if (!this.scene || !this.scene.anims) return;
@@ -207,25 +218,18 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
 
   updateAnimation() {
     if (!this.scene || !this.scene.anims) return;
-
-    try {
-      if (this.isMoving()) {
-        const animKey = `${this.character}_${this.lastDirection}`;
-        
-        // 정적 프레임으로 대체
-        this.setTexture(this.character, Player.TEXTURE_MAPPING[this.lastDirection]);
-        
-        // 애니메이션 시스템이 완전히 초기화된 경우에만 애니메이션 재생
-        if (this.scene.anims.exists(animKey) && this.anims && typeof this.anims.play === 'function') {
-          this.anims.play(animKey, true);
-        }
-      } else {
-        this.setTexture(this.character, Player.TEXTURE_MAPPING[this.lastDirection]);
+  
+    if (this.isMoving()) {
+      const animKey = `${this.character}_${this.lastDirection}`;
+      
+      // 현재 재생 중인 애니메이션과 다른 경우에만 새로운 애니메이션 시작
+      if (!this.anims.isPlaying || this.anims.currentAnim?.key !== animKey) {
+        this.play(animKey, true);
       }
-    } catch (error) {
-      console.error('Animation error:', error);
-      // 오류 발생 시 기본 프레임 설정
-      this.setTexture(this.character, Player.TEXTURE_MAPPING[this.lastDirection]);
+    } else {
+      // 움직임이 없을 때는 정적 프레임으로 설정
+      this.stop();
+      this.setFrame(Player.TEXTURE_MAPPING[this.lastDirection]);
     }
   }
 
@@ -247,8 +251,33 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
 
-  destroy() {
-    super.destroy();
-    this.nicknameText.destroy();
+  destroy(fromScene?: boolean) {
+    try {
+      // 닉네임 텍스트 정리
+      if (this.nicknameText && this.nicknameText.scene) {
+        this.nicknameText.destroy();
+        this.nicknameText = null;
+      }
+
+      // physics body 정리
+      if (this.body && this.scene) {
+        this.scene.physics.world.remove(this.body);
+      }
+
+      // 이벤트 리스너 정리
+      if (this.cursors) {
+        this.cursors = null;
+      }
+      if (this.shift) {
+        this.shift = null;
+      }
+
+      // 부모 클래스의 destroy 호출
+      if (this.scene) {
+        super.destroy(fromScene);
+      }
+    } catch (error) {
+      console.error('Player destroy error:', error);
+    }
   }
 }
