@@ -3,6 +3,7 @@ package com.mafia.domain.room.controller;
 import com.mafia.domain.login.model.dto.AuthenticatedUser;
 import com.mafia.domain.room.model.redis.RoomInfo;
 import com.mafia.domain.room.model.request.RoomRequest;
+import com.mafia.domain.room.model.response.RoomEnterResponse;
 import com.mafia.domain.room.model.response.RoomIdResponse;
 import com.mafia.domain.room.model.response.RoomResponse;
 import com.mafia.domain.room.service.RoomDbService;
@@ -62,6 +63,18 @@ public class RoomController {
         @PathVariable Long roomId) {
         RoomInfo room = roomDbService.getRoom(roomId);
         return ResponseEntity.ok(new BaseResponse<>(room));
+    }
+
+    /**
+     * 특정 방 참가자 번호 조회
+     */
+    @GetMapping("/{roomId}/enter")
+    public ResponseEntity<BaseResponse<RoomEnterResponse>> participantNoRoom(
+        @PathVariable Long roomId,
+        @AuthenticationPrincipal AuthenticatedUser detail) {
+        RoomEnterResponse myParticipantNo = roomDbService.searchParticipantNo(roomId,
+            detail.getMemberId());
+        return ResponseEntity.ok(new BaseResponse<>(myParticipantNo));
     }
 
     /**
