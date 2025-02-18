@@ -41,7 +41,6 @@ export default class VoteScene extends Phaser.Scene {
 
     eventEmitter.on('VOTE_RESULT', (data) => {
       try {
-        console.log(data);
         this.registry.set('voteResult', data); // 데이터 저장
       } catch (error) {
         console.error('Error handling VOTE_RESULT:', error);

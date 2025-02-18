@@ -4,6 +4,7 @@ import { getGameData } from '@/game/utils/gameData';
 export default class BaseRole {
   constructor(scene) {
     this.scene = scene;
+    this.hasVoted = false;
     this.selectedPlayer = null;
     this.gameObjects = {};
     getGameData(this);
@@ -178,6 +179,8 @@ export default class BaseRole {
   }
 
   handleVote = async () => {
+    if (this.hasVoted) return; // 이미 투표했으면 함수 종료
+
     const gameData = this.scene.registry.get('gameData');
     if (this.selectedPlayer) {
       const selectedPlayer = gameData.result.playersInfo[this.selectedPlayer];
@@ -188,6 +191,9 @@ export default class BaseRole {
         button.setFillStyle(0x666666);
         text.setColor('#999999');
       });
+
+      // 투표 완료 상태로 변경
+      this.hasVoted = true;
 
       // 결과 처리는 하위 클래스에서 구현
       if (typeof this.selectedResult === 'function') {
