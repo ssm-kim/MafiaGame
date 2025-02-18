@@ -44,4 +44,9 @@ export default class MainScene extends Phaser.Scene {
       this.playerManager.localPlayer.move();
     }
   }
+
+  destroy() {
+    console.log(this);
+    console.log('MAINSCENE DESTROIED');
+  }
 }

@@ -29,11 +29,11 @@ interface GameConfigParams {
   parent?: HTMLDivElement;
   stompClient: CompatClient | null;
   roomId: string;
-  userId: string;
+  playerId: string;
   eventEmitter: Phaser.Events.EventEmitter;
 }
 
-const gameConfig = ({ parent, stompClient, roomId, userId, eventEmitter }: GameConfigParams) => ({
+const gameConfig = ({ parent, stompClient, roomId, playerId, eventEmitter }: GameConfigParams) => ({
   type: Phaser.CANVAS,
   parent,
   pixelArt: true,
@@ -54,7 +54,7 @@ const gameConfig = ({ parent, stompClient, roomId, userId, eventEmitter }: GameC
       game.registry.set('stompClient', stompClient);
       game.registry.set('eventEmitter', eventEmitter);
       game.registry.set('roomId', roomId);
-      game.registry.set('userId', userId);
+      game.registry.set('playerId', playerId);
     },
   },
   scene: scenes,

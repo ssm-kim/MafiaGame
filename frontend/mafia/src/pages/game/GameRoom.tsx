@@ -160,6 +160,7 @@ function GameRoom(): JSX.Element {
 
     // 시스템 채팅 구독
     webSocket.chatting.subscribeSystemChat((message) => {
+      eventEmitter.current?.emit('SYSTEM_MESSAGE', message);
       eventEmitter.current?.emit('TIME', message);
     });
 

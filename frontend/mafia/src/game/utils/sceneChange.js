@@ -2,7 +2,7 @@ export default function sceneChanger(scene) {
   const eventEmitter = scene.registry.get('eventEmitter');
 
   // 이전 phase를 저장할 변수 추가
-  let previousPhase = scene.scene;
+  let previousPhase = scene.scene.key;
 
   const phaseMapping = {
     DAY_DISCUSSION: 'MainScene',
@@ -41,5 +41,11 @@ export default function sceneChanger(scene) {
     } catch (error) {
       console.error('Error parsing JSON:', error);
     }
+  });
+
+  eventEmitter.on('SYSTEM_MESSAGE', (data) => {
+    console.log('#####################');
+    console.log(data);
+    console.log('#####################');
   });
 }

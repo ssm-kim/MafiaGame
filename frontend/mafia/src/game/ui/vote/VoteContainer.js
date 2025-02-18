@@ -15,13 +15,13 @@ const ZOMBIE_THEME = {
   },
 };
 
-function createZombieButton(scene, text, style, gridSizer) {
+function createZombieButton(scene, playerInfo, style, gridSizer) {
   const button = scene.rexUI.add
     .label({
       background: scene.rexUI.add
         .roundRectangle(0, 0, style.width, style.height, 10, ZOMBIE_THEME.colors.background)
         .setStrokeStyle(2, ZOMBIE_THEME.colors.blood),
-      text: scene.add.text(0, 0, text, {
+      text: scene.add.text(0, 0, playerInfo.nickname, {
         fontSize: style.fontSize,
         color: ZOMBIE_THEME.colors.text,
         fontFamily: 'Arial',
@@ -31,8 +31,6 @@ function createZombieButton(scene, text, style, gridSizer) {
       space: style.padding,
     })
     .setInteractive({ useHandCursor: true });
-
-  button.playerNumber = parseInt(text.split(' ')[1]);
 
   button
     .on('pointerover', function () {
@@ -95,7 +93,7 @@ function createZombieButton(scene, text, style, gridSizer) {
         this.getElement('text').setColor(ZOMBIE_THEME.colors.text);
       }
 
-      scene.handlePlayerSelection(this.playerNumber);
+      scene.handlePlayerSelection(playerInfo.playerNo);
     });
 
   return button;
@@ -181,7 +179,12 @@ export default function createVoteContainer(scene, x, y, width, height, playersI
   // 플레이어 버튼 생성
   for (let i = 0; i < playerCount; i += 1) {
     if (playersInfo[i]) {
-      const button = createZombieButton(scene, playersInfo[i].nickname, buttonStyle, gridSizer);
+      const button = createZombieButton(scene, playersInfo[i], buttonStyle, gridSizer);
+
+      if (playersInfo[i].dead) {
+        button.disableInteractive();
+      }
+
       gridSizer.add(button, {
         column: i % columns,
         row: Math.floor(i / columns),

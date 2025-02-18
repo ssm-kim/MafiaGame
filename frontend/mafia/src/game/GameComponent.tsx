@@ -1,9 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 // import SocketService from '@/game/socket/SocketService';
 
-import { CompatClient } from '@stomp/stompjs';
-import GameAPIFactory from '@/api/gameApiFactory';
+import { CompatClient, StompSubscription } from '@stomp/stompjs';
 import gameConfig from '@/game/gameConfig';
 
 interface GameComponentProps {
@@ -23,6 +22,7 @@ function GameComponent({
 }: GameComponentProps) {
   const gameContainer = useRef(null);
   const gameInstance = useRef(null);
+  const [positionSubscription, setPositionSubscription] = useState<StompSubscription | null>(null);
 
   useEffect(() => {}, []);
 
@@ -33,44 +33,18 @@ function GameComponent({
 
   useEffect(() => {
     if (stompClient?.connected) {
-      const positionSubscription = stompClient?.subscribe(
-        `/topic/game/${roomId}/positions`,
-        (message) => {
-          const data = JSON.parse(message.body);
-          eventEmitter.emit('PLAYER_DATA_UPDATED', data);
-        },
-      );
+      const subscription = stompClient?.subscribe(`/topic/game/${roomId}/positions`, (message) => {
+        const data = JSON.parse(message.body);
+        eventEmitter.emit('PLAYER_DATA_UPDATED', data);
+      });
+
+      setPositionSubscription(subscription);
     }
 
     return () => {
       positionSubscription?.unsubscribe();
     };
   }, [stompClient]);
-
-  // useEffect(() => {
-  //   if (chattingSocketService.isConnected) {
-  //     chattingSocketService.subscribeToTopic([
-  //       {
-  //         topic: `/topic/game-${roomId}-system`,
-  //         onReceiveMessage: (message) => {
-  //           try {
-  //             // 받은 메시지가 JSON 문자열이라면 파싱
-  //             const parsedMessage = JSON.parse(message);
-
-  //             // 파싱한 데이터로 분기 처리
-  //             if (parsedMessage.phase) {
-  //               eventEmitter.emit('TIME', parsedMessage);
-  //             } else if (parsedMessage.voteresult) {
-  //               eventEmitter.emit('VOTE_RESULT', parsedMessage.voteresult);
-  //             }
-  //           } catch (error) {
-  //             console.error('Error parsing message:', error);
-  //           }
-  //         },
-  //       },
-  //     ]);
-  //   }
-  // }, [chattingSocketService.isConnected]);
 
   useEffect(() => {
     window.addEventListener('beforeunload', preventClose);
@@ -81,12 +55,9 @@ function GameComponent({
 
   useEffect(() => {
     if (gameContainer.current && playerId) {
-      const gameAPI = GameAPIFactory.create();
-
       const config = gameConfig({
         parent: gameContainer.current,
         stompClient,
-        gameAPI,
         roomId,
         userId: playerId,
         eventEmitter,

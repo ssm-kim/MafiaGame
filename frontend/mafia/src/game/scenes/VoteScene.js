@@ -117,8 +117,10 @@ export default class VoteScene extends Phaser.Scene {
 
     // 서버에 투표 정보 전송
     try {
-      const response = await axios.post(
-        `http://localhost:8080/api/game/2/test/vote?playerNo=1&targetNo=${this.target}`,
+      console.log(this.target);
+      const roomId = this.registry.get('roomId');
+      const response = await axios.get(
+        `/api/game/${roomId}/vote?playerNo=1&targetNo=${this.target}`,
       );
       // 서버 응답 처리
       console.log('투표 전송 성공:', response.data);
