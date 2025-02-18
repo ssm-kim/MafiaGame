@@ -48,21 +48,24 @@
     - Spring Boot : `3.4.1`
       - JAVA Spring Data JPA
       - Spring Security
-    - MySQL : 8.0.40
-    - Redis : (3.0.502)
-    - OpenVidu : (2.31.0)
-    - OAuth2 : ()
-    - Lombok : ()
-    - STOMP WebSocket : ()
+    - MySQL : `8.0.40`
+    - Redis : `3.0.504`
+    - OpenVidu : `2.31.0`
+    - Lombok : `1.18.36`
+    - JWT : `0.12.3`
+    - Spring Security : `6.4.2`
+    - WebSocket
+    - - OAuth2
     
-  ### **👩‍💻 CI/CD**  
+  ### **👩‍💻 Server**
     
     - AWS EC2
-      - Nginx : `1.27.3`
-      - Ubuntu : `22.04.4LTS`
-      - Docker : `27.5.1`
-      - Jenkins :`2.479.3`
-    - Docker Hub
+    - Nginx : `1.27.3`
+    - Ubuntu : `22.04.4LTS`
+    - Docker : `27.5.1`
+    - Jenkins :`2.479.3`
+    - Prometheus
+    - Grafana
 
 ## 2-2. 서비스 아키텍처
   
