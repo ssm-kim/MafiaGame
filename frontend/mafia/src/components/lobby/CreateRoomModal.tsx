@@ -214,7 +214,7 @@ export function CreateRoomModal({
                   className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300 cursor-not-allowed"
                   value={currentLimits.doctor}
                 />
-                <span className="text-sm text-gray-400 mt-1 block">보건교사</span>
+                <span className="text-sm text-gray-400 mt-1 block">백신 개수</span>
               </div>
             </div>
           </div>
