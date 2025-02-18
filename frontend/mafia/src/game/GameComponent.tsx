@@ -42,6 +42,7 @@ function GameComponent() {
               if (parsedMessage.phase) {
                 eventEmitter.emit('TIME', parsedMessage);
               } else if (parsedMessage.voteresult) {
+                console.log(parsedMessage.voteresult);
                 eventEmitter.emit('VOTE_RESULT', parsedMessage.voteresult);
               }
             } catch (error) {

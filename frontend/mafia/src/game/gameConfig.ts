@@ -4,7 +4,7 @@ import GameOverScene from '@/game/scenes/GameOverScene';
 import MainScene from '@/game/scenes/MainScene';
 // import LoadingScene from '@/game/scenes/LoadingScene';
 import StartScene from '@/game/scenes/StartScene';
-import VoteScene from '@/game/scenes/VoteScene';
+import VotedScene from '@/game/scenes/VotedScene';
 import StatementScene from '@/game/scenes/StatementScene';
 import LastVoteScene from '@/game/scenes/LastVoteScene';
 import AfternoonScene from '@/game/scenes/AfternoonScene';
@@ -19,7 +19,7 @@ const scenes = [
   StartScene,
   MainScene,
   NightScene,
-  VoteScene,
+  VotedScene,
   StatementScene,
   LastVoteScene,
   GameOverScene,

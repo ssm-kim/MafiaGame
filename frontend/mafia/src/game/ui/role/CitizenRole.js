@@ -25,7 +25,7 @@ export default class CitizenRole extends BaseRole {
   }
 
   getButtonColor(player) {
-    return !player.dead ? 0x1a1a1a : 0x666666;
+    return !player.dead ? 0x1a1a1a : 0x9b111e;
   }
 
   getHoverColor() {
@@ -37,11 +37,11 @@ export default class CitizenRole extends BaseRole {
   }
 
   getSelectedTextColor() {
-    return '#ffffff'; // 의사 역할의 경우 선택된 텍스트 색상을 검은색으로
+    return '#ffffff';
   }
 
   getSelectedButtonColor() {
-    return 0xffffff;
+    return 0xff0000;
   }
 
   getActionButtonText() {

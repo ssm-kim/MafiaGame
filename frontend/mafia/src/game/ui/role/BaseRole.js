@@ -6,6 +6,7 @@ export default class BaseRole {
     this.scene = scene;
     this.selectedPlayer = null;
     this.gameObjects = {};
+    getGameData(this);
     // 리사이즈 이벤트 리스너 등록
     this.scene.scale.on('resize', this.handleResize, this);
   }
@@ -22,11 +23,11 @@ export default class BaseRole {
       400,
       20,
       0x000000,
-      1,
+      0.9,
     );
 
     this.gameObjects.border = this.scene.rexUI.add.roundRectangle(0, 0, 500, 400, 20, 0xffffff, 0);
-    getGameData(this);
+
     // 제목 텍스트
     this.createTitle();
 
@@ -36,8 +37,49 @@ export default class BaseRole {
     // 액션 버튼
     this.createActionButton();
 
+    // Skip 버튼
+    this.createSkipButton(); // 여기서 skip 버튼을 생성해주어야 합니다.
+
     // 초기 위치 설정
     this.updatePositions();
+  }
+
+  createSkipButton() {
+    // Skip 버튼 (보더의 오른쪽 상단에 위치)
+    this.gameObjects.skipButton = this.scene.rexUI.add.roundRectangle(
+      0,
+      0,
+      60, // 버튼 너비를 80으로 줄임
+      30, // 버튼 높이를 40으로 줄임
+      7,
+      0xffffff, // 버튼 색상
+    );
+
+    this.gameObjects.skipText = this.scene.add
+      .text(0, 0, 'Skip', {
+        fontFamily: 'BMEuljiro10yearslater',
+        fontSize: '20px', // 텍스트 크기를 16px로 줄임
+        fill: '#000000',
+      })
+      .setOrigin(0.5);
+
+    this.gameObjects.skipButton.setPosition(
+      this.gameObjects.border.x + this.gameObjects.border.width / 2 - 30, // 오른쪽 상단 위치
+      this.gameObjects.border.y - this.gameObjects.border.height / 2 + 30,
+    );
+
+    // 버튼에 상호작용 추가
+    this.gameObjects.skipButton
+      .setInteractive()
+      .on('pointerover', () => {
+        this.gameObjects.skipButton.setFillStyle(0xdcdcdc); // Hover 시 색상 변경
+      })
+      .on('pointerout', () => {
+        this.gameObjects.skipButton.setFillStyle(0xffffff); // Hover 해제 시 색상 복원
+      })
+      .on('pointerdown', () => {
+        this.handleSkip(); // Skip 버튼 클릭 시 handleSkip 호출
+      });
   }
 
   createTitle() {
@@ -55,40 +97,35 @@ export default class BaseRole {
   // 플레이어 버튼 생성 (조건만 자식 클래스에서 오버라이드)
   createPlayerButtons() {
     this.gameObjects.playerButtons = [];
-    const maxButtons = 9; // 고정된 9개의 버튼
+    const maxButtons = 9; // 버튼은 9개 고정
     const gameData = this.scene.registry.get('gameData');
-    // 최대 9명까지 플레이어가 존재하도록 제한
+
     for (let i = 0; i < maxButtons; i++) {
-      const player = gameData.result.playersInfo[i + 1] || null; // 플레이어가 없으면 null로 처리
+      const playerNumber = i + 1;
+      const player = gameData.result.playersInfo[playerNumber] || null; // 플레이어 없으면 null
+
       const button = this.scene.rexUI.add.roundRectangle(
         0,
         0,
         160,
         50,
         7,
-        player ? this.getButtonColor(player) : 0x2c2c32, // 플레이어가 있으면 색상 적용, 없으면 회색
+        player ? this.getButtonColor(player) : 0x2c2c32, // 플레이어 있으면 색상 적용, 없으면 회색
       );
 
       const text = this.scene.add
         .text(0, 0, player ? player.nickname : '', {
           fontFamily: 'BMEuljiro10yearslater',
-          fontSize: '20px',
-          fill: player ? this.getTextColor(player) : '#999999', // 플레이어가 있으면 텍스트 색상, 없으면 회색
+          fontSize: '22px',
+          fill: player ? this.getTextColor(player) : '#999999',
         })
         .setOrigin(0.5);
 
       if (player && this.isPlayerSelectable(player)) {
         this.addButtonInteractivity(button, text, player);
-      } else {
-        // button.setInteractive(false); // 빈 버튼은 클릭 불가능하게 설정
       }
 
-      this.gameObjects.playerButtons.push({
-        button,
-        text,
-        index: i,
-        role: player ? player.role : null,
-      });
+      this.gameObjects.playerButtons.push({ button, text, index: i, player });
     }
   }
 
@@ -141,8 +178,9 @@ export default class BaseRole {
   }
 
   handleVote = async () => {
+    const gameData = this.scene.registry.get('gameData');
     if (this.selectedPlayer) {
-      const selectedPlayer = this.players.find((player) => player.playerNo === this.selectedPlayer);
+      const selectedPlayer = gameData.result.playersInfo[this.selectedPlayer];
 
       // 버튼 비활성화
       this.gameObjects.playerButtons.forEach(({ button, text }) => {
@@ -152,7 +190,11 @@ export default class BaseRole {
       });
 
       // 결과 처리는 하위 클래스에서 구현
-      this.selectedResult(selectedPlayer);
+      if (typeof this.selectedResult === 'function') {
+        this.selectedResult(selectedPlayer);
+      } else {
+        console.log('selectedResult is not implemented in this class');
+      }
 
       // 서버에 투표 정보 전송
       try {
@@ -168,6 +210,33 @@ export default class BaseRole {
     }
   };
 
+  handleSkip() {
+    // 버튼 비활성화
+    this.gameObjects.playerButtons.forEach(({ button, text }) => {
+      button.removeInteractive();
+      button.setFillStyle(0x666666);
+      text.setColor('#999999');
+    });
+  }
+
+  showMessage(text) {
+    const cameraCenterX = this.scene.cameras.main.centerX; // 카메라 중심 X
+    const cameraCenterY = this.scene.cameras.main.centerY; // 카메라 중심 Y
+
+    const message = this.scene.add
+      .text(cameraCenterX, cameraCenterY, text, {
+        fontFamily: 'BMEuljiro10yearslater',
+        fontSize: '36px',
+        fill: '#ffffff',
+        backgroundColor: '#ff0000',
+        padding: { x: 20, y: 20 },
+      })
+      .setOrigin(0.5) // 텍스트의 중심을 기준으로 위치 설정
+      .setDepth(100);
+
+    this.scene.time.delayedCall(2000, () => message.destroy()); // 2초 후 텍스트 삭제
+  }
+
   // 화면 크기에 따른 위치 업데이트
   updatePositions() {
     const screenWidth = this.scene.scale.width;
@@ -180,6 +249,7 @@ export default class BaseRole {
 
     this.gameObjects.background.setPosition(centerX, centerY).setSize(modalWidth, modalHeight);
     this.gameObjects.border.setPosition(centerX, centerY).setSize(modalWidth, modalHeight);
+
     this.gameObjects.title.setPosition(centerX, centerY - modalHeight * 0.35);
 
     // 플레이어 버튼 위치 업데이트
@@ -204,6 +274,16 @@ export default class BaseRole {
       .setPosition(centerX, centerY + modalHeight * 0.35)
       .setSize(actionButtonWidth, 40);
     this.gameObjects.actionText.setPosition(centerX, centerY + modalHeight * 0.35);
+
+    // Skip 버튼 위치 업데이트 (오른쪽 상단)
+    this.gameObjects.skipButton.setPosition(
+      centerX + modalWidth / 2 - 50, // 오른쪽 끝에서 50px 여유
+      centerY - modalHeight / 2 + 30, // y값을 30으로 설정하여 위쪽에서 30px 내려간 위치
+    );
+    this.gameObjects.skipText.setPosition(
+      this.gameObjects.skipButton.x,
+      this.gameObjects.skipButton.y,
+    );
   }
 
   // 리사이즈 이벤트 핸들러
@@ -211,17 +291,19 @@ export default class BaseRole {
     this.updatePositions();
   };
 
-  handlePlayerSelection(playerId, selectedButton, selectedText) {
-    const gameData = this.scene.registry.get('gameData');
-    this.gameObjects.playerButtons.forEach(({ button, text, index }) => {
-      const player = gameData.result.playersInfo[index + 1];
-      if (this.isPlayerSelectable(player) && this.selectedPlayer !== playerId) {
+  handlePlayerSelection(playerNumber, selectedButton, selectedText) {
+    // const gameData = this.scene.registry.get('gameData');
+
+    this.gameObjects.playerButtons.forEach(({ button, text, player }) => {
+      if (!player) return; // 🔹 플레이어 없는 버튼은 건너뛰기
+
+      if (this.isPlayerSelectable(player) && this.selectedPlayer !== playerNumber) {
         button.setFillStyle(this.getButtonColor(player));
         text.setColor(this.getTextColor(player));
       }
     });
 
-    this.selectedPlayer = playerId;
+    this.selectedPlayer = playerNumber;
     selectedButton.setFillStyle(this.getSelectedButtonColor());
     selectedText.setColor(this.getSelectedTextColor());
   }

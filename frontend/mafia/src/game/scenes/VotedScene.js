@@ -5,6 +5,7 @@ import sceneChanger from '@/game/utils/sceneChange';
 import showFixedRoleText from '@/game/ui/role/UserRole';
 import CitizenRole from '@/game/ui/role/CitizenRole';
 import { getGameData } from '@/game/utils/gameData';
+import MafiaRole from '@/game/ui/role/MafiaRole';
 
 export default class VoteScene extends Phaser.Scene {
   constructor() {
@@ -18,6 +19,7 @@ export default class VoteScene extends Phaser.Scene {
     sceneChanger(this);
     getGameData(this);
     this.assignRoles();
+    this.voteResult();
   }
 
   assignRoles() {
@@ -29,6 +31,21 @@ export default class VoteScene extends Phaser.Scene {
       this.role = new CitizenRole(this);
       //   } else {
       //     this.role = new PoliceRole(this, [role]);
+    } else {
+      this.role = new MafiaRole(this);
     }
+  }
+
+  voteResult() {
+    const eventEmitter = this.registry.get('eventEmitter');
+
+    eventEmitter.on('VOTE_RESULT', (data) => {
+      try {
+        console.log(data);
+        this.registry.set('voteResult', data); // 데이터 저장
+      } catch (error) {
+        console.error('Error handling VOTE_RESULT:', error);
+      }
+    });
   }
 }
