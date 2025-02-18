@@ -36,7 +36,7 @@ public class VoiceService {
     /**
      * 게임 시작 시 OpenVidu 세션 생성
      */
-    public String createSession(long gameId)
+    protected String createSession(long gameId)
         throws OpenViduJavaClientException, OpenViduHttpException {
         Session session = openvidu.createSession();
         gameSessions.put(gameId, session);
@@ -47,7 +47,7 @@ public class VoiceService {
     /**
      * 특정 플레이어에게 토큰 발급 (음성 채팅 참여)
      */
-    public String generateToken(long gameId, long playerNo)
+    protected String generateToken(long gameId, long playerNo)
         throws OpenViduJavaClientException, OpenViduHttpException {
         if (!gameSessions.containsKey(gameId)) {
             throw new BusinessException(NOT_FOUND_SESSION);
@@ -66,31 +66,10 @@ public class VoiceService {
         return token;
     }
 
-    public String getConnectionId(long gameId, int playerId) {
-        if (!playerTokens.containsKey(gameId) || !playerTokens.get(gameId).containsKey(playerId)) {
-            throw new RuntimeException("Player token not found.");
-        }
-
-        // 🔥 OpenVidu의 특정 플레이어의 토큰을 가져와서 connectionId 확인
-        String token = playerTokens.get(gameId).get(playerId);
-        try {
-            for (Connection connection : gameSessions.get(gameId).getConnections()) {
-                if (connection.getToken().equals(token)) {
-                    return connection.getConnectionId();
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to find connectionId for Player " + playerId);
-        }
-
-        throw new RuntimeException("Connection ID not found for Player " + playerId);
-    }
-
-
     /**
      * 게임 종료 시 OpenVidu 세션 종료
      */
-    public void closeSession(long gameId)
+    protected void closeSession(long gameId)
         throws OpenViduJavaClientException, OpenViduHttpException {
         if (gameSessions.containsKey(gameId)) {
             gameSessions.get(gameId).close();

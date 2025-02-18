@@ -27,15 +27,4 @@ public class GameOption {
         this.nightTimeSec = 20;
         this.dayDisTimeSec = 60;
     }
-
-    public GameOption(int preset) {
-        this.zombie = 2;
-        this.mutant = 0;
-        this.doctorSkillUsage = 2;
-        this.nightTimeSec = 30;
-        this.dayDisTimeSec = 60;
-        if (preset == 8) {
-            this.mutant = 1;
-        }
-    }
 }

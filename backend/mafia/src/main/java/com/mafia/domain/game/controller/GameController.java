@@ -62,7 +62,7 @@ public class GameController {
         return ResponseEntity.ok(new BaseResponse<>("Room " + roomId + " deleted."));
     }
 
-    @GetMapping("/{roomId}/vote")
+    @PostMapping("/{roomId}/vote")
     @Operation(summary = "Vote", description = "유저 ID와 타겟 ID를 받아 투표합니다.(투표 시간에만 가능합니다.")
     public ResponseEntity<BaseResponse<String>> vote(@PathVariable Long roomId,
         @AuthenticationPrincipal AuthenticatedUser detail, @RequestParam Integer targetNo) {
@@ -127,43 +127,9 @@ public class GameController {
             "Player " + playerNo + " voted for " + targetNo + " in Room " + roomId + "."));
     }
 
-
-//    @GetMapping("/{roomId}/player")
-//    @Operation(summary = "Get game", description = "플레이어의 정보를 가져옵니다.")
-//    public ResponseEntity<BaseResponse<Player>> getGame(@PathVariable Long roomId,
-//        @AuthenticationPrincipal AuthenticatedUser detail) {
-//        Player player = gameService.findMemberByGame(roomId, detail.getMemberId());
-//        return ResponseEntity.ok(new BaseResponse<>(player));
-//    }
-//
-//    @GetMapping("/{roomId}/status")
-//    @Operation(summary = "Check game status", description = "게임의 현재 상태와 남은 시간을 확인합니다.")
-//    public ResponseEntity<BaseResponse<?>> getStatus(@PathVariable long roomId) {
-//        GamePhase phase = gameService.getPhase(roomId);
-//        Long Time = gameService.getTime(roomId);
-//
-//        Map<String, Object> response = new HashMap<>();
-//        response.put("currentphase", phase);
-//        response.put("remainingtime", Time);
-//
-//        return ResponseEntity.ok(new BaseResponse<>(response));
-//    }
-//
 //    @GetMapping("/{roomId}/voteresult")
 //    @Operation(summary = "Get vote result", description = "투표 집계 결과를 가져옵니다(테스트 용)")
 //    public ResponseEntity<BaseResponse<Integer>> getVoteResult(@PathVariable Long roomId) {
 //        return ResponseEntity.ok(new BaseResponse<>(gameService.getVoteResult(roomId)));
-//    }
-//
-//    @GetMapping("/{gameId}/kill")
-//    @Operation(summary = "Vote kill player", description = "타겟이 된 플레이어를 사망 처리합니다.") // 테스트용
-//    public ResponseEntity<BaseResponse<String>> killVote(@PathVariable Long gameId)
-//        throws JsonProcessingException {
-//        boolean life = gameService.killPlayer(gameId);
-//        if (life) {
-//            return ResponseEntity.ok(new BaseResponse<>("killed in Room " + gameId + "."));
-//        } else {
-//            return ResponseEntity.ok(new BaseResponse<>("saved in Room " + gameId + "."));
-//        }
 //    }
 }
