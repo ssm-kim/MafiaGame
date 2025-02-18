@@ -11,13 +11,13 @@ import static com.mafia.global.common.model.dto.BaseResponseStatus.PHASE_NOT_FOU
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mafia.domain.game.event.GamePublisher;
+import com.mafia.domain.game.model.dto.EndGameInfoDto;
 import com.mafia.domain.game.model.dto.GameEndEvent;
 import com.mafia.domain.game.model.dto.GameInfoDto;
 import com.mafia.domain.game.model.dto.GameStartEvent;
 import com.mafia.domain.game.model.entity.GameLog;
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
-import com.mafia.domain.game.model.game.GameStatus;
 import com.mafia.domain.game.model.game.Player;
 import com.mafia.domain.game.model.game.Role;
 import com.mafia.domain.game.repository.GameLogRepository;
@@ -73,6 +73,18 @@ public class GameService {
     }
 
     /**
+     * 종료씬 플레이어 목록 조회
+     *
+     * @param gameId 방 ID
+     * @return 게임 객체
+     * @throws BusinessException 게임이 존재하지 않을 경우 예외 발생
+     */
+    public EndGameInfoDto getEndGamePlayers(long gameId) {
+        Game game = findById(gameId);
+        return new EndGameInfoDto(game);
+    }
+
+    /**
      * 게임 조회
      *
      * @param gameId 방 ID
@@ -90,7 +102,7 @@ public class GameService {
      * @param gameId 방 ID를 그대로 사용한다.
      * @throws BusinessException 이미 시작된 게임이거나 플레이어가 부족할 경우 예외 발생
      */
-    public boolean startGame(long gameId) throws JsonProcessingException {
+    public boolean startGame(long gameId) {
         gameRepository.findById(gameId).ifPresent(game -> {
             new BusinessException(GAME_ALREADY_START);
         });
@@ -144,7 +156,7 @@ public class GameService {
      * @throws BusinessException 게임이 존재하지 않을 경우 예외 발생
      */
     @Transactional
-    public void deleteGame(long gameId, String version) {
+    public void deleteGame(long gameId, String version) throws JsonProcessingException {
         Game game = findById(gameId);
         Optional.ofNullable(gameSeqRepository.getTimer(gameId))
             .orElseThrow(() -> new BusinessException(PHASE_NOT_FOUND));
@@ -159,6 +171,12 @@ public class GameService {
 
 
         gameLogRepository.save(gameLog);
+
+        // 게임 삭제 로그 전송
+        String jsonMessage = objectMapper.writeValueAsString(
+            Map.of("backroom", true)
+        );
+        gamePublisher.publish("game-" + game.getGameId() + "-system", jsonMessage);
 
 
         // 게임 스레드 풀 반납
@@ -323,17 +341,6 @@ public class GameService {
         log.info("[Game{}] Player{} set the target of {}", gameId, targetNo, myrole);
         gameRepository.save(game);
         return result.isEmpty() ? "setTarget 요청 실패" : result;
-    }
-
-    /**
-     * 게임 종료 여부 확인
-     *
-     * @param gameId 방 ID
-     * @return 게임 상태 (STATUS)
-     */
-    public GameStatus isEnd(long gameId) {
-        Game game = findById(gameId);
-        return game.getGameStatus();
     }
 
     /**
