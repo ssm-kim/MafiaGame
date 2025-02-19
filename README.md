@@ -6,24 +6,21 @@
 
   - 기간: 25.01.13 ~ 25.02.21 (6주)
   - 인원: 7명(BE_3, FE_4)
-  - 트랙: 웹기술
 
   ### 주요 기능
   
 **실시간 화상 마피아 🎮**
 
 - WebRTC 기반 실시간 음성채팅 
-- 탑뷰 형식의 맵과 캐릭터 이동 
-- 방 생성/입장과 게임 진행 관리
+- Redis 기반 게임 진행 관리
 - 직업군별 특수 능력과 투표 시스템
 
 **캐릭터 이동과 상호작용 🏃**
 
 - Phaser3 엔진 기반 캐릭터 조작
 - 실시간 위치 공유와 오브젝트 상호작용
-- 학교 배경의 다양한 맵 구현
-- 밤/낮 페이즈에 따른 맵 변화
 - 직관적인 UI/UX
+
   
 ## 📃 문서
 [💻 Notion](https://curvy-tithonia-e7e.notion.site/175592af215280a1816fff4f08dabfef?pvs=4)
@@ -32,47 +29,53 @@
 
 # 2. 🔍 개발 환경
   
-## 2-1. 환경 설정
-    
-  ### **👨‍💻 Front-end**
-    
-    - Visual Studio Code(IDE) `1.81.1`
-    - HTML5, CSS3, Javascript(ES6)
-    - React : `18.2.0`
-    - Node : `18.13.0`
+## 2-1. 기술 스택
 
-  ### **👨‍💻 Back-end**
-    
-    - Intellij : `2023.3.8`
-    - JVM OpenJDK : `17` (Amazon Corretto)
-    - Spring Boot : `3.4.1`
-      - JAVA Spring Data JPA
-      - Spring Security
-    - MySQL : `8.0.40`
-    - Redis : `3.0.504`
-    - OpenVidu : `2.31.0`
-    - Lombok : `1.18.36`
-    - JWT : `0.12.3`
-    - Spring Security : `6.4.2`
-    - WebSocket
-    - - OAuth2
-    
-  ### **👩‍💻 Server**
-    
-    - AWS EC2
-    - Nginx : `1.27.3`
-    - Ubuntu : `22.04.4LTS`
-    - Docker : `27.5.1`
-    - Jenkins :`2.479.3`
-    - Prometheus
-    - Grafana
+## 🚀 FrontEnd
+
+<table>
+  <tr>
+    <td><img src="docs/icons/html.png" width="20"/> HTML</td>
+    <td><img src="docs/icons/css.png" width="20"/> CSS(SCSS)</td>
+    <td><img src="docs/icons/javascript.png" width="20"/> JavaScript</td>
+    <td><img src="docs/icons/react.png" width="20"/> React.js</td>
+    <td><img src="docs/icons/phaser.png" width="20"/> Phaser</td>
+  </tr>
+</table>
+
+## 🚀 BackEnd
+
+<table>
+  <tr>
+    <td><img src="docs/icons/java.png" width="20"/> Java</td>
+    <td><img src="docs/icons/springboot.png" width="20"/> SpringBoot</td>
+    <td><img src="docs/icons/hibernate.png" width="20"/> Hibernate</td>
+    <td><img src="docs/icons/openvidu.png" width="20"/> OpenVidu</td>
+    <td><img src="docs/icons/mysql.png" width="20"/> MySQL</td>
+    <td><img src="docs/icons/redis.png" width="20"/> Redis</td>
+  </tr>
+</table>
+
+## 🚀 Infra
+
+<table>
+  <tr>
+    <td><img src="docs/icons/aws.png" width="20"/> AWS</td>
+    <td><img src="docs/icons/docker.png" width="20"/> Docker</td>
+    <td><img src="docs/icons/nginx.png" width="20"/> Nginx</td>
+    <td><img src="docs/icons/prometheus.png" width="20"/> Prometheus</td>
+    <td><img src="docs/icons/grafana.png" width="20"/> Grafana</td>
+    <td><img src="docs/icons/jenkins.png" width="20"/> Jenkins</td>
+  </tr>
+</table>
+
 
 ## 2-2. 서비스 아키텍처
   
-![image](icons/Architecture-image.png)
+![image](docs/Architecture.png)
 
 ## 2-3 ERD
-![image](icons/ERD-image.png)
+![image](docs/ERD.png)
 
 ------------------------------------------------------  
 
@@ -80,16 +83,16 @@
 ------------------------------------------------------
   
 ## 3-1. 소셜 & 게스트 로그인
-![로그인](readme-gif/main&login.gif)
+![main_login](/uploads/e6c7d53f29d8492ab78ed3816f50b909/main_login.gif)
 
 (간편한 로그인 시스템)
 
-- 소셜 로그인 지원 (Google)
+- 소셜 로그인 지원 (Kakao)
 - 게스트 로그인으로 빠른 게임 참여
 - 직관적인 로그인 UI/UX
 
 ## 3-2. 로비 & 방 관리
-![로비_방관리](readme-gif/lobby&makeRoom.gif)
+![lobby_makeRoom](/uploads/c2754aa25b1e0e44455a05a88fed72bd/lobby_makeRoom.gif)
 
 (손쉬운 게임 참여와 방 관리 시스템)
 
@@ -99,7 +102,7 @@
 - 생존규칙(게임사용법) 확인
 
 ## 3-3. 방 입장 & 게임 준비
-![준비_강제퇴장](readme-gif/ready&kick.gif)
+![ready_kick](/uploads/5e75e852a16342d8a08333e16fcf22af/ready_kick.gif)
 
 (방장과 참가자들의 게임 준비 시스템)
 
@@ -152,23 +155,20 @@
     
 --------------------------
 
-# 5. 🖊 Cooperation
+# 5. 🛠  Tools
 ------------------------------------------------------
-  
-  ## Tools
+<table>
+  <tr>
+    <td><img src="docs/icons/intellij.png" width="20"/> IntelliJ</td>
+    <td><img src="docs/icons/vscode.png" width="20"/> VSCode</td>
+    <td><img src="docs/icons/figma.png" width="20"/> Figmat</td>
+    <td><img src="docs/icons/git.png" width="20"/> Git</td>
+    <td><img src="docs/icons/jira.png" width="20"/> Jira</td>
+    <td><img src="docs/icons/notion.png" width="20"/> Notion</td>
+    <td><img src="docs/icons/discord.png" width="20"/> Discord</td>
+  </tr>
+</table>
 
-    - Git
-
-    - Jira
-
-    - Notion
-
-    - Mattermost
-
-    - Discord
-
-    - Jenkins
-          
 --------------------------
 
 
