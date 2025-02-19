@@ -54,8 +54,9 @@ public class RoomDbService {
             throw new BusinessException(ROOM_TITLE_LIMIT);
         }
 
+        // 테스트로 인한 최소, 최대 인원 수정
         int requiredPlayers = roomRequest.getRequiredPlayers();
-        if (requiredPlayers < 6 || requiredPlayers > 8) {
+        if (requiredPlayers < 2 || requiredPlayers > 8) {
             throw new BusinessException(ROOM_INVALID_PLAYERS);
         }
 
