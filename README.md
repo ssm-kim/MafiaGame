@@ -59,7 +59,7 @@
 <table>
   <tr>
     <td><img src="docs/icons/aws.png" width="20"/> AWS</td>
-    <td><img src="docs/icons/docker.png" width="20"/> Docker</td>
+    <td><img src="docs/icons/docker.jpg" width="20"/> Docker</td>
     <td><img src="docs/icons/nginx.png" width="20"/> Nginx</td>
     <td><img src="docs/icons/prometheus.png" width="20"/> Prometheus</td>
     <td><img src="docs/icons/grafana.png" width="20"/> Grafana</td>
