@@ -33,7 +33,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            .cors((cors) -> cors.disable()) // 모든 도메인 일시적 허용
+            .cors((cors) -> corsConfigurationSource()) // 모든 도메인 일시적 허용
             .csrf((auth) -> auth.disable()) // csrf 일시적 비활성화
             .formLogin((auth) -> auth.disable()) // 기본 로그인 폼 비활성화
             .httpBasic((auth) -> auth.disable()); // HTTP 헤더 인증 방식 비활성화
