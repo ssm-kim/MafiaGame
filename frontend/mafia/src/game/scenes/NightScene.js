@@ -7,10 +7,12 @@ import showFixedRoleText from '@/game/ui/role/UserRole';
 import showFixedClock from '@/game/ui/clock/BaseClock';
 import Player from '@/game/player/Player';
 import getGameData from '@/game/utils/gameData';
+import BGMController from '@/game/utils/BGMController';
 
 export default class NightScene extends Phaser.Scene {
   constructor() {
     super({ key: 'NightScene' });
+    this.highlightCircle = null;
   }
 
   init() {
@@ -77,14 +79,19 @@ export default class NightScene extends Phaser.Scene {
     sceneChanger(this);
     this.setupManagers();
     this.createNightTransition();
+
+    // bgm
+    this.bgmController = new BGMController(this);
+    this.bgmController.playBGM('night_bgm');
+
     // // 렌더링 최적화
     // this.game.renderer.roundPixels = true;
 
     // Light2D 파이프라인 적용
     this.children.list.forEach((child) => {
-      if (child.setPipeline) {
+      if (child.setPipeline && child.type !== 'ParticleEmitterManager') {
         child.setPipeline('Light2D');
-        child.setAlpha(1); // 전체적인 투명도 조절 (0.0 ~ 1.0)
+        child.setAlpha(1);
       }
     });
 
@@ -135,7 +142,7 @@ export default class NightScene extends Phaser.Scene {
   createNightTransition() {
     // 씬 전환을 위한 컨테이너 생성
     this.transitionContainer = this.add.container(0, 0);
-    this.transitionContainer.setDepth(9999); // 최상위 depth 설정
+    this.transitionContainer.setDepth(9999);
 
     // 오버레이 생성
     const overlay = this.add.rectangle(
@@ -148,22 +155,53 @@ export default class NightScene extends Phaser.Scene {
     overlay.setOrigin(0);
     overlay.setAlpha(1);
 
-    // 텍스트 생성
+    // 밤 텍스트 생성
     const nightText = this.add.text(
       this.cameras.main.centerX,
-      this.cameras.main.centerY,
+      this.cameras.main.centerY - 50,
       '밤이 되었습니다...',
       {
         font: '60px BMEuljiro10yearslater',
         fill: '#ff0000',
-        backgroundColor: null, // 배경 제거
+        backgroundColor: null,
       },
     );
     nightText.setOrigin(0.5);
 
+    // 역할별 안내 메시지 생성
+    const roleMessage = (() => {
+      switch (this.playerInfo.role) {
+        case 'ZOMBIE':
+          return '감염시킬 플레이어에게 다가가 E키를 눌러 감염시키세요.';
+        case 'POLICE':
+          return '조사할 플레이어에게 다가가 E키를 눌러 감염 여부를 확인하세요.';
+        case 'PLAGUE_DOCTOR':
+          return '치료할 플레이어에게 다가가 E키를 눌러 치료하세요.';
+        case 'MUTANT':
+          return '돌연변이화할 플레이어에게 다가가 E키를 눌러 돌연변이로 만드세요.';
+        default:
+          return '생존을 위해 조심히 움직이세요.';
+      }
+    })();
+
+    const roleText = this.add.text(
+      this.cameras.main.centerX,
+      this.cameras.main.centerY + 50,
+      roleMessage,
+      {
+        font: '24px BMEuljiro10yearslater',
+        fill: '#ffffff',
+        backgroundColor: null,
+        align: 'center',
+        wordWrap: { width: 600 },
+      },
+    );
+    roleText.setOrigin(0.5);
+    roleText.setAlpha(0);
+
     // 컨테이너에 요소들 추가
-    this.transitionContainer.add([overlay, nightText]);
-    this.transitionContainer.setScrollFactor(0); // 화면에 고정
+    this.transitionContainer.add([overlay, nightText, roleText]);
+    this.transitionContainer.setScrollFactor(0);
 
     // Light2D 파이프라인에서 제외
     this.transitionContainer.list.forEach((child) => {
@@ -171,15 +209,34 @@ export default class NightScene extends Phaser.Scene {
         child.resetPipeline();
       }
     });
-
-    // 텍스트 페이드아웃
+    // 텍스트 애니메이션 시퀀스
     this.time.delayedCall(1000, () => {
+      // 밤 텍스트 페이드아웃
       this.tweens.add({
         targets: nightText,
         alpha: 0,
         duration: 1000,
         onComplete: () => {
           nightText.destroy();
+          // 역할 텍스트 페이드인
+          this.tweens.add({
+            targets: roleText,
+            alpha: 1,
+            duration: 1000,
+            onComplete: () => {
+              // 3초 후 역할 텍스트 페이드아웃
+              this.time.delayedCall(3000, () => {
+                this.tweens.add({
+                  targets: roleText,
+                  alpha: 0,
+                  duration: 1000,
+                  onComplete: () => {
+                    roleText.destroy();
+                  },
+                });
+              });
+            },
+          });
         },
       });
     });
@@ -189,7 +246,7 @@ export default class NightScene extends Phaser.Scene {
       this.tweens.add({
         targets: overlay,
         alpha: 0.4,
-        duration: 2500,
+        duration: 4500,
         ease: 'Linear',
         onComplete: () => {
           // 트랜지션 완료 후 컨테이너 제거
@@ -225,7 +282,7 @@ export default class NightScene extends Phaser.Scene {
     let nearest = null;
     let minDistance = 100;
 
-    this.targetPlayers.forEach((player, playerId) => {
+    this.targetPlayers.forEach((player) => {
       // 더 엄격한 자기 자신 체크
       if (player.playerNo === this.playerInfo.playerId || player === localPlayer) {
         return;
@@ -253,6 +310,48 @@ export default class NightScene extends Phaser.Scene {
     if (this.playerManager?.localPlayer) {
       this.playerManager.update();
       this.updateLighting();
+      this.updateNearestPlayerHighlight();
+    }
+  }
+
+  updateNearestPlayerHighlight() {
+    if (this.highlightCircle) {
+      this.highlightCircle.destroy();
+    }
+
+    const nearestPlayer = this.findNearestPlayer();
+    if (nearestPlayer) {
+      // 외곽선 효과 (두 개의 원을 겹쳐서 사용)
+      this.highlightCircle = this.add.container(nearestPlayer.x, nearestPlayer.y);
+
+      // 바깥쪽 원
+      const outerCircle = this.add.circle(0, 0, 35, 0xffff00, 0);
+      outerCircle.setStrokeStyle(3, 0xffff00, 0.8);
+
+      // 안쪽 원
+      const innerCircle = this.add.circle(0, 0, 32, 0xffff00, 0);
+      innerCircle.setStrokeStyle(2, 0xffffff, 0.5);
+
+      this.highlightCircle.add([outerCircle, innerCircle]);
+      this.highlightCircle.setDepth(999);
+
+      // 회전 애니메이션
+      this.tweens.add({
+        targets: this.highlightCircle,
+        angle: 360,
+        duration: 3000,
+        repeat: -1,
+      });
+
+      // 크기 변화 애니메이션
+      this.tweens.add({
+        targets: [outerCircle, innerCircle],
+        scaleX: 1.2,
+        scaleY: 1.2,
+        duration: 1000,
+        yoyo: true,
+        repeat: -1,
+      });
     }
   }
 
@@ -266,11 +365,24 @@ export default class NightScene extends Phaser.Scene {
     }
     // 씬의 모든 게임 오브젝트 정리
     this.children.removeAll(true);
+
+    // bgm 종료
+    if (this.bgmController) {
+      this.bgmController.stop();
+    }
+    // 추가적인 정리
+    if (this.registry.get('currentBGM')) {
+      this.registry.get('currentBGM').stop();
+      this.registry.remove('currentBGM');
+    }
   }
 
   destroy() {
     if (this.playerManager) {
       this.playerManager.destroy();
+    }
+    if (this.bgmController) {
+      this.bgmController.stop();
     }
     super.destroy();
   }

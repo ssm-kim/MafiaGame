@@ -19,10 +19,16 @@ export default class SceneManager extends Phaser.Scene {
         // 다른 필요한 정보들...
     };
     this.registry.set('playerInfo', playerInfo);
+
+    // BGM 음소거 상태 초기화
+    if (this.registry.get('bgmMuted') === undefined) {
+      this.registry.set('bgmMuted', false);
+    }
   }
 
   preload() {
     const assetsBasePath = '/game/images';
+    const bgmassets = '/game/bgms';
     this.load.image('background', `${assetsBasePath}/maps/classroom.png`);
 
     this.load.spritesheet('character1', `${assetsBasePath}/characters/character1.png`, {
@@ -45,6 +51,9 @@ export default class SceneManager extends Phaser.Scene {
       frameWidth: 32,
       frameHeight: 60,
     });
+    this.load.audio('afternoon_bgm', `${bgmassets}/afternoon_bgm.mp3`);
+    this.load.audio('night_bgm', `${bgmassets}/nightscene_bgm.mp3`);
+    this.load.audio('vote_bgm', `${bgmassets}/vote_bgm.mp3`);
   }
 
   create() {

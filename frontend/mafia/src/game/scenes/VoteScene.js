@@ -5,6 +5,8 @@ import sceneChanger from '@/game/utils/sceneChange';
 import showFixedRoleText from '@/game/ui/role/UserRole';
 import CitizenRole from '@/game/ui/role/CitizenRole';
 import getGameData from '@/game/utils/gameData';
+import BGMController from '@/game/utils/BGMController';
+// import { sceneTimeout } from '@/game/utils/time';
 
 export default class VoteScene extends Phaser.Scene {
   constructor() {
@@ -15,6 +17,9 @@ export default class VoteScene extends Phaser.Scene {
     setBackground(this);
     showFixedRoleText(this);
     showFixedClock(this);
+    // bgm
+    this.bgmController = new BGMController(this);
+    this.bgmController.playBGM('vote_bgm');
     sceneChanger(this);
     getGameData(this);
     this.assignRoles();
@@ -22,5 +27,23 @@ export default class VoteScene extends Phaser.Scene {
 
   assignRoles() {
     this.role = new CitizenRole(this);
+  }
+
+  shutdown() {
+    if (this.bgmController) {
+      this.bgmController.stop();
+    }
+    // 추가적인 정리
+    if (this.registry.get('currentBGM')) {
+      this.registry.get('currentBGM').stop();
+      this.registry.remove('currentBGM');
+    }
+  }
+
+  destroy() {
+    if (this.bgmController) {
+      this.bgmController.stop();
+    }
+    super.destroy();
   }
 }

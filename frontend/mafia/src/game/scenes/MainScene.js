@@ -6,6 +6,7 @@ import sceneChanger from '@/game/utils/sceneChange';
 import showFixedRoleText from '@/game/ui/role/UserRole';
 import showFixedClock from '@/game/ui/clock/BaseClock';
 import getGameData from '@/game/utils/gameData';
+import BGMController from '@/game/utils/BGMController';
 
 export default class MainScene extends Phaser.Scene {
   constructor() {
@@ -40,6 +41,9 @@ export default class MainScene extends Phaser.Scene {
     showFixedClock(this);
     showFixedRoleText(this);
     sceneChanger(this);
+    // bgm
+    this.bgmController = new BGMController(this);
+    this.bgmController.playBGM('afternoon_bgm');
     // 렌더링 최적화
     this.game.renderer.roundPixels = true;
 
@@ -51,6 +55,24 @@ export default class MainScene extends Phaser.Scene {
     if (this.playerManager.localPlayer) {
       this.playerManager.localPlayer.move();
     }
+  }
+
+  shutdown() {
+    if (this.bgmController) {
+      this.bgmController.stop();
+    }
+    // 추가적인 정리
+    if (this.registry.get('currentBGM')) {
+      this.registry.get('currentBGM').stop();
+      this.registry.remove('currentBGM');
+    }
+  }
+
+  destroy() {
+    if (this.bgmController) {
+      this.bgmController.stop();
+    }
+    super.destroy();
   }
 
   destroy() {
