@@ -11,7 +11,6 @@ export default class GameOverScene extends Phaser.Scene {
 
   // Scene이 초기화될 때 호출되는 메서드
   init(data) {
-    console.log(data);
     this.gameResult = data; // 게임 결과를 'MUTANT_WIN'으로 설정 (테스트용)
   }
 
@@ -93,6 +92,7 @@ export default class GameOverScene extends Phaser.Scene {
 
   // 게임 상태 확인 후 적절한 화면을 생성
   async checkGameStatus() {
+    const { playerNo } = this.registry.get('playerInfo');
     const playersData = await this.playersData();
     const players = playersData.result.endPlayers;
 
@@ -100,9 +100,7 @@ export default class GameOverScene extends Phaser.Scene {
       this.players = players;
 
       // playNo가 1인 플레이어가 있는 경우 DELETE 요청을 4초 뒤에 보냄
-      const playerWithPlayNoOne = this.players.find((player) => player.playerNo === 1);
-      console.log(playerWithPlayNoOne);
-      if (playerWithPlayNoOne) {
+      if (playerNo === 1) {
         const roomId = this.registry.get('roomId');
 
         // 4초 뒤에 DELETE 요청을 보냄

@@ -18,16 +18,9 @@ export default class MainScene extends Phaser.Scene {
     // this.remainingTime = sceneTimeout.DAY_DISCUSSION;
   }
 
-  init() {
+  async init() {
     getGameData(this);
-    const gameData = this.registry.get('gameData');
-    const gameResult = gameData.result.gamestatus; // 게임 상태 확인
-    console.log(gameResult);
 
-    if (gameResult !== 'PLAYING') {
-      this.scene.start('GameOverScene', gameResult); // 게임 종료 씬으로 이동
-    }
-    const playerInfo = gameData.result.playersInfo;
     this.roomId = this.registry.get('roomId');
 
     this.socketService = this.registry.get('socketService');

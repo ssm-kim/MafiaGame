@@ -13,11 +13,6 @@ export default class SkillManager {
 
     const { role } = this.scene.playerInfo;
 
-    console.log('상호작용 시도:');
-    console.log(`- 현재 역할: ${role}`);
-    console.log(`- 타겟 플레이어:`, targetPlayer.playerNo);
-    console.log(`- Room ID:`, this.roomId);
-
     switch (role) {
       case '감염자': // 백엔드에서 오는 그대로의 역할명 사용
         this.infectPlayer(targetPlayer);
@@ -37,10 +32,6 @@ export default class SkillManager {
   }
 
   async infectPlayer(target) {
-    console.log('감염자 스킬 사용 시도');
-    console.log('대상 플레이어:', target.playerNo);
-    console.log('API 요청 URL:', `/api/game/${this.roomId}/target/set?targetNo=${target.playerNo}`);
-
     this.skillUsed = true;
     this.createSkillEffect('ZOMBIE', target);
     this.scene.cameras.main.shake(200, 0.01);
@@ -50,7 +41,6 @@ export default class SkillManager {
       const response = await api.post(
         `/api/game/${this.roomId}/target/set?targetNo=${target.playerNo}`,
       );
-      console.log('API 응답:', response);
 
       if (response.data.isSuccess) {
         this.showSkillResult(response.data.result.ex);
@@ -63,20 +53,15 @@ export default class SkillManager {
   }
 
   async mutatePlayer(target) {
-    console.log('돌연변이 스킬 사용 시도');
-    console.log('대상 플레이어:', target.playerNo);
-    console.log('API 요청 URL:', `/api/game/${this.roomId}/target/set?targetNo=${target.playerNo}`);
-
     this.skillUsed = true;
     this.createSkillEffect('MUTANT', target);
     this.scene.cameras.main.shake(200, 0.01);
-    this.scene.cameras.main.flash(300, 255, 0, 0);
+    this.scene.cameras.main.flash(300, 255, 0, 255);
 
     try {
       const response = await api.post(
         `/api/game/${this.roomId}/target/set?targetNo=${target.playerNo}`,
       );
-      console.log('API 응답:', response);
 
       if (response.data.isSuccess) {
         this.showSkillResult(response.data.result.ex);
@@ -89,20 +74,15 @@ export default class SkillManager {
   }
 
   async investigatePlayer(target) {
-    console.log('연구원 스킬 사용 시도');
-    console.log('대상 플레이어:', target.playerData);
-    console.log('API 요청 URL:', `/api/game/${this.roomId}/target/set?targetNo=${target.playerNo}`);
-
     this.skillUsed = true;
     this.createSkillEffect('POLICE', target);
     this.scene.cameras.main.shake(200, 0.01);
-    this.scene.cameras.main.flash(300, 255, 0, 0);
+    this.scene.cameras.main.flash(300, 0, 0, 255);
 
     try {
       const response = await api.post(
         `/api/game/${this.roomId}/target/set?targetNo=${target.playerNo}`,
       );
-      console.log('API 응답:', response);
 
       if (response.data.isSuccess) {
         this.showSkillResult(response.data.result.ex);
@@ -115,20 +95,15 @@ export default class SkillManager {
   }
 
   async healPlayer(target) {
-    console.log('의사 스킬 사용 시도');
-    console.log('대상 플레이어:', target.playerData);
-    console.log('API 요청 URL:', `/api/game/${this.roomId}/target/set?targetNo=${target.playerNo}`);
-
     this.skillUsed = true;
     this.createSkillEffect('PLAGUE_DOCTOR', target);
     this.scene.cameras.main.shake(200, 0.01);
-    this.scene.cameras.main.flash(300, 255, 0, 0);
+    this.scene.cameras.main.flash(300, 0, 255, 0);
 
     try {
       const response = await api.post(
         `/api/game/${this.roomId}/target/set?targetNo=${target.playerNo}`,
       );
-      console.log('API 응답:', response);
 
       if (response.data.isSuccess) {
         this.showSkillResult(response.data.result.ex);
@@ -183,6 +158,16 @@ export default class SkillManager {
     mainCircle.setAlpha(0.6);
     mainCircle.setDepth(1001);
 
+    this.scene.tweens.add({
+      targets: mainCircle,
+      scale: 2,
+      alpha: 0,
+      duration: 1200,
+      onComplete: () => {
+        mainCircle.destroy();
+      },
+    });
+
     // 불규칙한 감염 파편 효과
     for (let i = 0; i < 12; i += 1) {
       const shard = this.scene.add.triangle(target.x, target.y, 0, -10, 8, 5, -8, 5, 0xff0000);
@@ -213,6 +198,17 @@ export default class SkillManager {
     scanCircle.setAlpha(0.3);
     scanCircle.setDepth(1001);
 
+    // 조사 스캔 서클 애니메이션션
+    this.scene.tweens.add({
+      targets: scanCircle,
+      scale: 2,
+      alpha: 0,
+      duration: 1200,
+      onComplete: () => {
+        scanCircle.destroy();
+      },
+    });
+
     // 스캔 라인 효과
     for (let i = 0; i < 6; i += 1) {
       const line = this.scene.add.rectangle(target.x, target.y, 4, 50, 0x00ffff);
@@ -232,16 +228,6 @@ export default class SkillManager {
         },
       });
     }
-
-    this.scene.tweens.add({
-      targets: scanCircle,
-      scale: 2,
-      alpha: 0,
-      duration: 1200,
-      onComplete: () => {
-        scanCircle.destroy();
-      },
-    });
   }
 
   createDoctorEffect(target) {
@@ -290,6 +276,17 @@ export default class SkillManager {
     mainCircle.setAlpha(0.7);
     mainCircle.setDepth(1001);
 
+    // 돌연변이 폭발 효과 애니메이션
+    this.scene.tweens.add({
+      targets: mainCircle,
+      scale: 3,
+      alpha: 0,
+      duration: 1000,
+      onComplete: () => {
+        mainCircle.destroy();
+      },
+    });
+
     // 불규칙한 돌연변이 입자들
     for (let i = 0; i < 15; i += 1) {
       const particle = this.scene.add.circle(target.x, target.y, 8, 0x9932cc);
@@ -312,15 +309,5 @@ export default class SkillManager {
         },
       });
     }
-
-    this.scene.tweens.add({
-      targets: mainCircle,
-      scale: 3,
-      alpha: 0,
-      duration: 1000,
-      onComplete: () => {
-        mainCircle.destroy();
-      },
-    });
   }
 }

@@ -10,9 +10,6 @@ export default class StartScene extends Phaser.Scene {
     this.gameData = this.registry.get('gameData');
     this.gameStatus = this.registry.get('gameStatus');
 
-    console.log(this.gameData);
-    console.log(this.gameStatus);
-    console.log(this.registry.get('playerInfo'));
     const { role, character } = this.registry.get('playerInfo');
     this.role = role;
     this.character = character;

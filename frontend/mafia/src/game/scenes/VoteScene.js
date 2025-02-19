@@ -13,6 +13,12 @@ export default class VoteScene extends Phaser.Scene {
     super({ key: 'VoteScene' });
   }
 
+  init() {
+    const gameData = this.registry.get('gameData');
+    const gameResult = gameData.result.gamestatus; // 게임 상태 확인
+    console.log(gameResult);
+  }
+
   create() {
     setBackground(this);
     showFixedRoleText(this);

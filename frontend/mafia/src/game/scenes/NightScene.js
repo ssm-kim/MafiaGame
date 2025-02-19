@@ -17,13 +17,6 @@ export default class NightScene extends Phaser.Scene {
 
   init() {
     getGameData(this);
-    const gameData = this.registry.get('gameData');
-    const gameResult = gameData.result.gamestatus; // 게임 상태 확인
-
-    if (gameResult !== 'PLAYING') {
-      this.scene.start('GameOverScene', gameResult); // 게임 종료 씬으로 이동
-    }
-
     this.targetPlayers = [];
     this.gameData = this.registry.get('gameData');
     this.playerInfo = this.registry.get('playerInfo');
@@ -171,13 +164,13 @@ export default class NightScene extends Phaser.Scene {
     // 역할별 안내 메시지 생성
     const roleMessage = (() => {
       switch (this.playerInfo.role) {
-        case 'ZOMBIE':
+        case '감염자':
           return '감염시킬 플레이어에게 다가가 E키를 눌러 감염시키세요.';
-        case 'POLICE':
+        case '연구원':
           return '조사할 플레이어에게 다가가 E키를 눌러 감염 여부를 확인하세요.';
-        case 'PLAGUE_DOCTOR':
+        case '의사':
           return '치료할 플레이어에게 다가가 E키를 눌러 치료하세요.';
-        case 'MUTANT':
+        case '돌연변이':
           return '돌연변이화할 플레이어에게 다가가 E키를 눌러 돌연변이로 만드세요.';
         default:
           return '생존을 위해 조심히 움직이세요.';
@@ -269,7 +262,6 @@ export default class NightScene extends Phaser.Scene {
 
       const nearestPlayer = this.findNearestPlayer();
       if (nearestPlayer) {
-        console.log('상호작용 시도:', nearestPlayer); // 디버깅 로그 추가
         this.skillManager.handleInteraction(nearestPlayer);
       }
     });
@@ -294,8 +286,6 @@ export default class NightScene extends Phaser.Scene {
         player.x,
         player.y,
       );
-
-      console.log(`Distance to player ${player.playerNo}: ${distance}`);
 
       if (distance < minDistance) {
         minDistance = distance;

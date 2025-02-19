@@ -8,8 +8,12 @@ const getGameData = async (scene) => {
     const roomId = scene.registry.get('roomId');
     const response = await api.get(`/api/game/${roomId}`);
 
+    if (response.data.result.gamestatus !== 'PLAYING') {
+      scene.scene.start('GameOverScene', response.data.result.gamestatus);
+    }
+
     const localPlayerInfo = response.data.result.myInfo;
-    setSubscriptions(localPlayerInfo.subscriptions);
+    setSubscriptions(localPlayerInfo.subscriptions, true);
 
     const { playersInfo } = response.data.result;
 

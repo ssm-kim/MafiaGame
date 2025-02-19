@@ -80,6 +80,10 @@ const useChatting = (stompClient: React.MutableRefObject<CompatClient | null>, r
       // setChatType(currentChatType);
 
       const subscription = stompClient.current?.subscribe(`/topic/${topic}`, (message) => {
+        if (topic.includes('system')) return;
+        if (topic.includes('mafia')) {
+          console.log(message);
+        }
         const newMessage = createNewMessage(currentChatType, message);
         onReceiveMessage(newMessage);
       });

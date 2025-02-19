@@ -175,7 +175,9 @@ function GameRoom(): JSX.Element {
   useEffect(() => {
     // if (gameState?.roomStatus === 'PLAYING' && gameState.participant[currentNickname]) {
     // const subscriptions = gameState.participant[currentNickname]?.subscriptions || [];
+    if (!subscriptions) return;
 
+    console.log(subscriptions);
     webSocket.chatting.subscribeTopics(subscriptions, true, (newMessage) => {
       handleMessage(newMessage);
     });
