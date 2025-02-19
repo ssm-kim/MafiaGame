@@ -1,6 +1,6 @@
-<p align="center">
+<div align="center">
   <img src="docs/service_logo.webp" alt="설명" width="200">
-</p>
+</div>
 
 # 지금 우리 학교는
 > **SSAFY 12기 1차 공통 프로젝트** <br/> **개발기간: 2025.01 ~ 2025.02**
