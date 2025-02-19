@@ -81,7 +81,7 @@
 ------------------------------------------------------
   
 ## 3-1. 소셜 & 게스트 로그인
-![main_login](/uploads/e6c7d53f29d8492ab78ed3816f50b909/main_login.gif)
+![mainlogin.webp](docs%2Fmainlogin.webp)
 
 (간편한 로그인 시스템)
 
@@ -90,7 +90,7 @@
 - 직관적인 로그인 UI/UX
 
 ## 3-2. 로비 & 방 관리
-![lobby_makeRoom](/uploads/c2754aa25b1e0e44455a05a88fed72bd/lobby_makeRoom.gif)
+![lobbymakeRoom.webp](docs%2FlobbymakeRoom.webp)
 
 (손쉬운 게임 참여와 방 관리 시스템)
 
@@ -100,7 +100,7 @@
 - 생존규칙(게임사용법) 확인
 
 ## 3-3. 방 입장 & 게임 준비
-![ready_kick](/uploads/5e75e852a16342d8a08333e16fcf22af/ready_kick.gif)
+![readykick.webp](docs%2Freadykick.webp)
 
 (방장과 참가자들의 게임 준비 시스템)
 
