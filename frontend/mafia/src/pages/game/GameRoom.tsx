@@ -115,8 +115,8 @@ function GameRoom(): JSX.Element {
   useEffect(() => {
     if (!stompClientRef.current) return;
 
-    if (gameState?.roomStatus === 'PLAYING' && gameState.participant[currentNickname]) {
-      const playerSubscriptions = gameState.participant[currentNickname].subscriptions || [];
+    if (gameState?.roomStatus === 'PLAYING') {
+      const playerSubscriptions: string[] = [];
 
       playerSubscriptions.forEach((subscription) => {
         if (subscription.includes('day')) {
