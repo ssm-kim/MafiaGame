@@ -21,7 +21,16 @@ export interface CreateRoomModalProps {
 }
 
 // 인원수별 역할 제한 설정
+// const ROLE_LIMITS = {
+//   6: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1 },
+//   7: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1 },
+//   8: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1 },
+// };
 const ROLE_LIMITS = {
+  2: { minZombie: 1, maxZombie: 1, minMutant: 0, maxMutant: 0 },
+  3: { minZombie: 1, maxZombie: 1, minMutant: 0, maxMutant: 0 },
+  4: { minZombie: 1, maxZombie: 1, minMutant: 0, maxMutant: 1 },
+  5: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1 },
   6: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1 },
   7: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1 },
   8: { minZombie: 1, maxZombie: 2, minMutant: 0, maxMutant: 1 },
@@ -56,9 +65,15 @@ export function CreateRoomModal({
 
   if (!show) return null;
 
+  // const handleRequiredPlayersChange = (value: string) => {
+  //   const players = parseInt(value);
+  //   if (players >= 6 && players <= 8) {
+  //     onRoomDataChange({ ...roomData, requiredPlayers: players });
+  //   }
+  // };
   const handleRequiredPlayersChange = (value: string) => {
     const players = parseInt(value);
-    if (players >= 6 && players <= 8) {
+    if (players >= 2 && players <= 8) {
       onRoomDataChange({ ...roomData, requiredPlayers: players });
     }
   };
@@ -173,7 +188,8 @@ export function CreateRoomModal({
               생존자 수 (6-8명)
               <input
                 type="number"
-                min="4"
+                // min="4"
+                min="2"
                 max="8"
                 className="mt-2 w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-100"
                 value={roomData.requiredPlayers}

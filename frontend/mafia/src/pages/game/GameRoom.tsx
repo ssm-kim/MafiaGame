@@ -35,6 +35,18 @@ function GameRoom(): JSX.Element {
   const [currentChatType, setCurrentChatType] = useState<'ROOM' | 'DAY' | 'NIGHT' | 'DEAD'>('ROOM');
   const stompClientRef = useRef<any>(null);
 
+  console.log('Detailed Game State:', {
+    roomStatus: gameState?.roomStatus,
+    myInfo: {
+      exists: !!gameState?.myInfo,
+      muteMic: gameState?.myInfo?.muteMic,
+      isDead: gameState?.myInfo?.isDead,
+      role: gameState?.myInfo?.role,
+      openviduToken: !!gameState?.myInfo?.openviduToken, // 토큰 존재 여부만 표시
+    },
+    participantNo,
+    currentNickname,
+  });
   useEffect(() => {
     const fetchNickname = async () => {
       try {
