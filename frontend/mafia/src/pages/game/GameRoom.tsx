@@ -86,7 +86,6 @@ function GameRoom(): JSX.Element {
 
     const playersList: Player[] = [];
 
-    // participantNo로 현재 플레이어를 찾습니다
     let currentParticipant;
     Object.entries(participants).forEach(([_, p]) => {
       if (p.participantNo === participantNo) {
@@ -172,9 +171,16 @@ function GameRoom(): JSX.Element {
 
         if (stompClient) {
           roomSubscription = roomApi.subscribeRoom(Number(roomId), async (message) => {
+            // 먼저 message가 null인지 확인
+            if (!message) {
+              alert('방이 삭제되었습니다.');
+              navigate('/game-lobby');
+              return;
+            }
+
+            // 게임 시작 메시지 체크
             if ('gameStart' in message && message.gameStart === 'true') {
               try {
-                // 게임 시작 시 전체 게임 정보를 새로 가져옴
                 const response = await axios.get(`/api/game/${roomId}`);
                 if (response.data.isSuccess) {
                   setGameState(response.data.result);
@@ -185,6 +191,7 @@ function GameRoom(): JSX.Element {
               return;
             }
 
+            // 방장 체크
             let isHostLeft = true;
             Object.values(message as ParticipantMap).forEach((participantInfo) => {
               if (participantInfo.participantNo === 1) {
@@ -198,19 +205,14 @@ function GameRoom(): JSX.Element {
               return;
             }
 
-            // participantNo로 체크
+            // 내 참가자 정보 체크
             const myNewInfo = Object.values(message).find((p) => p.participantNo === participantNo);
-
             if (!myNewInfo) {
               alert('강제 퇴장 당하였습니다.');
               navigate('/game-lobby');
-            }
-
-            if (!message) {
-              alert('방이 삭제되었습니다.');
-              navigate('/game-lobby');
               return;
             }
+
             setParticipants(message as ParticipantMap);
           });
 
