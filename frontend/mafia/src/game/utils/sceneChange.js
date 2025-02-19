@@ -5,11 +5,11 @@ export default function sceneChanger(scene) {
   let previousPhase = scene.scene;
 
   const phaseMapping = {
-    DAY_DISCUSSION: 'MainScene',
-    DAY_VOTE: 'VotedScene',
+    DAY_DISCUSSION: 'GameOverScene',
+    DAY_VOTE: 'GameOverScene',
     DAY_FINAL_STATEMENT: 'StatementScene',
     DAY_FINAL_VOTE: 'LastVoteScene',
-    NIGHT_ACTION: 'NightScene',
+    NIGHT_ACTION: 'GameOverScene',
   };
 
   scene.events.on('shutdown', () => {

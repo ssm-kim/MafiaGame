@@ -32,7 +32,7 @@ export default class MafiaRole extends BaseRole {
   }
 
   getButtonColor(player) {
-    return !player.dead ? 0x1a1a1a : 0x666666;
+    return !player.dead ? 0x1a1a1a : 0x9b111e;
   }
 
   getHoverColor() {

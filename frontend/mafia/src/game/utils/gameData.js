@@ -2,7 +2,8 @@ import axios from 'axios';
 
 export const getGameData = async (scene) => {
   try {
-    const response = await axios.get(`http://localhost:8080/api/game/2`, {
+    const roomId = scene.registry.get('roomId');
+    const response = await axios.get(`/api/game/${roomId}`, {
       withCredentials: true, // 쿠키 포함 옵션
     });
 

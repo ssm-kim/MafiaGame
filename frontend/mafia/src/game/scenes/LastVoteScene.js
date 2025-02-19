@@ -30,6 +30,15 @@ export default class LastVoteScene extends Phaser.Scene {
     });
   }
 
+  update() {
+    const gameData = this.registry.get('gameData');
+    const gameResult = gameData.gamestatus; // 게임 상태 확인
+
+    if (gameResult !== 'playing') {
+      this.scene.start('GameOverScene', gameResult); // 게임 종료 씬으로 이동
+    }
+  }
+
   recreateScene(width, height) {
     this.children.removeAll();
     this.createMainContainer(width, height);
@@ -154,4 +163,17 @@ export default class LastVoteScene extends Phaser.Scene {
     this.confirmText.setAlpha(0.5);
     this.cancelText.setAlpha(0.5);
   }
+
+  // gameEnd() {
+  //   const eventEmitter = this.registry.get('eventEmitter');
+  //   const currentSceneKey = this.scene.key;
+  //   eventEmitter.on('GAME_END', (data) => {
+  //     try {
+  //       this.scene.stop(currentSceneKey);
+  //       this.scene.start('GameOverScene', data);
+  //     } catch (error) {
+  //       console.error('Error:', error);
+  //     }
+  //   });
+  // }
 }
