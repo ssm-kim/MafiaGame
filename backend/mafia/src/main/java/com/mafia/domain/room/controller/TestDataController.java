@@ -31,33 +31,33 @@ public class TestDataController {
     @PostMapping("/init-dummy-data")
     public ResponseEntity<String> initDummyData() throws JsonProcessingException {
         try {
-            // 첫 번째 방 (길동의 방)
-            RoomInfo room1 = new RoomInfo(1L, "테스트방 1", null, 4, new GameOption());
-            Participant host1 = new Participant(1L, "길동");  // member_id: 5
+            // 첫 번째 방 (초보 환영)
+            RoomInfo room1 = new RoomInfo(1L, "초보도 환영! 같이 즐겨요~", null, 6, new GameOption());
+            Participant host1 = new Participant(1L, "길동");
             host1.setReady(true);
             room1.getParticipant().put(1L, host1);
             room1.getMemberMapping().put(1, 1L);
 
-            // 두 번째 방 (준표의 방)
-            RoomInfo room2 = new RoomInfo(2L, "테스트방 2", null, 7, new GameOption());
-            Participant host2 = new Participant(6L, "준표");  // member_id: 6
+            // 두 번째 방 (실력자)
+            RoomInfo room2 = new RoomInfo(2L, "실력자만! 빠른게임 고고", null, 6, new GameOption());
+            Participant host2 = new Participant(2L, "준표");
             host2.setReady(true);
-            room2.getParticipant().put(6L, host2);
-            room2.getMemberMapping().put(1, 6L);
+            room2.getParticipant().put(2L, host2);
+            room2.getMemberMapping().put(1, 2L);
 
-            // 세 번째 방 (성욱의 방)
-            RoomInfo room3 = new RoomInfo(3L, "비밀방 테스트", "1234", 8, new GameOption());
-            Participant host3 = new Participant(7L, "성욱");  // member_id: 7
+            // 세 번째 방 (친구들끼리)
+            RoomInfo room3 = new RoomInfo(3L, "친구들끼리만 하실분!", "1234", 7, new GameOption());
+            Participant host3 = new Participant(3L, "성욱");
             host3.setReady(true);
-            room3.getParticipant().put(7L, host3);
-            room3.getMemberMapping().put(1, 7L);
+            room3.getParticipant().put(3L, host3);
+            room3.getMemberMapping().put(1, 3L);
 
-            // 네 번째 방 (철수의 방)
-            RoomInfo room4 = new RoomInfo(4L, "테스트방 4", null, 5, new GameOption());
-            Participant host4 = new Participant(100L, "철수");  // member_id: 100
+            // 네 번째 방 (초보만)
+            RoomInfo room4 = new RoomInfo(4L, "초보만 오세요 ~", null, 8, new GameOption());
+            Participant host4 = new Participant(4L, "철수");
             host4.setReady(true);
-            room4.getParticipant().put(100L, host4);
-            room4.getMemberMapping().put(1, 100L);
+            room4.getParticipant().put(4L, host4);
+            room4.getMemberMapping().put(1, 4L);
 
             // 맵 데이터 검증
             validateRoomMaps(room1);
