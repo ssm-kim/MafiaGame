@@ -1,3 +1,30 @@
+<div align="center">
+  <img src="docs/service_logo.webp" alt="설명" width="200">
+</div>
+
+# 지금 우리 학교는
+> **SSAFY 12기 1차 공통 프로젝트** <br/> **개발기간: 2025.01 ~ 2025.02**
+
+
+------------------------------------------------------
+## 팀원 역할 및 담당
+
+| 김성민 | 배준영 | 양대원 | 전준표 | 김진우 | 이성욱 | 정해빈 |
+| ----- | ------ | ----- | ------ | ----- | ------ | ------ |
+| <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a>
+
+| Contributors | Role | Position |
+| ------------ | ---- | -------- |
+| 김성민 | 팀장, <br /> Backend | - 유저 플로우 작성 <br> |
+| 배준영 | 팀원, <br /> Backend | - 유저 플로우 작성 <br> |
+| 양대원 | 팀원, <br /> Backend Lead | - 유저 플로우 작성 <br> |
+| 전준표 | 팀원, <br /> Frontend Lead | - 유저 플로우 작성 <br> |
+| 김진우 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
+| 이성욱 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
+| 정해빈 | 팀원, <br /> Frontend, <br /> 서기 | 유저 플로우 작성 <br>
+
+
+
 # 1. 서비스 소개
 
 ### 온라인에서도 친구들과 함께, 긴장감 넘치는 생존 게임
@@ -279,22 +306,3 @@
   ```
 
 --------------------------------------------
-
-
-# 7. 👨‍👩‍👧‍👦 팀원 소개
-------------------------------------------------------
-# 팀원 역할 및 담당
-
-| 김성민 | 배준영 | 양대원 | 전준표 | 김진우 | 이성욱 | 정해빈 |
-| ----- | ------ | ----- | ------ | ----- | ------ | ------ |
-| <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a>
-
-| Contributors | Role | Position |
-| ------------ | ---- | -------- |
-| 김성민 | 팀장, <br /> Backend | - 유저 플로우 작성 <br> |
-| 배준영 | 팀원, <br /> Backend | - 유저 플로우 작성 <br> |
-| 양대원 | 팀원, <br /> Backend Lead | - 유저 플로우 작성 <br> |
-| 전준표 | 팀원, <br /> Frontend Lead | - 유저 플로우 작성 <br> |
-| 김진우 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
-| 이성욱 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
-| 정해빈 | 팀원, <br /> Frontend, <br /> 서기 | 유저 플로우 작성 <br>
