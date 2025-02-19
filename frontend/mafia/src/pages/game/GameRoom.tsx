@@ -115,45 +115,40 @@ function GameRoom(): JSX.Element {
   useEffect(() => {
     if (!stompClientRef.current) return;
 
-    if (gameState?.roomStatus === 'PLAYING' && gameState.myInfo) {
-      const playerSubscriptions = gameState.myInfo.subscriptions || [];
-      console.log('Player subscriptions:', playerSubscriptions);
+    if (gameState?.roomStatus === 'PLAYING' && gameState.participant[currentNickname]) {
+      const playerSubscriptions = gameState.participant[currentNickname].subscriptions || [];
 
       playerSubscriptions.forEach((subscription) => {
-        try {
-          if (subscription.includes('day')) {
-            stompClientRef.current.subscribe(
-              `/topic/game-${roomId}-day-chat`,
-              (msg: { body: string }) => handleMessage('DAY', msg.body),
-            );
-            setCurrentChatType('DAY');
-          }
-          if (subscription.includes('night')) {
-            stompClientRef.current.subscribe(
-              `/topic/game-${roomId}-night-chat`,
-              (msg: { body: string }) => handleMessage('NIGHT', msg.body),
-            );
-            setCurrentChatType('NIGHT');
-          }
-          if (subscription.includes('dead')) {
-            stompClientRef.current.subscribe(
-              `/topic/game-${roomId}-dead-chat`,
-              (msg: { body: string }) => handleMessage('DEAD', msg.body),
-            );
-            setCurrentChatType('DEAD');
-          }
-          if (subscription.includes('system')) {
-            stompClientRef.current.subscribe(
-              `/topic/game-${roomId}-system`,
-              (msg: { body: string }) => handleMessage('SYSTEM', msg.body),
-            );
-          }
-        } catch (error) {
-          console.error('Error subscribing to chat:', error);
+        if (subscription.includes('day')) {
+          stompClientRef.current.subscribe(
+            `/topic/game-${roomId}-day-chat`,
+            (msg: { body: string }) => handleMessage('DAY', msg.body),
+          );
+          setCurrentChatType('DAY');
+        }
+        if (subscription.includes('night')) {
+          stompClientRef.current.subscribe(
+            `/topic/game-${roomId}-night-chat`,
+            (msg: { body: string }) => handleMessage('NIGHT', msg.body),
+          );
+          setCurrentChatType('NIGHT');
+        }
+        if (subscription.includes('dead')) {
+          stompClientRef.current.subscribe(
+            `/topic/game-${roomId}-dead-chat`,
+            (msg: { body: string }) => handleMessage('DEAD', msg.body),
+          );
+          setCurrentChatType('DEAD');
+        }
+        if (subscription.includes('system')) {
+          stompClientRef.current.subscribe(
+            `/topic/game-${roomId}-system`,
+            (msg: { body: string }) => handleMessage('SYSTEM', msg.body),
+          );
         }
       });
     }
-  }, [roomId, gameState?.roomStatus, currentNickname, gameState?.myInfo]);
+  }, [roomId, gameState?.roomStatus, currentNickname]);
 
   useEffect(() => {
     let roomSubscription: any = null;
