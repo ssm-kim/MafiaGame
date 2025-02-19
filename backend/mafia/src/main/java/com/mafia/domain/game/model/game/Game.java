@@ -247,7 +247,7 @@ public class Game implements Serializable { // 필드정리
     private void isGameOver() {
         //각 역할별 생존자 수 계산
         long citizen = players.values().stream()
-            .filter(player -> player.getRole() == Role.CITIZEN && !player.isDead())
+            .filter(player -> player.getRole() != Role.ZOMBIE && player.getRole() != Role.MUTANT && !player.isDead())
             .count();
         long zombie = players.values().stream()
             .filter(player -> player.getRole() == Role.ZOMBIE && !player.isDead())
