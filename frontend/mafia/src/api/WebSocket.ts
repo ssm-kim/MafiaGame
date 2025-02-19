@@ -134,12 +134,12 @@ export const getChatTypeByGameState = (gameState: Room | null, playerId: number)
     return 'ROOM';
   }
 
-  const playerInfo = gameState.playersInfo[playerId];
-  if (!playerInfo) {
+  const participant = gameState.participant[playerId];
+  if (!participant) {
     return 'ROOM';
   }
 
-  if (playerInfo.isDead) {
+  if (participant.isDead) {
     return 'DEAD';
   }
 

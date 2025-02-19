@@ -28,7 +28,7 @@ export interface Room {
   peopleCnt: number;
   hostId: number;
   hasPassword: boolean;
-  playersInfo: Record<number, PlayerInfo>; // participant 대신 playersInfo 사용
+  participant: Record<string, Participant>;
   isNight?: boolean;
   myInfo?: MyInfo;
 }

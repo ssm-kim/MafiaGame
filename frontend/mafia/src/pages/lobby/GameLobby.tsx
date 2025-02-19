@@ -184,7 +184,7 @@ function GameLobby() {
     try {
       const roomResponse = await roomApi.getRoom(roomId);
       const room = roomResponse.data.result;
-      const currentPlayers = Object.keys(room.playersInfo).length;
+      const currentPlayers = Object.keys(room.participant).length;
 
       if (currentPlayers >= room.requiredPlayers) {
         alert('방이 가득 찼습니다.');
