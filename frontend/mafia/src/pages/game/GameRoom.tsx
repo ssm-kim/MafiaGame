@@ -180,20 +180,15 @@ function GameRoom(): JSX.Element {
 
             // 게임 시작 메시지 체크
             if ('gameStart' in message && message.gameStart === 'true') {
-              // 먼저 roomStatus를 PLAYING으로 설정
-              setGameState((prevState) => {
-                if (!prevState) return null;
-                return {
-                  ...prevState,
-                  roomStatus: 'PLAYING',
-                };
-              });
-
-              // 그 다음 전체 게임 정보를 가져옴
               try {
                 const response = await axios.get(`/api/game/${roomId}`);
                 if (response.data.isSuccess) {
-                  setGameState(response.data.result);
+                  // 상태를 한 번에 업데이트
+                  setGameState({
+                    ...response.data.result,
+                    roomStatus: 'PLAYING', // roomStatus를 명시적으로 설정
+                  });
+                  console.log('Game started with state:', response.data.result);
                 }
               } catch (error) {
                 console.error('Failed to fetch game info:', error);
