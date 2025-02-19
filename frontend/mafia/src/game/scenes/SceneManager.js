@@ -11,6 +11,14 @@ export default class SceneManager extends Phaser.Scene {
     this.roomId = this.registry.get('roomId');
     this.userId = this.registry.get('userId');
     getGameData(this);
+    // 플레이어 정보 초기화
+    const randomCharacter = `character${Math.floor(Math.random() * 5) + 1}`;
+    const playerInfo = {
+        nickname: this.registry.get('nickname'),
+        character: randomCharacter,
+        // 다른 필요한 정보들...
+    };
+    this.registry.set('playerInfo', playerInfo);
   }
 
   preload() {

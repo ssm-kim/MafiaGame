@@ -26,10 +26,6 @@ export default class MainScene extends Phaser.Scene {
 
     this.roomId = this.registry.get('roomId');
 
-    const { role, character } = playerInfo;
-    this.role = role;
-    this.character = character;
-
     this.socketService = this.registry.get('socketService');
     this.playerManager = new PlayerManager(this);
   }

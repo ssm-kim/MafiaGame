@@ -9,8 +9,69 @@ export default class PlayerManager {
     this.players = new Map();
     this.localPlayer = null;
 
+    const previousPlayers = this.scene.registry.get('players');
+    if (previousPlayers) {
+      this.players = previousPlayers;
+      this.localPlayer = this.players.get(this.scene.registry.get('userId'));
+      if (this.localPlayer) {
+        this.localPlayer.scene = this.scene;
+        this.reinitializePlayer(this.localPlayer);
+      } else {
+        this.createLocalPlayer();
+      }
+    } else {
+      this.createLocalPlayer();
+    }
+
     this.setupPhaserEventListeners();
-    this.createLocalPlayer();
+  }
+
+  reinitializePlayer(player) {
+    if (!player.character) {
+      console.error('No character specified for player');
+      return;
+    }
+
+    player.scene = this.scene;
+
+    // physics body 재설정
+    if (player.body) {
+      this.scene.physics.world.remove(player.body);
+    }
+    this.scene.add.existing(player);
+    this.scene.physics.add.existing(player);
+
+    // 애니메이션 재생성
+    const directions = ['left', 'right', 'up', 'down'];
+    directions.forEach((direction) => {
+      const animKey = `${player.character}_${direction}`;
+      if (!this.scene.anims.exists(animKey)) {
+        this.scene.anims.create({
+          key: animKey,
+          frames: this.scene.anims.generateFrameNumbers(player.character, {
+            frames:
+              direction === 'left'
+                ? [3, 4, 5]
+                : direction === 'right'
+                  ? [9, 10, 11]
+                  : direction === 'up'
+                    ? [6, 7, 8]
+                    : [0, 1, 2],
+          }),
+          frameRate: 10,
+          repeat: -1,
+        });
+      }
+    });
+
+    player.setupPhysics();
+    player.createNicknameText(player.playerData.nickname);
+
+    if (player.isLocal) {
+      player.setupCamera();
+      player.cursors = this.scene.input.keyboard.createCursorKeys();
+      player.shift = this.scene.input.keyboard.addKey('SHIFT');
+    }
   }
 
   setupPhaserEventListeners() {
@@ -20,13 +81,17 @@ export default class PlayerManager {
   }
 
   createLocalPlayer() {
+    if (!this.localPlayerInfo.character) {
+      console.warn('Character not specified, using default');
+      this.localPlayerInfo.character = 'character1';
+    }
+
     if (this.localPlayer) return;
 
     console.log(this.localPlayerInfo);
 
     const roomId = this.scene.registry.get('roomId');
     const userId = this.scene.registry.get('userId');
-
     const data = {
       ...this.localPlayerInfo,
       isLocal: true,
@@ -57,7 +122,6 @@ export default class PlayerManager {
     };
 
     const player = new Player(this.scene, data);
-
     this.scene.physics.add.collider(
       player,
       this.localPlayer,
@@ -98,6 +162,36 @@ export default class PlayerManager {
   }
 
   update() {
-    this.localPlayer?.move();
+    if (this.localPlayer) {
+      try {
+        if (!this.localPlayer.body || !this.localPlayer.scene) {
+          this.reinitializePlayer(this.localPlayer);
+        }
+        this.localPlayer.move();
+      } catch (error) {
+        console.error('Update error:', error);
+        this.reinitializePlayer(this.localPlayer);
+      }
+    }
+  }
+
+  destroy() {
+    try {
+      // 모든 플레이어 정리
+      this.players.forEach((player) => {
+        if (player && player.scene) {
+          player.nicknameText?.destroy();
+          player.destroy(true);
+        }
+      });
+      this.players.clear();
+      this.localPlayer = null;
+
+      // 이벤트 리스너 제거
+      const eventEmitter = this.scene.registry.get('eventEmitter');
+      eventEmitter.removeListener('PLAYER_DATA_UPDATED', this.updateCharacters);
+    } catch (error) {
+      console.error('PlayerManager destroy error:', error);
+    }
   }
 }

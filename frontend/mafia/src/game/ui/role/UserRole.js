@@ -1,6 +1,12 @@
 export default function showFixedRoleText(scene) {
   const playerInfo = scene.registry.get('playerInfo');
 
+  // 데이터 유효성 검사 추가
+  // if (!gameData || !gameData.result || !gameData.result.myInfo) {
+  //   console.warn('게임 데이터가 아직 로드되지 않았습니다.');
+  //   return null;
+  // }
+
   const roleMapping = {
     ZOMBIE: '감염자',
     MUTANT: '돌연변이',
