@@ -159,7 +159,7 @@
   <tr>
     <td><img src="docs/icons/intellij.png" width="20"/> IntelliJ</td>
     <td><img src="docs/icons/vscode.png" width="20"/> VSCode</td>
-    <td><img src="docs/icons/figma.png" width="20"/> Figmat</td>
+    <td><img src="docs/icons/figma.png" width="20"/> Figma</td>
     <td><img src="docs/icons/git.png" width="20"/> Git</td>
     <td><img src="docs/icons/jira.png" width="20"/> Jira</td>
     <td><img src="docs/icons/notion.png" width="20"/> Notion</td>
