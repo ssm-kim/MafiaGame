@@ -1,192 +1,300 @@
-## 405번째 배포 테스트
+# 1. 서비스 소개
 
-# 서비스 소개
+### 온라인에서도 친구들과 함께, 긴장감 넘치는 생존 게임
 
-**[Web RTC 기반 화상 채팅 마피아 게임]**
+🧟 Naming : "지금 우리 학교는"의 생존 테마와 마피아 게임의 추리 요소를 결합한 웹 기반 마피아 게임
 
-최신 WebRTC 기술을 활용한 혁신적인 마피아 게임을 소개합니다. 전 세계 어디에서나 플레이어들과 실시간으로 소통하며 긴장감 넘치는 심리전을 펼칠 수 있습니다. 이 게임의 주요
-특징은 다음과 같습니다:
+  - 기간: 25.01.13 ~ 25.02.21 (6주)
+  - 인원: 7명(BE_3, FE_4)
 
-**실시간 웹캠/음성 채팅**
+  ### 주요 기능
+  
+**실시간 화상 마피아 🎮**
 
-- WebRTC 기반 실시간 음성 소통으로 몰입감 제공
+- WebRTC 기반 실시간 음성채팅 
+- Redis 기반 게임 진행 관리
+- 직업군별 특수 능력과 투표 시스템
 
-**AI 감정 분석**
+**캐릭터 이동과 상호작용 🏃**
 
-- 실시간 표정 분석 후 이모지로 변환하여 익명성 보장
+- Phaser3 엔진 기반 캐릭터 조작
+- 실시간 위치 공유와 오브젝트 상호작용
+- 직관적인 UI/UX
 
-**다양한 소통 방식**
-
-- 음성 대화와 텍스트 채팅 모두 지원
-
-**편리한 접근성**
-
-- 웹 브라우저 기반으로 별도 설치 없이 즐길 수 있는 직관적인 UI
-
-**캐릭터 조작 게임 진행**
-
-- 캐릭터를 직접 움직이고 상호작용하여 몰입감 있는 플레이를 제공
-
-## 2. 기획 배경
-
-### 배경
-
-기존 온라인 마피아 게임들은 화상, 채팅, 게임 시스템 중 일부 기능만 제공하여 완성도 높은 게임 경험을 제공하지 못했습니다.
-
-### 목표
-
-화상 채팅과 게임 시스템이 통합된 완성도 높은 웹 기반 마피아 게임 구현
-
-### 주요 특징
-
-- 실시간 화상/채팅 기능
-- 랭킹 시스템과 랜덤 매칭
-- 게더타운 형식의 소통 공간
-- 악성 유저 관리 시스템
-
-## 3. 서비스 화면
-
-**메인페이지 시연 순서 → 추후 예정**
-
-# 게임 컨텐츠 소개
+  
+## 📃 문서
+[💻 Notion](https://curvy-tithonia-e7e.notion.site/175592af215280a1816fff4f08dabfef?pvs=4)
 
 ---
 
-### 마피아
+# 2. 🔍 개발 환경
+  
+## 2-1. 기술 스택
 
-**마피아, 시민, 경찰, 의사 네가지 역할로 진행되는 심리 롤플레잉 게임**
+## 🚀 FrontEnd
 
-- **플레이어 수 : 6 - 8명 권장**
-- **게임 시간 : 15 -20 분**
+<table>
+  <tr>
+    <td><img src="docs/icons/javascript.png" width="20"/> JavaScript</td>
+    <td><img src="docs/icons/react.png" width="20"/> React.js</td>
+    <td><img src="docs/icons/phaser.png" width="20"/> Phaser</td>
+  </tr>
+</table>
 
-### 역할 소개 및 분배 ( 8인 기준 )
+## 🚀 BackEnd
 
-1. 마피아(2) : 마피라라는 것을 들키지 않고, 시민(경찰, 의사) 제거
-2. 시민(4) : 마피아로 의심되는 사람을 추리하고 모든 마피아 소탕
-3. 경찰(1) : 밤에 플레이어들의 역할 파악 및 마피아로 의심되는 사람 추측 후 시민이 승리하도록 리드
-4. 의사(1) : 마피아가 죽일 것 같은 사람을 살리고 마피아로 의심되는 사람 추리하여 모든 마피아 소탕
+<table>
+  <tr>
+    <td><img src="docs/icons/java.png" width="20"/> Java</td>
+    <td><img src="docs/icons/springboot.png" width="20"/> SpringBoot</td>
+    <td><img src="docs/icons/hibernate.png" width="20"/> Hibernate</td>
+    <td><img src="docs/icons/openvidu.png" width="20"/> OpenVidu</td>
+    <td><img src="docs/icons/mysql.png" width="20"/> MySQL</td>
+    <td><img src="docs/icons/redis.png" width="20"/> Redis</td>
+  </tr>
+</table>
 
-### 승리 조건
+## 🚀 Infra
 
-마피아 승리 : 생존자 중 마피아와 시민 진영의 수가 같아지면 **마피아팀 승리
-→**  예시 : 생존자가 마피아 2명, 시민 진영 2명이 되는 경우
+<table>
+  <tr>
+    <td><img src="docs/icons/aws.png" width="20"/> AWS</td>
+    <td><img src="docs/icons/docker.jpg" width="20"/> Docker</td>
+    <td><img src="docs/icons/nginx.png" width="20"/> Nginx</td>
+    <td><img src="docs/icons/prometheus.png" width="20"/> Prometheus</td>
+    <td><img src="docs/icons/grafana.png" width="20"/> Grafana</td>
+    <td><img src="docs/icons/jenkins.png" width="20"/> Jenkins</td>
+  </tr>
+</table>
 
-시민(경찰, 의사) 승리 : 모든 마피아 검거 시 **시민팀 승리
-→** 예시 : 마피아 2명을 모두 처형한 경우
 
-### 게임 Rule
+## 2-2. 서비스 아키텍처
+  
+![image](docs/Architecture.png)
 
-1. **낮 (자유 토론)  - 3분**
-    1. 자유롭게 토론 하는 시간
-    2. 이 시간 동안 시민들은 누가 마피아인지 추측하고 논의
-2. **낮 투표 - 30초**
-    1. 마피아로 의심되는 사람 1명 투표
-    2. 최다 득표자가 2명 이상일 경우 재투표 진행
-    3. 과반수 이상 득표를 받은 플레이어만 처형
-    4. 과반수 미달 시 아무도 처형되지 않음
-3. **최후 변론 - 30초**
-    1. 처형 대상자의 최후 변론 후 최종 투표 진행 (찬/반)
-    2. 과반수가 반대할 경우 처형 취소
-4. **밤 - 30초**
-    1. **모든 플레이어가 잠든 시간 (역할별 행동 순차 진행)**
-    2. **마피아**: 조용히 시민 한 명 제거 (마피아끼리 채팅으로 의논 가능)
-    3. **경찰**: 플레이어 한 명의 역할 확인
-    4. **의사**: 마피아가 죽일 것 같은 사람 선택하여 살리기
+## 2-3 ERD
+![image](docs/ERD.png)
 
-### 추가 규칙
+------------------------------------------------------  
 
-1. 죽은 플레이어는 채팅 불가
-2. 밤에는 지목 외 다른 행동 불가
-3. 의사는 본인을 연속으로 2번 치료 불가
+# 3. 🦈 주요 기능
+------------------------------------------------------
+  
+## 3-1. 소셜 & 게스트 로그인
+![mainlogin.webp](docs%2Fmainlogin.webp)
 
-# 4. 프로젝트 진행
+(간편한 로그인 시스템)
 
-<h2>기술 스택</h2>
+- 소셜 로그인 지원 (Kakao)
+- 게스트 로그인으로 빠른 게임 참여
+- 직관적인 로그인 UI/UX
 
-<div align="center">
-  <table>
-    <thead>
-      <tr>
-        <th>FrontEnd</th>
-        <th>BackEnd</th>
-        <th>DB</th>
-        <th>Infra</th>
-        <th>Tools</th>
-        <th>Collaboration</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>
-          <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
-            <li><img src="https://img.icons8.com/color/48/000000/html-5.png" alt="HTML" width="20"/> HTML</li>
-            <li><img src="https://img.icons8.com/color/48/000000/css3.png" alt="CSS" width="20"/> CSS(SCSS)</li>
-            <li><img src="https://img.icons8.com/color/48/000000/javascript.png" alt="JavaScript" width="20"/> JavaScript</li>
-            <li><img src="https://img.icons8.com/officel/48/000000/react.png" alt="React.js" width="20"/> React.js</li>
-            <li><img src="https://img.icons8.com/color/48/000000/python.png" alt="Python" width="20"/> Python</li>
-          </ul>
-        </td>
-        <td>
-          <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
-            <li><img src="https://img.icons8.com/color/48/000000/java-coffee-cup-logo.png" alt="Java" width="20"/> Java</li>
-            <li><img src="icons/springboot.png" alt="SpringBoot" width="20"/> SpringBoot</li>
-            <li><img src="icons/jpa.png" alt="JPA" width="20"/> JPA</li>
-            <li><img src="icons/hibernate.png" alt="Hibernate" width="20"/> Hibernate</li>
-            <li><img src="icons/openvidu.png" alt="OpenVidu" width="20"/> OpenVidu</li>
-          </ul>
-        </td>
-        <td>
-          <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
-            <li><img src="icons/mysql.png" alt="MySQL" width="20"/> MySQL</li>
-            <li><img src="icons/redis.png" alt="Redis" width="20"/> Redis</li>
-          </ul>
-        </td>
-        <td>
-          <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
-            <li><img src="icons/aws.png" alt="AWS" width="20"/> AWS</li>
-            <li><img src="icons/docker.jpg" alt="Docker" width="20"/> Docker</li>
-            <li><img src="icons/nginx.png" alt="Nginx" width="20"/> Nginx</li>
-            <li><img src="icons/prometheus.png" alt="Prometheus" width="20"/> Prometheus</li>
-            <li><img src="icons/grafana.png" alt="Grafana" width="20"/> Grafana</li>
-          </ul>
-        </td>
-        <td>
-          <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
-            <li><img src="icons/intellij.png" alt="AWS" width="20"/> IntelliJ</li>
-            <li><img src="icons/vscode.png" alt="Docker" width="20"/> VS Code</li>
-            <li><img src="icons/figma.png" alt="Docker" width="20"/> Figma</li>
-            <li><img src="icons/git.png" alt="Docker" width="20"/> Git</li>
-          </ul>
-        </td>
-        <td>
-          <ul style="list-style: none; padding-left: 0; margin: 0; text-align: left;">
-            <li><img src="icons/github.png" alt="AWS" width="20"/> Github</li>
-            <li><img src="icons/notion.png" alt="Docker" width="20"/> Notion</li>
-            <li><img src="icons/discord.png" alt="Docker" width="20"/> Discord</li>
-            <li><img src="icons/jira.png" alt="Docker" width="20"/> JIRA</li>
-          </ul>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+## 3-2. 로비 & 방 관리
+![lobbymakeRoom.webp](docs%2FlobbymakeRoom.webp)
 
-## 1. Jira
+(손쉬운 게임 참여와 방 관리 시스템)
 
-**프로젝트 및 이슈 관리를 위한 협업 도구**
+- 실시간 방 목록 확인 및 생성
+- 방 생성 시 게임 옵션 커스텀 설정
+- 인원 수에 따른 방 상태 표시
+- 생존규칙(게임사용법) 확인
 
-- 스프린트 계획 및 진행 상황 관리
-- 백로그 관리 및 작업 분배
-- 이슈 트래킹 및 일정 관리
+## 3-3. 방 입장 & 게임 준비
+![readykick.webp](docs%2Freadykick.webp)
 
-### 2. Notion
+(방장과 참가자들의 게임 준비 시스템)
 
-**데일리 스크럼 , API문서, 발표정리 등 문서들에 대한 저료는 Notion 활용**
+- 방장의 게임 시작/강제퇴장 권한
+- 참가자별 준비 완료 상태 표시
+- 실시간 참가자 목록 업데이트
+- 게임 시작 전 채팅으로 소통
 
-- 팀 문서 작성 및 공유
-- 프로젝트 일정 및 회의록 관리
-- API 문서화 및 기술 문서 작성
+## 3-4. 게임 시작 & 직업 배정
+![게임시작] -> gif 만들기
 
-# 5. 배포
+(긴장감 넘치는 게임시작과 비밀스러운 직업 배정)
 
-# 6. 소감 및 배운점
+- 랜덤 직업 배정 (생존자/감염자/의사)
+- 직업별 특수 능력 안내 (게임사용법 참조)
+- 게임 규칙 알림
+- 밤/낮 사이클 시작
+
+## 3-5. 게임 진행 & 상호작용
+![게임진행] -> gif 만들기
+
+(실시간으로 진행되는 생존과 추리의 현장)
+
+- 실시간 음성 채팅
+- 탑뷰 맵에서 캐릭터 자유 이동
+- 오브젝트와 상호작용
+
+## 3-6. 투표 & 게임 종료
+![투표시스템] -> gif 만들기
+
+(운명을 결정짓는 투표와 게임의 결말)
+
+- 실시간 투표 시스템
+- 직업별 키보드 단축키로 능력 사용
+- 투표 결과에 따른 페이지 및 권한 변경
+- 승리 조건 달성 시 게임 종료
+- 역할군에서 승패 결정
+
+--------------------------
+
+# 4. 🛡 배포
+------------------------------------------------------
+  - https
+    - certbot과 Nginx를 통한 SSL 인증
+    - EC2 제공 도메인 'http://i12D101.p.ssafy.io/' 사용하여 인증
+  - 자동 배포
+    - Gitlab에서 web hook 설정을 통해 jenkins 빌드 유발
+    - jenkins의 shell script 실행 기능을 이용하여 git pull -> merge request -> docker build -> run
+    - Nginx로 reverse proxy 설정
+    
+--------------------------
+
+# 5. 🛠  Tools
+------------------------------------------------------
+<table>
+  <tr>
+    <td><img src="docs/icons/intellij.png" width="20"/> IntelliJ</td>
+    <td><img src="docs/icons/vscode.png" width="20"/> VSCode</td>
+    <td><img src="docs/icons/figma.png" width="20"/> Figmat</td>
+    <td><img src="docs/icons/git.png" width="20"/> Git</td>
+    <td><img src="docs/icons/jira.png" width="20"/> Jira</td>
+    <td><img src="docs/icons/notion.png" width="20"/> Notion</td>
+    <td><img src="docs/icons/discord.png" width="20"/> Discord</td>
+  </tr>
+</table>
+
+--------------------------
+
+
+# 6. Ground rule
+--------------------------------------------
+
+  ## 6-1 Commit Convention
+  ```
+
+커밋 메시지는 아래 규칙을 따릅니다.
+
+### 커밋 메시지 구조
+
+### Type
+- `feat` : 새로운 기능 추가/수정/삭제
+- `fix` : 버그, 오류 해결
+- `refact` : 코드 리팩토링 (기능 변경 없음)
+- `docs` : 문서 수정 (README 등)
+- `test` : 테스트 코드 관련
+- `chore` : 빌드, 설정 파일 수정
+- `build` : 라이브러리 추가/삭제
+- `!HOTFIX` : 긴급 버그 수정
+
+
+### 예시
+- feat : 로그인 기능 구현
+- fix : 로그인 validation 오류 수정
+- refact : 중복 코드 제거
+- docs : README 업데이트
+- test : 로그인 테스트 코드 추가
+- chore : package.json 수정
+- build : axios 라이브러리 추가
+- !HOTFIX : 서버 연결 오류 긴급 수정
+
+### 규칙
+- type은 영어로, 설명은 한글로 작성
+- subject는 50자 이내로 작성
+- 마침표 사용하지 않음
+
+  ```
+
+  ## 6-2 MR Template
+  ```
+
+### 📋 기본 정보
+**브랜치**
+`feature_room` → `dev_BE`
+
+**타입**
+- [ ] Feat (기능 추가/수정)
+- [ ] Fix (버그 수정)
+- [ ] Refactor (코드 리팩토링)
+- [ ] Test (테스트 코드)
+
+### ✨ 변경 사항
+- 구현 내용 요약
+- 주요 변경점 기술
+
+### ✅ 테스트
+- [ ] 로컬 테스트 완료
+- [ ] API 테스트 완료
+
+### 👥 리뷰 프로세스
+1. Assignee가 MR 생성 후 Reviewer 지정
+2. Reviewer 코드 리뷰 진행
+  - Approve: MR 승인
+  - Request changes: 수정 필요
+3. 수정 요청 시:
+  - 코드 수정 후 재push
+  - 수정 완료 댓글 작성
+  - Reviewer 재검토 요청
+4. 최종 승인 시 merge 진행
+
+```
+
+  ## 6-3 Code Convention (Google Java Style Guide 기반)
+  ```
+
+### 기본 원칙
+- 가독성을 최우선으로 합니다
+- 일관된 코드 스타일을 유지합니다
+- IntelliJ 자동 포매팅을 활용합니다
+
+### 주요 규칙
+
+**1. 파일 형식**
+- 인코딩: UTF-8
+- 들여쓰기: 4칸 공백
+- 최대 줄 길이: 100자
+
+**2. 네이밍**
+- 클래스: PascalCase (`MyClass`)
+- 변수/메소드: camelCase (`myVariable`)
+- 상수: UPPER_SNAKE_CASE (`MAX_COUNT`)
+
+**3. 코드 포맷팅**
+- 중괄호는 같은 줄에 시작 (`if (condition) {`)
+- 연산자 앞뒤 공백 필수 (`a + b`)
+- 콤마 뒤 공백 필수 (`method(a, b)`)
+
+### IntelliJ 설정 방법
+1. Settings > Code Style > Java
+2. Scheme > Import Scheme > Google Style
+3. Actions on Save > Reformat Code 체크
+
+자동 포매팅 단축키: 
+- Windows: `Ctrl + Alt + L`
+- Mac: `Command + Option + L`
+
+  ```
+
+--------------------------------------------
+
+
+# 7. 👨‍👩‍👧‍👦 팀원 소개
+------------------------------------------------------
+# 팀원 역할 및 담당
+
+| 김성민 | 배준영 | 양대원 | 전준표 | 김진우 | 이성욱 | 정해빈 |
+| ----- | ------ | ----- | ------ | ----- | ------ | ------ |
+| <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a>
+
+| Contributors | Role | Position |
+| ------------ | ---- | -------- |
+| 김성민 | 팀장, <br /> Backend | - 유저 플로우 작성 <br> |
+| 배준영 | 팀원, <br /> Backend | - 유저 플로우 작성 <br> |
+| 양대원 | 팀원, <br /> Backend Lead | - 유저 플로우 작성 <br> |
+| 전준표 | 팀원, <br /> Frontend Lead | - 유저 플로우 작성 <br> |
+| 김진우 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
+| 이성욱 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
+| 정해빈 | 팀원, <br /> Frontend, <br /> 서기 | 유저 플로우 작성 <br>
