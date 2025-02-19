@@ -41,4 +41,17 @@ export default function sceneChanger(scene) {
       console.error('Error parsing JSON:', error);
     }
   });
+
+  scene.events.on('shutdown', () => {
+    // BGM 정리
+    if (scene.bgmController) {
+        scene.bgmController.stop();
+    }
+    if (scene.registry.get('currentBGM')) {
+        scene.registry.get('currentBGM').stop();
+        scene.registry.remove('currentBGM');
+    }
+    
+    eventEmitter.removeAllListeners();
+  });
 }

@@ -6,6 +6,7 @@ import { resetVoteSelection, highlightVoteSelection } from '@/game/utils/voteUti
 import createVoteContainer from '@/game/ui/vote/VoteContainer';
 import sceneChanger from '@/game/utils/sceneChange';
 import showFixedRoleText from '@/game/ui/role/UserRole';
+import BGMController from '@/game/utils/BGMController';
 // import { sceneTimeout } from '@/game/utils/time';
 
 export default class VoteScene extends Phaser.Scene {
@@ -30,6 +31,9 @@ export default class VoteScene extends Phaser.Scene {
     this.scale.on('resize', this.resize, this);
     this.cameras.main.fadeIn(400);
     this.voteResult();
+    // bgm
+    this.bgmController = new BGMController(this);
+    this.bgmController.playBGM('vote_bgm');
     sceneChanger(this);
   }
 
@@ -247,5 +251,23 @@ export default class VoteScene extends Phaser.Scene {
     if (progress > 0.6) return 0x00ff00;
     if (progress > 0.3) return 0xffff00;
     return 0xff0000;
+  }
+
+  shutdown() {
+    if (this.bgmController) {
+        this.bgmController.stop();
+    }
+    // 추가적인 정리
+    if (this.registry.get('currentBGM')) {
+        this.registry.get('currentBGM').stop();
+        this.registry.remove('currentBGM');
+    }
+  }
+  
+  destroy() {
+    if (this.bgmController) {
+        this.bgmController.stop();
+    }
+    super.destroy();
   }
 }
