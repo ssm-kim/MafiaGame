@@ -35,8 +35,6 @@
 
 <table>
   <tr>
-    <td><img src="docs/icons/html.png" width="20"/> HTML</td>
-    <td><img src="docs/icons/css.png" width="20"/> CSS(SCSS)</td>
     <td><img src="docs/icons/javascript.png" width="20"/> JavaScript</td>
     <td><img src="docs/icons/react.png" width="20"/> React.js</td>
     <td><img src="docs/icons/phaser.png" width="20"/> Phaser</td>
