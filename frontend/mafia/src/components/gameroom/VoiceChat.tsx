@@ -1,12 +1,5 @@
 import { useEffect, useState } from 'react';
-import { OpenVidu, Publisher, Session, Stream } from 'openvidu-browser';
-
-// Stream 타입 확장
-interface ExtendedStream extends Stream {
-  getAudioTracks: () => MediaStreamTrack[];
-  isPublished?: boolean;
-  publishAudio?: boolean;
-}
+import { OpenVidu, Publisher, Session } from 'openvidu-browser';
 
 interface VoiceChatProps {
   roomId: string | number;
@@ -35,38 +28,44 @@ interface VoiceChatProps {
   } | null;
 }
 
-// MediaStreamTrack 타입 정의
-interface MediaStreamTrack {
-  enabled: boolean;
-  muted: boolean;
-  readyState: string;
-  label: string;
-}
-
 function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProps) {
   const [session, setSession] = useState<Session | null>(null);
   const [publisher, setPublisher] = useState<Publisher | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
 
-  // 마이크 상태 체크 함수
   const checkAudioTracks = (pub: Publisher) => {
-    const stream = pub.stream as ExtendedStream;
-    const audioTracks = stream?.getAudioTracks();
-    console.log('Audio Tracks:', {
-      count: audioTracks?.length,
-      tracks: audioTracks?.map((track: MediaStreamTrack) => ({
-        enabled: track.enabled,
-        muted: track.muted,
-        readyState: track.readyState,
-        label: track.label,
-      })),
-    });
-    return (
-      audioTracks?.some(
-        (track: MediaStreamTrack) => track.enabled && track.readyState === 'live',
-      ) ?? false
-    );
+    try {
+      // OpenVidu의 Stream 객체인 경우
+      if (pub.stream?.audioActive !== undefined) {
+        console.log('OpenVidu Stream audio status:', {
+          audioActive: pub.stream.audioActive,
+          streamId: pub.stream.streamId,
+        });
+        return pub.stream.audioActive;
+      }
+
+      // MediaStream 타입으로 직접 접근 시도
+      if (pub.stream instanceof MediaStream) {
+        const audioTracks = pub.stream.getAudioTracks();
+        console.log('MediaStream Audio Tracks:', {
+          count: audioTracks?.length,
+          tracks: audioTracks?.map((track) => ({
+            enabled: track.enabled,
+            muted: track.muted,
+            readyState: track.readyState,
+            label: track.label,
+          })),
+        });
+        return audioTracks?.some((track) => track.enabled && track.readyState === 'live') ?? false;
+      }
+
+      console.log('Unknown stream type:', pub.stream);
+      return false;
+    } catch (error) {
+      console.error('Error checking audio tracks:', error);
+      return false;
+    }
   };
 
   useEffect(() => {
@@ -103,6 +102,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
           const session = OV.initSession();
           console.log('Session initialized');
 
+          // 스트림 생성 이벤트 핸들러
           session.on('streamCreated', (event) => {
             console.log('Stream created event:', {
               stream: event.stream,
@@ -166,24 +166,16 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
               mirror: false,
             });
 
-            const stream = publisher.stream as ExtendedStream;
             console.log('Publisher created, checking audio status:', {
               hasAudioTrack: checkAudioTracks(publisher),
-              publishAudio: stream
-                ?.getAudioTracks()
-                ?.some((track: MediaStreamTrack) => track.enabled),
-              audioState: stream
-                ?.getAudioTracks()
-                ?.map((track: MediaStreamTrack) => track.readyState),
+              audioActive: publisher.stream?.audioActive,
+              streamId: publisher.stream?.streamId,
             });
 
             await session.publish(publisher);
-            console.log('Stream published successfully');
-
-            console.log('Final publisher state:', {
-              isPublished: stream.isPublished,
-              audioTracks: stream.getAudioTracks().length,
-              publishAudio: stream.publishAudio,
+            console.log('Stream published successfully:', {
+              audioActive: publisher.stream?.audioActive,
+              streamId: publisher.stream?.streamId,
             });
 
             setPublisher(publisher);
@@ -228,14 +220,10 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 
   useEffect(() => {
     if (publisher && gameState?.myInfo) {
-      const stream = publisher.stream as ExtendedStream;
       console.log('Player state changed:', {
         muteMic: gameState.myInfo.muteMic,
         isDead: gameState.myInfo.isDead,
-        currentAudioState: stream?.getAudioTracks()?.map((track: MediaStreamTrack) => ({
-          enabled: track.enabled,
-          readyState: track.readyState,
-        })),
+        audioActive: publisher.stream?.audioActive,
       });
 
       if (gameState.myInfo.muteMic || gameState.myInfo.isDead) {
@@ -258,26 +246,17 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
   const toggleMute = () => {
     if (publisher && !gameState.myInfo?.muteMic && !gameState.myInfo?.isDead) {
       const newMuteState = !isMuted;
-      const stream = publisher.stream as ExtendedStream;
       console.log('Toggling mute state:', {
         newState: newMuteState,
-        currentAudioTracks: stream?.getAudioTracks()?.map((track: MediaStreamTrack) => ({
-          enabled: track.enabled,
-          readyState: track.readyState,
-        })),
+        currentAudioActive: publisher.stream?.audioActive,
       });
 
       publisher.publishAudio(!newMuteState);
       setIsMuted(newMuteState);
 
       setTimeout(() => {
-        const stream = publisher.stream as ExtendedStream;
         console.log('Post-toggle audio state:', {
-          publisherAudio: stream?.publishAudio,
-          audioTracks: stream?.getAudioTracks()?.map((track: MediaStreamTrack) => ({
-            enabled: track.enabled,
-            readyState: track.readyState,
-          })),
+          audioActive: publisher.stream?.audioActive,
         });
       }, 100);
     }
