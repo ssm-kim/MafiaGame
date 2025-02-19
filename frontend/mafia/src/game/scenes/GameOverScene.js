@@ -12,7 +12,7 @@ export default class GameOverScene extends Phaser.Scene {
   // Scene이 초기화될 때 호출되는 메서드
   init(data) {
     console.log(data);
-    this.gameResult = 'MUTANT_WIN'; // 게임 결과를 'MUTANT_WIN'으로 설정 (테스트용)
+    this.gameResult = data; // 게임 결과를 'MUTANT_WIN'으로 설정 (테스트용)
   }
 
   // 필요한 리소스를 로드하는 메서드
@@ -33,6 +33,17 @@ export default class GameOverScene extends Phaser.Scene {
     this.background.setDisplaySize(width, height);
     this.background.setName('background');
 
+    this.overlay = this.add.rectangle(
+      0,
+      0,
+      this.cameras.main.width,
+      this.cameras.main.height,
+      0x000000,
+    );
+    this.overlay.setOrigin(0);
+    this.overlay.setAlpha(0.6);
+    this.overlay.setDepth(1);
+
     this.checkGameStatus(); // 게임 상태 확인
     this.scale.on('resize', this.resize, this); // 화면 크기 변경 시 처리
   }
@@ -52,6 +63,19 @@ export default class GameOverScene extends Phaser.Scene {
 
     if (this.players && this.gameResult) {
       this.createPlayerList(); // 플레이어 목록 생성
+    }
+
+    // overlay 크기도 조정
+    if (this.overlay) {
+      this.overlay.setSize(width, height);
+    }
+
+    if (this.victoryText) {
+      this.victoryText.setPosition(width / 2, height / 2 - 100);
+    }
+
+    if (this.players && this.gameResult) {
+      this.createPlayerList();
     }
   };
 
@@ -98,8 +122,15 @@ export default class GameOverScene extends Phaser.Scene {
 
   // 게임 종료 화면 생성
   createGameOverScreen() {
-    this.createVictoryText(this.gameResult); // 승리 텍스트 생성
-    this.createPlayerList(); // 플레이어 목록 생성
+    // UI 요소들의 depth를 overlay보다 높게 설정
+    this.createVictoryText(this.gameResult);
+    if (this.victoryText) {
+      this.victoryText.setDepth(3);
+    }
+    this.createPlayerList();
+    if (this.playerInfoGroup) {
+      this.playerInfoGroup.setDepth(3);
+    }
   }
 
   // 승리 텍스트 생성
@@ -275,6 +306,9 @@ export default class GameOverScene extends Phaser.Scene {
     }
     if (this.victoryText) {
       this.victoryText.destroy(); // 승리 텍스트 삭제
+    }
+    if (this.overlay) {
+      this.overlay.destroy();
     }
     this.clearZombieImages(); // 좀비 이미지 삭제
     this.scale.off('resize', this.resize); // 화면 크기 변경 이벤트 해제
