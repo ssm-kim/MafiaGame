@@ -1,14 +1,34 @@
-import getRandomCharacter from '@/game/utils/character';
-import getRandomRole from '@/game/utils/testRole';
-import BaseScene from '@/game/scenes/BaseScene';
+import Phaser from 'phaser';
+import sceneChanger from '@/game/utils/sceneChange';
+import getGameData from '@/game/utils/gameData';
 
-export default class PreLoaderScene extends BaseScene {
+export default class SceneManager extends Phaser.Scene {
   constructor() {
-    super({ key: 'LoadingScene' });
+    super({ key: 'SceneManager' });
+  }
+
+  init() {
+    this.roomId = this.registry.get('roomId');
+    this.userId = this.registry.get('userId');
+    getGameData(this);
+    // 플레이어 정보 초기화
+    const randomCharacter = `character${Math.floor(Math.random() * 5) + 1}`;
+    const playerInfo = {
+        nickname: this.registry.get('nickname'),
+        character: randomCharacter,
+        // 다른 필요한 정보들...
+    };
+    this.registry.set('playerInfo', playerInfo);
+
+    // BGM 음소거 상태 초기화
+    if (this.registry.get('bgmMuted') === undefined) {
+      this.registry.set('bgmMuted', false);
+    }
   }
 
   preload() {
     const assetsBasePath = '/game/images';
+    const bgmassets = '/game/bgms';
     this.load.image('background', `${assetsBasePath}/maps/classroom.png`);
 
     this.load.spritesheet('character1', `${assetsBasePath}/characters/character1.png`, {
@@ -31,6 +51,14 @@ export default class PreLoaderScene extends BaseScene {
       frameWidth: 32,
       frameHeight: 60,
     });
+    this.load.audio('afternoon_bgm', `${bgmassets}/afternoon_bgm.mp3`);
+    this.load.audio('night_bgm', `${bgmassets}/nightscene_bgm.mp3`);
+    this.load.audio('vote_bgm', `${bgmassets}/vote_bgm.mp3`);
+  }
+
+  create() {
+    sceneChanger(this);
+    this.createAnims();
   }
 
   createAnims() {
@@ -63,21 +91,5 @@ export default class PreLoaderScene extends BaseScene {
         repeat: -1,
       });
     }
-  }
-
-  create() {
-    this.createAnims();
-
-    this.registry.set('playerInfo', {
-      nickname: 'user1',
-      role: getRandomRole(),
-      enableVote: true,
-      dead: false,
-      character: getRandomCharacter(),
-    });
-
-    this.registry.set('roomId', 'room1');
-
-    this.scene.start('MainScene');
   }
 }

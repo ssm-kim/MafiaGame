@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { CompatClient } from '@stomp/stompjs';
 import roomApi from '@/api/roomApi';
 import { Room, ParticipantMap } from '@/types/room';
 import { ChatMessage } from '@/types/chat';
@@ -9,6 +10,9 @@ import ChatWindow from '@/components/gameroom/ChatWindow';
 import WaitingRoom from '@/components/gameroom/WaitingRoom';
 import { Player } from '@/types/player';
 import VoiceChat from '@/components/gameroom/VoiceChat';
+import GameComponent from '@/game/GameComponent';
+import useWebSocket from '@/hooks/useWebSocket';
+import api from '@/api/axios';
 
 export interface Participant {
   memberId: number;
@@ -24,7 +28,7 @@ function GameRoom(): JSX.Element {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [newMessage, setNewMessage] = useState('');
+  const [userMessage, setUserMessage] = useState('');
   const [gameState, setGameState] = useState<Room | null>(null);
   const [participantNo, setParticipantNo] = useState<number | null>(null);
   const [participants, setParticipants] = useState<ParticipantMap | null>(null);
@@ -32,8 +36,12 @@ function GameRoom(): JSX.Element {
   const [isHost, setIsHost] = useState(false);
   const [currentNickname, setCurrentNickname] = useState<string>('');
   const [requiredPlayers, setRequiredPlayers] = useState<number>(8);
-  const [currentChatType, setCurrentChatType] = useState<'ROOM' | 'DAY' | 'NIGHT' | 'DEAD'>('ROOM');
-  const stompClientRef = useRef<any>(null);
+
+  const [showGame, setShowGame] = useState(false);
+  const [subscriptions, setSubscriptions] = useState([]);
+
+  const eventEmitter = useRef<Phaser.Events.EventEmitter>(new Phaser.Events.EventEmitter());
+  const webSocket = useWebSocket(roomId);
 
   console.log('Detailed Game State:', {
     roomStatus: gameState?.roomStatus,
@@ -49,6 +57,20 @@ function GameRoom(): JSX.Element {
   });
 
   useEffect(() => {
+    const fetchPlayerNo = async () => {
+      const response = await api.get(`/api/room/${roomId}/enter`);
+
+      const playerNo = response.data.result.myParticipantNo;
+
+      setParticipantNo(playerNo);
+      setIsHost(playerNo === 1);
+    };
+
+    fetchPlayerNo();
+  }, []);
+
+  useEffect(() => {
+    // 닉네임 가져오기
     const fetchNickname = async () => {
       try {
         const response = await axios.get('/api/member');
@@ -63,26 +85,8 @@ function GameRoom(): JSX.Element {
     fetchNickname();
   }, []);
 
-  const handleMessage = (type: string, message: string) => {
-    console.log('Message type:', type);
-    console.log('Raw message:', message);
-    const parsedMessage = JSON.parse(message);
-    console.log('Parsed message:', parsedMessage);
-
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: parsedMessage.messageId || Date.now().toString(),
-        content: parsedMessage.content,
-        senderName: type === 'SYSTEM' ? 'SYSTEM' : parsedMessage.nickname || parsedMessage.sender,
-        timestamp: parsedMessage.sendTime || parsedMessage.timestamp || new Date().toISOString(),
-        type,
-      } as ChatMessage,
-    ]);
-  };
-
   useEffect(() => {
-    if (!participants) return;
+    if (!roomId) return;
 
     const playersList: Player[] = [];
 
@@ -246,36 +250,37 @@ function GameRoom(): JSX.Element {
               });
               console.log('채팅 API 응답:', chatResponse);
 
-              if (chatResponse?.data?.isSuccess) {
-                console.log('채팅 데이터:', chatResponse.data.result);
-                if (Array.isArray(chatResponse.data.result)) {
-                  setMessages(chatResponse.data.result);
-                } else {
-                  console.log('채팅 데이터가 배열이 아님:', chatResponse.data.result);
-                }
-              } else {
-                console.log('채팅 API 실패:', chatResponse?.data);
-              }
-            } catch (error) {
-              console.log('채팅 요청 에러:', error);
-            }
-          } else {
-            navigate('/game-lobby');
-          }
+        console.log(response);
+
+        if (response.data.isSuccess) {
+          const roomInfo = response.data.result;
+          setGameState(roomInfo);
+          setRequiredPlayers(roomInfo.requiredPlayers);
         }
       } catch (error) {
-        console.error('Failed to initialize room:', error);
+        console.error('Failed to fetch room information:', error);
         navigate('/game-lobby');
       }
     };
 
-    initializeRoom();
+    // 이전 채팅 내역 가져오기
+    const fetchChatHistory = async () => {
+      try {
+        const response = await axios.get(`/api/chat`, {
+          params: {
+            gameId: roomId,
+            chatType: 'room', // 소문자로 변경
+            count: 50,
+          },
+        });
 
-    return () => {
-      if (roomSubscription) roomSubscription.unsubscribe();
-      if (chatSubscription) chatSubscription.unsubscribe();
-      window.sessionStorage.removeItem(`room-${roomId}-entered`);
-      roomApi.disconnect();
+        if (response.data.isSuccess) {
+          const chatHistories = chatResponse.data.result;
+          setMessages(chatHistories);
+        }
+      } catch (error) {
+        console.error('Failed to fetch chat histories:', error);
+      }
     };
   }, [roomId, navigate, participantNo]);
 
@@ -338,19 +343,11 @@ function GameRoom(): JSX.Element {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !roomId || !stompClientRef.current) return;
+    if (!userMessage.trim() || !roomId || !webSocket.stompClient?.connected) return;
 
-    stompClientRef.current.send(
-      '/app/chat/send',
-      {},
-      JSON.stringify({
-        gameId: roomId,
-        content: newMessage,
-        chatType: currentChatType,
-      }),
-    );
+    webSocket.chatting.sendMessage(userMessage);
 
-    setNewMessage('');
+    setUserMessage('');
   };
 
   return (
@@ -369,7 +366,18 @@ function GameRoom(): JSX.Element {
 
         <div className="flex h-full gap-4 pt-16">
           <div className="flex-1">
-            {!gameState?.roomStatus ? (
+            {showGame ? (
+              <div className="w-full h-full bg-gray-900 bg-opacity-80 rounded-lg border border-gray-800">
+                <GameComponent
+                  roomId={roomId}
+                  playerNo={participantNo}
+                  stompClient={webSocket.stompClient}
+                  eventEmitter={eventEmitter.current}
+                  setSubscriptions={setSubscriptions}
+                  setShowGame={setShowGame}
+                />
+              </div>
+            ) : (
               <WaitingRoom
                 players={players}
                 isHost={isHost}
@@ -379,6 +387,7 @@ function GameRoom(): JSX.Element {
                 roomId={Number(roomId)}
                 participantNo={participantNo}
               />
+<<<<<<< HEAD
             ) : (
               <div className="w-full h-full bg-gray-900 bg-opacity-80 rounded-lg border border-gray-800">
                 <VoiceChat
@@ -388,14 +397,16 @@ function GameRoom(): JSX.Element {
                   gameState={gameState}
                 />
               </div>
+=======
+>>>>>>> 3392cc9571697a01331f6094773a30bee26ab913
             )}
           </div>
           <ChatWindow
             messages={messages}
-            newMessage={newMessage}
-            onMessageChange={setNewMessage}
+            newMessage={userMessage}
+            onMessageChange={setUserMessage}
             onSendMessage={handleSendMessage}
-            chatType={currentChatType}
+            chatType={webSocket.chatting.chatType}
             currentNickname={currentNickname}
           />
         </div>

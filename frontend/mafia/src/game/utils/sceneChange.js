@@ -1,0 +1,70 @@
+export default function sceneChanger(scene) {
+  const eventEmitter = scene.registry.get('eventEmitter');
+
+  // 이전 phase를 저장할 변수 추가
+  let previousPhase = scene.scene.key;
+
+  const phaseMapping = {
+    DAY_DISCUSSION: 'MainScene',
+    DAY_VOTE: 'VoteScene',
+    DAY_FINAL_STATEMENT: 'StatementScene',
+    DAY_FINAL_VOTE: 'LastVoteScene',
+    NIGHT_ACTION: 'NightScene',
+  };
+
+  scene.events.on('shutdown', () => {
+    eventEmitter.removeAllListeners();
+  });
+
+  eventEmitter.on('SYSTEM_MESSAGE', (data) => {
+    console.log(data);
+
+    if (data.backroom) {
+      const setShowGame = this.registry.get('setShowGame');
+      setShowGame(false);
+    }
+
+    try {
+      if (!data) return;
+
+      if (data.phase && data.time) {
+        scene.registry.set('remainingTime', data.time);
+        // phase가 이전과 다를 때만 scene 변경
+        if (previousPhase !== null && data.phase !== previousPhase) {
+          const newSceneKey = phaseMapping[data.phase];
+          const currentSceneKey = scene.scene.key;
+
+          console.log(`Phase changed from ${previousPhase} to ${data.phase}`);
+          console.log(`Current Scene: ${currentSceneKey}, New Scene: ${newSceneKey}`);
+
+          if (newSceneKey !== currentSceneKey) {
+            eventEmitter.removeAllListeners();
+            scene.scene.stop(currentSceneKey);
+            scene.scene.start(newSceneKey);
+            // 현재 phase를 이전 phase로 저장
+          }
+        }
+        previousPhase = data.phase;
+      }
+
+      if (data.voteresult) {
+        scene.registry.set('voteResult', data.voteresult);
+      }
+    } catch (error) {
+      console.error('Error parsing JSON:', error);
+    }
+  });
+
+  scene.events.on('shutdown', () => {
+    // BGM 정리
+    if (scene.bgmController) {
+        scene.bgmController.stop();
+    }
+    if (scene.registry.get('currentBGM')) {
+        scene.registry.get('currentBGM').stop();
+        scene.registry.remove('currentBGM');
+    }
+    
+    eventEmitter.removeAllListeners();
+  });
+}
