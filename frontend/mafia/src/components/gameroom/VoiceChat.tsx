@@ -18,11 +18,12 @@ interface VoiceChatProps {
       muteMic: boolean;
       openviduToken: string;
     };
-    participant: Record<
-      string,
+    playersInfo: Record<
+      number,
       {
-        isDead?: boolean;
-        role?: string;
+        playerNo: number;
+        nickname: string;
+        isDead: boolean;
       }
     >;
   } | null;
@@ -35,56 +36,108 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
   const [, setConnectionStatus] = useState('disconnected');
 
   useEffect(() => {
+    // 디버깅: 초기 props 확인
+    console.log('VoiceChat Props:', {
+      roomId,
+      participantNo,
+      nickname,
+      gameState: {
+        roomStatus: gameState?.roomStatus,
+        isNight: gameState?.isNight,
+        myInfo: gameState?.myInfo
+          ? {
+              ...gameState.myInfo,
+              openviduToken: !!gameState.myInfo.openviduToken, // 토큰 존재 여부만 표시
+            }
+          : null,
+      },
+    });
+
     // 게임이 시작되었을 때 음성 채팅 초기화 (죽은 사람도 들을 수 있도록)
     if (gameState?.roomStatus === 'PLAYING' && participantNo !== null && gameState.myInfo) {
+      console.log('Initializing voice chat with conditions:', {
+        roomStatus: gameState.roomStatus,
+        participantNo,
+        hasMyInfo: !!gameState.myInfo,
+      });
+
       const initializeVoiceChat = async () => {
         // Early return for type safety
-        if (!gameState.myInfo) return;
+        if (!gameState.myInfo) {
+          console.log('Early return: myInfo is null');
+          return;
+        }
 
         try {
           const OV = new OpenVidu();
           OV.enableProdMode();
           setConnectionStatus('connecting');
+          console.log('OpenVidu instance created');
 
           const token = gameState.myInfo.openviduToken;
           if (!token) {
+            console.error('OpenVidu token not found in myInfo');
             throw new Error('OpenVidu token not found');
           }
+          console.log('OpenVidu token found');
 
           const session = OV.initSession();
+          console.log('Session initialized');
 
           // 다른 참가자의 스트림 구독 (죽은 사람도 들을 수 있음)
           session.on('streamCreated', (event) => {
+            console.log('Stream created event:', {
+              connectionId: event.stream.connection.connectionId,
+              streamId: event.stream.streamId,
+              connectionData: event.stream.connection.data,
+            });
+
             try {
               const streamData = JSON.parse(event.stream.connection.data);
-              console.log(`${streamData.nickname} 음성 채팅 참여`);
+              console.log('Parsed stream data:', streamData);
+              console.log(`${streamData.clientData || 'Unknown user'} 음성 채팅 참여`);
 
               // 밤에는 좀비만 다른 좀비의 음성을 들을 수 있음
-              if (
+              const shouldBlock =
                 gameState.isNight &&
                 !gameState.myInfo?.isDead &&
-                gameState.myInfo?.role !== 'ZOMBIE'
-              ) {
-                return;
-              }
+                gameState.myInfo?.role !== 'ZOMBIE';
 
-              session.subscribe(event.stream, undefined);
+              console.log('Stream subscription check:', {
+                isNight: gameState.isNight,
+                isDead: gameState.myInfo?.isDead,
+                role: gameState.myInfo?.role,
+                shouldBlock,
+              });
+
+              if (!shouldBlock) {
+                session.subscribe(event.stream, undefined);
+                console.log('Subscribed to stream');
+              } else {
+                console.log('Stream blocked due to game rules');
+              }
             } catch (error) {
-              console.error('Error parsing stream data:', error);
+              console.error('Error handling stream:', error);
+              console.log('Raw connection data:', event.stream.connection.data);
               // JSON 파싱 실패해도 일단 구독
               session.subscribe(event.stream, undefined);
+              console.log('Subscribed to stream despite parsing error');
             }
           });
 
           session.on('streamDestroyed', (event) => {
             try {
               const streamData = JSON.parse(event.stream.connection.data);
-              console.log(`${streamData.nickname} 음성 채팅 종료`);
+              console.log('Stream destroyed:', {
+                user: streamData.clientData || 'Unknown user',
+                streamId: event.stream.streamId,
+              });
             } catch (error) {
               console.error('Error parsing stream destroy data:', error);
             }
           });
 
+          console.log('Connecting to session with token length:', token.length);
           await session.connect(token, {
             maxRetries: 3,
             requestTimeout: 8000,
@@ -94,6 +147,11 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 
           // 음성 전송 권한 확인
           const canPublish = !gameState.myInfo.muteMic;
+          console.log('Publishing check:', {
+            canPublish,
+            muteMic: gameState.myInfo.muteMic,
+          });
+
           if (canPublish) {
             const publisher = await OV.initPublisher(undefined, {
               audioSource: undefined,
@@ -109,8 +167,16 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
           }
 
           setSession(session);
+          console.log('Voice chat initialization complete');
         } catch (error) {
           console.error('음성 채팅 초기화 오류:', error);
+          // 에러 상세 정보 출력
+          if (error instanceof Error) {
+            console.error('Error details:', {
+              message: error.message,
+              stack: error.stack,
+            });
+          }
           setConnectionStatus('error');
         }
       };
@@ -121,10 +187,13 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
     return () => {
       if (session) {
         try {
+          console.log('Cleaning up voice chat session');
           if (publisher) {
             session.unpublish(publisher);
+            console.log('Publisher unpublished');
           }
           session.disconnect();
+          console.log('Session disconnected');
           setConnectionStatus('disconnected');
           setSession(null);
           setPublisher(null);
@@ -145,28 +214,50 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
   // 플레이어 상태 변경 감지 (사망, 음소거 등)
   useEffect(() => {
     if (publisher && gameState?.myInfo) {
+      console.log('Player state change detected:', {
+        muteMic: gameState.myInfo.muteMic,
+        isDead: gameState.myInfo.isDead,
+      });
+
       if (gameState.myInfo.muteMic || gameState.myInfo.isDead) {
         session?.unpublish(publisher);
         setPublisher(null);
+        console.log('Publisher removed due to state change');
       }
       setIsMuted(gameState.myInfo.muteMic || gameState.myInfo.isDead);
     }
   }, [gameState?.myInfo, publisher, session]);
 
   if (gameState?.roomStatus !== 'PLAYING' || !gameState.myInfo) {
+    console.log('VoiceChat not rendered:', {
+      roomStatus: gameState?.roomStatus,
+      hasMyInfo: !!gameState?.myInfo,
+    });
     return null;
   }
 
   // 마이크 사용 권한이 없으면 버튼 숨김
   if (gameState.myInfo.muteMic || gameState.myInfo.isDead) {
+    console.log('Mic button hidden:', {
+      muteMic: gameState.myInfo.muteMic,
+      isDead: gameState.myInfo.isDead,
+    });
     return null;
   }
 
   const toggleMute = () => {
+    console.log('Toggle mute clicked:', {
+      currentMuteState: isMuted,
+      hasPublisher: !!publisher,
+      muteMic: gameState.myInfo?.muteMic,
+      isDead: gameState.myInfo?.isDead,
+    });
+
     if (publisher && !gameState.myInfo?.muteMic && !gameState.myInfo?.isDead) {
       const newMuteState = !isMuted;
       publisher.publishAudio(!newMuteState);
       setIsMuted(newMuteState);
+      console.log('Mute state changed to:', newMuteState);
     }
   };
 
@@ -189,7 +280,6 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 }
 
 export default VoiceChat;
-
 // import { useEffect, useState } from 'react';
 // import { OpenVidu, Publisher, Session } from 'openvidu-browser';
 

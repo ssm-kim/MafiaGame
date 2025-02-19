@@ -134,15 +134,14 @@ export const getChatTypeByGameState = (gameState: Room | null, playerId: number)
     return 'ROOM';
   }
 
-  const participant = gameState.participant[playerId];
-  if (!participant) {
+  const playerInfo = gameState.playersInfo[playerId];
+  if (!playerInfo) {
     return 'ROOM';
   }
 
-  if (participant.isDead) {
+  if (playerInfo.isDead) {
     return 'DEAD';
   }
 
-  // isNight가 없는 경우 기본값으로 'DAY' 반환
   return gameState.isNight ? 'NIGHT' : 'DAY';
 };

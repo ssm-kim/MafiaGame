@@ -9,6 +9,12 @@ export interface MyInfo {
   openviduToken: string;
 }
 
+export interface PlayerInfo {
+  playerNo: number;
+  nickname: string;
+  isDead: boolean;
+}
+
 export interface Room {
   roomId: number;
   roomTitle: string;
@@ -22,7 +28,7 @@ export interface Room {
   peopleCnt: number;
   hostId: number;
   hasPassword: boolean;
-  participant: Record<string, Participant>;
+  playersInfo: Record<number, PlayerInfo>; // participant 대신 playersInfo 사용
   isNight?: boolean;
   myInfo?: MyInfo;
 }
@@ -48,7 +54,7 @@ export interface GameStartResponse {
   hostId: number;
   readyCnt: number;
   roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
-  participant: Record<string, Participant>;
+  playersInfo: Record<number, PlayerInfo>;
   gameOption: {
     maxPlayer: number;
     zombie: number;
