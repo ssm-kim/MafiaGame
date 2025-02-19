@@ -16,32 +16,6 @@ export default function sceneChanger(scene) {
     eventEmitter.removeAllListeners();
   });
 
-  // eventEmitter.on('TIME', (data) => {
-  //   try {
-  //     if (!data) return;
-
-  //     scene.registry.set('remainingTime', data.time);
-  //     // phase가 이전과 다를 때만 scene 변경
-  //     if (previousPhase !== null && data.phase !== previousPhase) {
-  //       const newSceneKey = phaseMapping[data.phase];
-  //       const currentSceneKey = scene.scene.key;
-
-  //       console.log(`Phase changed from ${previousPhase} to ${data.phase}`);
-  //       console.log(`Current Scene: ${currentSceneKey}, New Scene: ${newSceneKey}`);
-
-  //       if (newSceneKey !== currentSceneKey) {
-  //         eventEmitter.removeAllListeners();
-  //         scene.scene.stop(currentSceneKey);
-  //         scene.scene.start(newSceneKey);
-  //         // 현재 phase를 이전 phase로 저장
-  //       }
-  //     }
-  //     previousPhase = data.phase;
-  //   } catch (error) {
-  //     console.error('Error parsing JSON:', error);
-  //   }
-  // });
-
   eventEmitter.on('SYSTEM_MESSAGE', (data) => {
     console.log(data);
 
@@ -54,6 +28,14 @@ export default function sceneChanger(scene) {
         if (previousPhase !== null && data.phase !== previousPhase) {
           const newSceneKey = phaseMapping[data.phase];
           const currentSceneKey = scene.scene.key;
+
+          const gameData = scene.registry.get('gameData');
+          if (gameData?.result?.gamestatus !== 'PLAYING') {
+            console.log(gameData?.result?.gamestatus);
+            scene.scene.stop(currentSceneKey);
+            scene.scene.start('GameOverScene');
+            return;
+          }
 
           console.log(`Phase changed from ${previousPhase} to ${data.phase}`);
           console.log(`Current Scene: ${currentSceneKey}, New Scene: ${newSceneKey}`);

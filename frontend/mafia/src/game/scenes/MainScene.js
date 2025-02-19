@@ -19,14 +19,12 @@ export default class MainScene extends Phaser.Scene {
 
   init() {
     getGameData(this);
-
-    const playerInfo = this.registry.get('playerInfo');
-
-    console.log(playerInfo);
+    // const playerInfo = this.registry.get('playerInfo');
 
     this.roomId = this.registry.get('roomId');
 
     this.socketService = this.registry.get('socketService');
+
     this.playerManager = new PlayerManager(this);
   }
 

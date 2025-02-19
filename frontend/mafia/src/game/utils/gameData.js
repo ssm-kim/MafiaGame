@@ -10,6 +10,7 @@ const getGameData = async (scene) => {
     const { playersInfo } = response.data.result;
 
     const newPlayerInfo = {
+      ...localPlayerInfo,
       playerNo: localPlayerInfo.playerNo,
       nickname: localPlayerInfo.nickname,
       role: PlayerRole[localPlayerInfo.role],

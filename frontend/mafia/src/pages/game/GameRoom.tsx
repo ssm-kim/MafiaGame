@@ -137,7 +137,7 @@ function GameRoom(): JSX.Element {
   };
 
   useEffect(() => {
-    if (!webSocket.stompClient?.connected || !currentNickname) return;
+    if (!webSocket.stompClient?.connected || !participantNo) return;
 
     // 방 구독
     webSocket.room.subscribeRoom(participantNo, (message, gameStateChanged) => {

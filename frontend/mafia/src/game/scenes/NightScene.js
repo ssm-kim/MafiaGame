@@ -5,8 +5,7 @@ import SkillManager from '@/game/skills/SkillManager';
 import sceneChanger from '@/game/utils/sceneChange';
 import showFixedRoleText from '@/game/ui/role/UserRole';
 import showFixedClock from '@/game/ui/clock/BaseClock';
-
-import getGameData from '@/game/utils/gameData';
+import Player from '@/game/player/Player';
 
 export default class NightScene extends Phaser.Scene {
   constructor() {
@@ -14,6 +13,7 @@ export default class NightScene extends Phaser.Scene {
   }
 
   init() {
+    this.targetPlayers = [];
     this.gameData = this.registry.get('gameData');
     this.playerInfo = this.registry.get('playerInfo');
     this.socketService = this.registry.get('socketService');
@@ -36,6 +36,30 @@ export default class NightScene extends Phaser.Scene {
   }
 
   create() {
+    const localPlayerInfo = this.registry.get('playerInfo');
+    const playersInfo = this.registry.get('playersInfo');
+    let x = 125;
+
+    Object.values(playersInfo).forEach((player) => {
+      if (player.playerNo === localPlayerInfo.playerNo) return;
+
+      const newPlayerData = {
+        isLocal: false,
+        nickname: player.dead ? '사망자' : player.nickname,
+        character: `character${(player.playerNo % 4) + 1}`,
+        x,
+        y: 0,
+        // y: player.playerNo > 4 ? 444 : 222,
+      };
+
+      x += 125;
+
+      const targetPlayer = new Player(this, newPlayerData);
+      targetPlayer.playerNo = player.playerNo;
+
+      this.targetPlayers.push(targetPlayer);
+    });
+
     // Light2D 파이프라인 활성화 및 주변광 설정
     this.lights.enable();
     this.lights.setAmbientColor(0x000000); // 완전한 어둠
@@ -169,12 +193,6 @@ export default class NightScene extends Phaser.Scene {
 
   setupManagers() {
     this.playerManager = new PlayerManager(this, this.playerInfo);
-
-    // // 모든 플레이어의 애니메이션 재설정
-    // this.playerManager.players.forEach(player => {
-    //   player.anims = this.anims;
-    // });
-
     this.skillManager = new SkillManager(this);
   }
 
@@ -199,9 +217,9 @@ export default class NightScene extends Phaser.Scene {
     let nearest = null;
     let minDistance = 100;
 
-    this.playerManager.players.forEach((player, playerId) => {
+    this.targetPlayers.forEach((player, playerId) => {
       // 더 엄격한 자기 자신 체크
-      if (playerId === this.playerInfo.playerId || player === localPlayer) {
+      if (player.playerNo === this.playerInfo.playerId || player === localPlayer) {
         return;
       }
 
@@ -212,7 +230,7 @@ export default class NightScene extends Phaser.Scene {
         player.y,
       );
 
-      console.log(`Distance to player ${playerId}: ${distance}`);
+      console.log(`Distance to player ${player.playerNo}: ${distance}`);
 
       if (distance < minDistance) {
         minDistance = distance;

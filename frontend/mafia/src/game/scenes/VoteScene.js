@@ -5,7 +5,6 @@ import sceneChanger from '@/game/utils/sceneChange';
 import showFixedRoleText from '@/game/ui/role/UserRole';
 import CitizenRole from '@/game/ui/role/CitizenRole';
 import getGameData from '@/game/utils/gameData';
-import MafiaRole from '@/game/ui/role/MafiaRole';
 
 export default class VoteScene extends Phaser.Scene {
   constructor() {
@@ -22,14 +21,6 @@ export default class VoteScene extends Phaser.Scene {
   }
 
   assignRoles() {
-    const gameData = this.registry.get('gameData');
-    const { role } = gameData.result.myInfo;
-
-    if (role !== 'ZOMBIE') {
-      // 특수 역할 UI 생성
-      this.role = new CitizenRole(this);
-    } else {
-      this.role = new MafiaRole(this);
-    }
+    this.role = new CitizenRole(this);
   }
 }

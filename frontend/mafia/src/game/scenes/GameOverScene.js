@@ -50,12 +50,7 @@ export default class GameOverScene extends Phaser.Scene {
   };
 
   checkGameStatus() {
-    const dummyData = {
-      isSuccess: true,
-      result: {
-        status: 'ZOMBIE_WIN',
-      },
-    };
+    this.gameData = this.registry.get('gameData');
 
     const dummyPlayers = [
       { nickname: '플레이어1', role: '감염자' },
@@ -68,15 +63,15 @@ export default class GameOverScene extends Phaser.Scene {
       { nickname: '플레이어8', role: '생존자' },
     ];
 
-    if (dummyData.isSuccess) {
-      this.gameResult = dummyData.result;
+    if (this.gameData.isSuccess) {
+      this.gameResult = this.gameData.result;
       this.players = dummyPlayers;
       this.createGameOverScreen();
     }
   }
 
   createGameOverScreen() {
-    this.createVictoryText(this.gameResult.status);
+    this.createVictoryText(this.gameData.status);
     this.createPlayerList();
   }
 

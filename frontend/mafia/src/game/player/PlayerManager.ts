@@ -81,6 +81,8 @@ export default class PlayerManager {
   }
 
   createLocalPlayer() {
+    if (this.localPlayerInfo.dead) return;
+
     if (!this.localPlayerInfo.character) {
       console.warn('Character not specified, using default');
       this.localPlayerInfo.character = 'character1';
