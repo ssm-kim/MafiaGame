@@ -96,12 +96,12 @@ export default class BaseRole {
   // 플레이어 버튼 생성 (조건만 자식 클래스에서 오버라이드)
   createPlayerButtons() {
     this.gameObjects.playerButtons = [];
-    const maxButtons = 9; // 버튼은 9개 고정
+    const maxButtons = 9;
     const gameData = this.scene.registry.get('gameData');
 
     for (let i = 0; i < maxButtons; i++) {
       const playerNumber = i + 1;
-      const player = gameData.result.playersInfo[playerNumber] || null; // 플레이어 없으면 null
+      const player = gameData.result.playersInfo[playerNumber] || null;
 
       const button = this.scene.rexUI.add.roundRectangle(
         0,
@@ -109,10 +109,13 @@ export default class BaseRole {
         160,
         50,
         7,
-        player ? this.getButtonColor(player) : 0x2c2c32, // 플레이어 있으면 색상 적용, 없으면 회색
+        player ? this.getButtonColor(player) : 0x2c2c32,
       );
 
-      const text = this.scene.add
+      // Create container for nickname and counter
+      const textContainer = this.scene.add.container(0, 0);
+
+      const nicknameText = this.scene.add
         .text(0, 0, player ? player.nickname : '', {
           fontFamily: 'BMEuljiro10yearslater',
           fontSize: '22px',
@@ -120,16 +123,32 @@ export default class BaseRole {
         })
         .setOrigin(0.5);
 
+      const counterText = this.scene.add
+        .text(0, 0, '', {
+          fontFamily: 'BMEuljiro10yearslater',
+          fontSize: '18px',
+          fill: '#FFD700',
+        })
+        .setOrigin(0, 0.5);
+
+      textContainer.add([nicknameText, counterText]);
+
       if (player && this.isPlayerSelectable(player)) {
-        this.addButtonInteractivity(button, text, player);
+        this.addButtonInteractivity(button, textContainer, player);
       }
 
-      this.gameObjects.playerButtons.push({ button, text, index: i, player });
+      this.gameObjects.playerButtons.push({
+        button,
+        textContainer,
+        nicknameText,
+        counterText,
+        index: i,
+        player,
+      });
     }
   }
 
-  // 버튼 상호작용 추가
-  addButtonInteractivity(button, text, player) {
+  addButtonInteractivity(button, textContainer, player) {
     button
       .setInteractive()
       .on('pointerover', () => {
@@ -143,7 +162,7 @@ export default class BaseRole {
         }
       })
       .on('pointerdown', () => {
-        this.handlePlayerSelection(player.playerNo, button, text, player.role);
+        this.handlePlayerSelection(player.playerNo, button, textContainer, player.role);
       });
   }
 
@@ -258,21 +277,26 @@ export default class BaseRole {
 
     this.gameObjects.title.setPosition(centerX, centerY - modalHeight * 0.35);
 
-    // 플레이어 버튼 위치 업데이트
-    const rows = 3; // 3개의 행 고정
-    const cols = 3; // 3개의 열 고정
+    const rows = 3;
+    const cols = 3;
     const buttonWidth = Math.min(150, (modalWidth - 60) / cols);
     const buttonSpacing = buttonWidth + 20;
 
-    this.gameObjects.playerButtons.forEach(({ button, text, index }) => {
-      const row = Math.floor(index / cols);
-      const col = index % cols;
-      const x = centerX + (col - (cols - 1) / 2) * buttonSpacing;
-      const y = centerY - modalHeight * 0.15 + row * 60;
+    this.gameObjects.playerButtons.forEach(
+      ({ button, textContainer, nicknameText, counterText, index }) => {
+        const row = Math.floor(index / cols);
+        const col = index % cols;
+        const x = centerX + (col - (cols - 1) / 2) * buttonSpacing;
+        const y = centerY - modalHeight * 0.15 + row * 60;
 
-      button.setPosition(x, y).setSize(buttonWidth, 40);
-      text.setPosition(x, y);
-    });
+        button.setPosition(x, y).setSize(buttonWidth, 40);
+        textContainer.setPosition(x, y);
+
+        // Position counter text to the right of nickname
+        const nicknameBounds = nicknameText.getBounds();
+        counterText.setPosition(nicknameBounds.width / 2 + 2, 0);
+      },
+    );
 
     // 액션 버튼 위치 업데이트
     const actionButtonWidth = Math.min(200, modalWidth * 0.8);
@@ -297,21 +321,61 @@ export default class BaseRole {
     this.updatePositions();
   };
 
-  handlePlayerSelection(playerNumber, selectedButton, selectedText) {
-    // const gameData = this.scene.registry.get('gameData');
+  handlePlayerSelection(playerNumber, selectedButton, selectedTextContainer) {
+    const prevSelected = this.selectedPlayer;
 
-    this.gameObjects.playerButtons.forEach(({ button, text, player }) => {
-      if (!player) return; // 🔹 플레이어 없는 버튼은 건너뛰기
+    // Reset previous selection if exists
+    if (prevSelected) {
+      const prevButton = this.gameObjects.playerButtons.find(
+        (btn) => btn.player && btn.player.playerNo === prevSelected,
+      );
+      if (prevButton) {
+        this.selectionCounts[prevSelected] = (this.selectionCounts[prevSelected] || 1) - 1;
+        if (this.selectionCounts[prevSelected] === 0) {
+          prevButton.counterText.setText('');
+        } else {
+          prevButton.counterText.setText(`   ${this.selectionCounts[prevSelected]}`);
+        }
+      }
+    }
 
-      if (this.isPlayerSelectable(player) && this.selectedPlayer !== playerNumber) {
+    // Handle new selection
+    if (prevSelected !== playerNumber) {
+      this.selectedPlayer = playerNumber;
+      this.selectionCounts[playerNumber] = (this.selectionCounts[playerNumber] || 0) + 1;
+      const selectedButtonObj = this.gameObjects.playerButtons.find(
+        (btn) => btn.player && btn.player.playerNo === playerNumber,
+      );
+      if (selectedButtonObj) {
+        selectedButtonObj.counterText.setText(`   ${this.selectionCounts[playerNumber]}`);
+      }
+      selectedButton.setFillStyle(this.getSelectedButtonColor());
+      selectedButtonObj.nicknameText.setColor(this.getSelectedTextColor());
+    } else {
+      // Deselect if clicking the same player
+      this.selectedPlayer = null;
+      selectedButton.setFillStyle(
+        this.getButtonColor(
+          this.gameObjects.playerButtons.find(
+            (btn) => btn.player && btn.player.playerNo === playerNumber,
+          ).player,
+        ),
+      );
+      const selectedButtonObj = this.gameObjects.playerButtons.find(
+        (btn) => btn.player && btn.player.playerNo === playerNumber,
+      );
+      selectedButtonObj.nicknameText.setColor(this.getTextColor(selectedButtonObj.player));
+    }
+
+    // Update all other buttons
+    this.gameObjects.playerButtons.forEach(({ button, nicknameText, player }) => {
+      if (!player || player.playerNo === playerNumber) return;
+
+      if (this.isPlayerSelectable(player)) {
         button.setFillStyle(this.getButtonColor(player));
-        text.setColor(this.getTextColor(player));
+        nicknameText.setColor(this.getTextColor(player));
       }
     });
-
-    this.selectedPlayer = playerNumber;
-    selectedButton.setFillStyle(this.getSelectedButtonColor());
-    selectedText.setColor(this.getSelectedTextColor());
   }
 
   // 정리

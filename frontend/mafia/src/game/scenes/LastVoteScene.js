@@ -154,4 +154,17 @@ export default class LastVoteScene extends Phaser.Scene {
     this.confirmText.setAlpha(0.5);
     this.cancelText.setAlpha(0.5);
   }
+
+  // gameEnd() {
+  //   const eventEmitter = this.registry.get('eventEmitter');
+  //   const currentSceneKey = this.scene.key;
+  //   eventEmitter.on('GAME_END', (data) => {
+  //     try {
+  //       this.scene.stop(currentSceneKey);
+  //       this.scene.start('GameOverScene', data);
+  //     } catch (error) {
+  //       console.error('Error:', error);
+  //     }
+  //   });
+  // }
 }

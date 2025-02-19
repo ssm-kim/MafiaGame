@@ -29,14 +29,6 @@ export default function sceneChanger(scene) {
           const newSceneKey = phaseMapping[data.phase];
           const currentSceneKey = scene.scene.key;
 
-          const gameData = scene.registry.get('gameData');
-          if (gameData?.result?.gamestatus !== 'PLAYING') {
-            console.log(gameData?.result?.gamestatus);
-            scene.scene.stop(currentSceneKey);
-            scene.scene.start('GameOverScene');
-            return;
-          }
-
           console.log(`Phase changed from ${previousPhase} to ${data.phase}`);
           console.log(`Current Scene: ${currentSceneKey}, New Scene: ${newSceneKey}`);
 
