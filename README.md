@@ -108,7 +108,7 @@
 ------------------------------------------------------
   
 ## 3-1. 소셜 & 게스트 로그인
-![mainlogin.webp](docs%2Fmainlogin.webp)
+![mainlogin.webp](docs%2F01_mainlogin.webp)
 
 (간편한 로그인 시스템)
 
@@ -117,7 +117,7 @@
 - 직관적인 로그인 UI/UX
 
 ## 3-2. 로비 & 방 관리
-![lobbymakeRoom.webp](docs%2FlobbymakeRoom.webp)
+![lobbymakeRoom.webp](docs%2F02_lobbymakeRoom.webp)
 
 (손쉬운 게임 참여와 방 관리 시스템)
 
@@ -127,7 +127,7 @@
 - 생존규칙(게임사용법) 확인
 
 ## 3-3. 방 입장 & 게임 준비
-![readykick.webp](docs%2Freadykick.webp)
+![readykick.webp](docs%2F03_readykick.webp)
 
 (방장과 참가자들의 게임 준비 시스템)
 
