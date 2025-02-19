@@ -114,7 +114,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
               const connectionData = event.stream.connection.data;
 
               const closingBraceIndex = connectionData.indexOf('}');
-              const cleanConnectionData = str.substring(0, closingBraceIndex + 1);
+              const cleanConnectionData = connectionData.substring(0, closingBraceIndex + 1);
               console.log(cleanConnectionData);
 
               const streamData =
