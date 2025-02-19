@@ -136,6 +136,8 @@ export default class PlayerManager {
   }
 
   updateCharacters(data) {
+    const sceneKey = this.scene.scene.key;
+    if (sceneKey === 'NightScene') return;
     if (data.playerNo === this.localPlayerInfo.playerNo) return;
 
     const player = this.players.get(data.playerNo);

@@ -31,9 +31,19 @@ interface GameConfigParams {
   roomId: string;
   playerNo: string;
   eventEmitter: Phaser.Events.EventEmitter;
+  setSubscriptions: any;
+  setShowGame: any;
 }
 
-const gameConfig = ({ parent, stompClient, roomId, playerNo, eventEmitter }: GameConfigParams) => ({
+const gameConfig = ({
+  parent,
+  stompClient,
+  roomId,
+  playerNo,
+  eventEmitter,
+  setSubscriptions,
+  setShowGame,
+}: GameConfigParams) => ({
   type: Phaser.WEBGL,
   parent,
   pixelArt: true,
@@ -55,6 +65,8 @@ const gameConfig = ({ parent, stompClient, roomId, playerNo, eventEmitter }: Gam
       game.registry.set('eventEmitter', eventEmitter);
       game.registry.set('roomId', roomId);
       game.registry.set('playerNo', playerNo);
+      game.registry.set('setSubscriptions', setSubscriptions);
+      game.registry.set('setShowGame', setShowGame);
     },
   },
   scene: scenes,

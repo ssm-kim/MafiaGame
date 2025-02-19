@@ -42,6 +42,8 @@ export default class MainScene extends Phaser.Scene {
     sceneChanger(this);
     // 렌더링 최적화
     this.game.renderer.roundPixels = true;
+
+    this.showRole();
   }
 
   update() {
@@ -54,5 +56,42 @@ export default class MainScene extends Phaser.Scene {
   destroy() {
     console.log(this);
     console.log('MAINSCENE DESTROIED');
+  }
+
+  showRole() {
+    const { role } = this.registry.get('playerInfo');
+    const mainCam = this.cameras.main;
+
+    mainCam.fadeIn(1000, 0, 0, 0);
+
+    const overlay = this.add.rectangle(
+      mainCam.width / 2,
+      mainCam.height / 2,
+      mainCam.width,
+      mainCam.height,
+      0x000000,
+    );
+
+    const roleText = this.add
+      .text(mainCam.width / 2, mainCam.height / 2, `당신은 ${role}입니다.`, {
+        font: '28px Arial',
+        fill: role === '감염자' ? '#ff0000' : '#ffffff',
+        align: 'center',
+        padding: { left: 10, right: 10, top: 5, bottom: 5 },
+      })
+      .setOrigin(0.5);
+
+    const container = this.add.container(0, 0, [overlay, roleText]).setDepth(1000);
+
+    this.time.delayedCall(1500, () => {
+      this.tweens.add({
+        targets: container,
+        alpha: 0,
+        duration: 1000,
+        onComplete: () => {
+          container.destroy();
+        },
+      });
+    });
   }
 }

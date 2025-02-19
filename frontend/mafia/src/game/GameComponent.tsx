@@ -10,7 +10,8 @@ interface GameComponentProps {
   playerNo: string;
   stompClient: CompatClient | null;
   eventEmitter: Phaser.Events.EventEmitter;
-  subscribeTopics: any;
+  setSubscriptions: any;
+  setShowGame: any;
 }
 
 function GameComponent({
@@ -18,7 +19,8 @@ function GameComponent({
   playerNo,
   stompClient,
   eventEmitter,
-  subscribeTopics,
+  setSubscriptions,
+  setShowGame,
 }: GameComponentProps) {
   const gameContainer = useRef(null);
   const gameInstance = useRef(null);
@@ -59,6 +61,8 @@ function GameComponent({
         roomId,
         playerNo,
         eventEmitter,
+        setSubscriptions,
+        setShowGame,
       });
 
       gameInstance.current = new Phaser.Game(config);

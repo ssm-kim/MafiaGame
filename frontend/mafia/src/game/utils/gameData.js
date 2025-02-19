@@ -3,10 +3,14 @@ import PlayerRole from '@/types/role';
 
 const getGameData = async (scene) => {
   try {
+    const setSubscriptions = scene.registry.get('setSubscriptions');
+
     const roomId = scene.registry.get('roomId');
     const response = await api.get(`/api/game/${roomId}`);
 
     const localPlayerInfo = response.data.result.myInfo;
+    setSubscriptions(localPlayerInfo.subscriptions);
+
     const { playersInfo } = response.data.result;
 
     const newPlayerInfo = {

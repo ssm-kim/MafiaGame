@@ -36,8 +36,10 @@ function GameRoom(): JSX.Element {
   const [currentNickname, setCurrentNickname] = useState<string>('');
   const [requiredPlayers, setRequiredPlayers] = useState<number>(8);
 
-  const eventEmitter = useRef<Phaser.Events.EventEmitter>(new Phaser.Events.EventEmitter());
+  const [showGame, setShowGame] = useState(false);
+  const [subscriptions, setSubscriptions] = useState([]);
 
+  const eventEmitter = useRef<Phaser.Events.EventEmitter>(new Phaser.Events.EventEmitter());
   const webSocket = useWebSocket(roomId);
 
   useEffect(() => {
@@ -142,6 +144,8 @@ function GameRoom(): JSX.Element {
     // 방 구독
     webSocket.room.subscribeRoom(participantNo, (message, gameStateChanged) => {
       if (gameStateChanged) {
+        setShowGame(true);
+
         setGameState((prevState) => {
           if (!prevState) return null;
           return {
@@ -169,14 +173,14 @@ function GameRoom(): JSX.Element {
   }, [webSocket.isConnected, participantNo]);
 
   useEffect(() => {
-    if (gameState?.roomStatus === 'PLAYING' && gameState.participant[currentNickname]) {
-      const subscriptions = gameState.participant[currentNickname]?.subscriptions || [];
+    // if (gameState?.roomStatus === 'PLAYING' && gameState.participant[currentNickname]) {
+    // const subscriptions = gameState.participant[currentNickname]?.subscriptions || [];
 
-      webSocket.chatting.subscribeTopics(subscriptions, true, (newMessage) => {
-        handleMessage(newMessage);
-      });
-    }
-  });
+    webSocket.chatting.subscribeTopics(subscriptions, true, (newMessage) => {
+      handleMessage(newMessage);
+    });
+    // }
+  }, [subscriptions]);
 
   const handleLeaveRoom = async () => {
     try {
@@ -258,14 +262,15 @@ function GameRoom(): JSX.Element {
 
         <div className="flex h-full gap-4 pt-16">
           <div className="flex-1">
-            {gameState?.roomStatus === 'PLAYING' || gameState?.active ? (
+            {showGame ? (
               <div className="w-full h-full bg-gray-900 bg-opacity-80 rounded-lg border border-gray-800">
                 <GameComponent
                   roomId={roomId}
                   playerNo={participantNo}
                   stompClient={webSocket.stompClient}
                   eventEmitter={eventEmitter.current}
-                  subscribeTopics={webSocket.chatting.subscribeTopics}
+                  setSubscriptions={setSubscriptions}
+                  setShowGame={setShowGame}
                 />
               </div>
             ) : (

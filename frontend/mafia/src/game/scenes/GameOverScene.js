@@ -42,7 +42,7 @@ export default class GameOverScene extends Phaser.Scene {
     );
     this.overlay.setOrigin(0);
     this.overlay.setAlpha(0.6);
-    this.overlay.setDepth(1);
+    this.overlay.setDepth(0);
 
     this.checkGameStatus(); // 게임 상태 확인
     this.scale.on('resize', this.resize, this); // 화면 크기 변경 시 처리

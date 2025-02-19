@@ -19,6 +19,11 @@ export default function sceneChanger(scene) {
   eventEmitter.on('SYSTEM_MESSAGE', (data) => {
     console.log(data);
 
+    if (data.backroom) {
+      const setShowGame = this.registry.get('setShowGame');
+      setShowGame(false);
+    }
+
     try {
       if (!data) return;
 

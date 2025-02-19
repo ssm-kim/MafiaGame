@@ -115,7 +115,7 @@ export default class BaseRole {
       // Create container for nickname and counter
       const textContainer = this.scene.add.container(0, 0);
 
-      const nicknameText = this.scene.add
+      const text = this.scene.add
         .text(0, 0, player ? player.nickname : '', {
           fontFamily: 'BMEuljiro10yearslater',
           fontSize: '22px',
@@ -123,15 +123,7 @@ export default class BaseRole {
         })
         .setOrigin(0.5);
 
-      const counterText = this.scene.add
-        .text(0, 0, '', {
-          fontFamily: 'BMEuljiro10yearslater',
-          fontSize: '18px',
-          fill: '#FFD700',
-        })
-        .setOrigin(0, 0.5);
-
-      textContainer.add([nicknameText, counterText]);
+      textContainer.add([text]);
 
       if (player && this.isPlayerSelectable(player)) {
         this.addButtonInteractivity(button, textContainer, player);
@@ -140,8 +132,7 @@ export default class BaseRole {
       this.gameObjects.playerButtons.push({
         button,
         textContainer,
-        nicknameText,
-        counterText,
+        text,
         index: i,
         player,
       });
@@ -242,6 +233,8 @@ export default class BaseRole {
       button.setFillStyle(0x666666);
       text.setColor('#999999');
     });
+
+    this.gameObjects.actionButton.removeInteractive().setFillStyle(0x666666);
   }
 
   showMessage(text) {
@@ -282,21 +275,15 @@ export default class BaseRole {
     const buttonWidth = Math.min(150, (modalWidth - 60) / cols);
     const buttonSpacing = buttonWidth + 20;
 
-    this.gameObjects.playerButtons.forEach(
-      ({ button, textContainer, nicknameText, counterText, index }) => {
-        const row = Math.floor(index / cols);
-        const col = index % cols;
-        const x = centerX + (col - (cols - 1) / 2) * buttonSpacing;
-        const y = centerY - modalHeight * 0.15 + row * 60;
+    this.gameObjects.playerButtons.forEach(({ button, textContainer, index }) => {
+      const row = Math.floor(index / cols);
+      const col = index % cols;
+      const x = centerX + (col - (cols - 1) / 2) * buttonSpacing;
+      const y = centerY - modalHeight * 0.15 + row * 60;
 
-        button.setPosition(x, y).setSize(buttonWidth, 40);
-        textContainer.setPosition(x, y);
-
-        // Position counter text to the right of nickname
-        const nicknameBounds = nicknameText.getBounds();
-        counterText.setPosition(nicknameBounds.width / 2 + 2, 0);
-      },
-    );
+      button.setPosition(x, y).setSize(buttonWidth, 40);
+      textContainer.setPosition(x, y);
+    });
 
     // 액션 버튼 위치 업데이트
     const actionButtonWidth = Math.min(200, modalWidth * 0.8);
@@ -324,33 +311,14 @@ export default class BaseRole {
   handlePlayerSelection(playerNumber, selectedButton, selectedTextContainer) {
     const prevSelected = this.selectedPlayer;
 
-    // Reset previous selection if exists
-    if (prevSelected) {
-      const prevButton = this.gameObjects.playerButtons.find(
-        (btn) => btn.player && btn.player.playerNo === prevSelected,
-      );
-      if (prevButton) {
-        this.selectionCounts[prevSelected] = (this.selectionCounts[prevSelected] || 1) - 1;
-        if (this.selectionCounts[prevSelected] === 0) {
-          prevButton.counterText.setText('');
-        } else {
-          prevButton.counterText.setText(`   ${this.selectionCounts[prevSelected]}`);
-        }
-      }
-    }
-
     // Handle new selection
     if (prevSelected !== playerNumber) {
       this.selectedPlayer = playerNumber;
-      this.selectionCounts[playerNumber] = (this.selectionCounts[playerNumber] || 0) + 1;
       const selectedButtonObj = this.gameObjects.playerButtons.find(
         (btn) => btn.player && btn.player.playerNo === playerNumber,
       );
-      if (selectedButtonObj) {
-        selectedButtonObj.counterText.setText(`   ${this.selectionCounts[playerNumber]}`);
-      }
       selectedButton.setFillStyle(this.getSelectedButtonColor());
-      selectedButtonObj.nicknameText.setColor(this.getSelectedTextColor());
+      selectedButtonObj.text.setColor(this.getSelectedTextColor());
     } else {
       // Deselect if clicking the same player
       this.selectedPlayer = null;
@@ -364,16 +332,16 @@ export default class BaseRole {
       const selectedButtonObj = this.gameObjects.playerButtons.find(
         (btn) => btn.player && btn.player.playerNo === playerNumber,
       );
-      selectedButtonObj.nicknameText.setColor(this.getTextColor(selectedButtonObj.player));
+      selectedButtonObj.text.setColor(this.getTextColor(selectedButtonObj.player));
     }
 
     // Update all other buttons
-    this.gameObjects.playerButtons.forEach(({ button, nicknameText, player }) => {
+    this.gameObjects.playerButtons.forEach(({ button, text, player }) => {
       if (!player || player.playerNo === playerNumber) return;
 
       if (this.isPlayerSelectable(player)) {
         button.setFillStyle(this.getButtonColor(player));
-        nicknameText.setColor(this.getTextColor(player));
+        text.setColor(this.getTextColor(player));
       }
     });
   }

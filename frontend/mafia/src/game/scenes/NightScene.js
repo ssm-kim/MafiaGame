@@ -6,6 +6,7 @@ import sceneChanger from '@/game/utils/sceneChange';
 import showFixedRoleText from '@/game/ui/role/UserRole';
 import showFixedClock from '@/game/ui/clock/BaseClock';
 import Player from '@/game/player/Player';
+import getGameData from '@/game/utils/gameData';
 
 export default class NightScene extends Phaser.Scene {
   constructor() {
@@ -16,15 +17,14 @@ export default class NightScene extends Phaser.Scene {
     getGameData(this);
     const gameData = this.registry.get('gameData');
     const gameResult = gameData.result.gamestatus; // 게임 상태 확인
-    console.log(gameResult);
 
     if (gameResult !== 'PLAYING') {
       this.scene.start('GameOverScene', gameResult); // 게임 종료 씬으로 이동
     }
+
     this.targetPlayers = [];
     this.gameData = this.registry.get('gameData');
     this.playerInfo = this.registry.get('playerInfo');
-    this.socketService = this.registry.get('socketService');
     this.roomId = this.registry.get('roomId');
 
     // 현재 플레이어 상태 저장
@@ -88,7 +88,7 @@ export default class NightScene extends Phaser.Scene {
       }
     });
 
-    this.time.delayedCall(3000, () => {
+    this.time.delayedCall(2000, () => {
       this.setupInteraction();
       this.setupLighting();
     });
