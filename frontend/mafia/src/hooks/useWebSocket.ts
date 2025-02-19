@@ -16,7 +16,7 @@ const useWebSocket = (roomId: number) => {
     const socket = new WebSocket('ws://localhost:8080/ws-mafia');
     const newStompClient = Stomp.over(() => socket);
 
-    newStompClient.debug = () => {};
+    // newStompClient.debug = () => {};
 
     newStompClient.connect({}, () => {
       setIsConnected(true);

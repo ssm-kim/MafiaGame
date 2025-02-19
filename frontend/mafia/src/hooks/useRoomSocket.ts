@@ -21,14 +21,16 @@ const useRoom = (stompClient: React.MutableRefObject<CompatClient | null>, roomI
     return result;
   };
 
-  const isBanned = (nickname, message) => {
-    const myInfo = Object.values(message).find((p) => p.nickname === nickname);
+  const isBanned = (playerNo, message) => {
+    const myInfo = Object.keys(message).find((key) => {
+      return Number(key) === playerNo;
+    });
 
     return myInfo === undefined;
   };
 
   const subscribeRoom = (
-    nickname,
+    playerNo: number,
     onReceiveMessage: (message, gameStateChanged: boolean) => void,
   ) => {
     stompClient.current?.subscribe(`/topic/room/${roomId}`, (message) => {
@@ -45,7 +47,7 @@ const useRoom = (stompClient: React.MutableRefObject<CompatClient | null>, roomI
         return;
       }
 
-      if (isBanned(nickname, data)) {
+      if (isBanned(playerNo, data)) {
         alert('강제 퇴장 당하였습니다.');
         navigate('/game-lobby');
         return;

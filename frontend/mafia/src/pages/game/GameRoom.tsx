@@ -11,6 +11,7 @@ import WaitingRoom from '@/components/gameroom/WaitingRoom';
 import { Player } from '@/types/player';
 import GameComponent from '@/game/GameComponent';
 import useWebSocket from '@/hooks/useWebSocket';
+import api from '@/api/axios';
 
 export interface Participant {
   memberId: number;
@@ -40,6 +41,19 @@ function GameRoom(): JSX.Element {
   const webSocket = useWebSocket(roomId);
 
   useEffect(() => {
+    const fetchPlayerNo = async () => {
+      const response = await api.get(`/api/room/${roomId}/enter`);
+
+      const playerNo = response.data.result.myParticipantNo;
+
+      setParticipantNo(playerNo);
+      setIsHost(playerNo === 1);
+    };
+
+    fetchPlayerNo();
+  }, []);
+
+  useEffect(() => {
     // 닉네임 가져오기
     const fetchNickname = async () => {
       try {
@@ -62,6 +76,8 @@ function GameRoom(): JSX.Element {
     const fetchRoomInfo = async () => {
       try {
         const response = await roomApi.getRoom(Number(roomId));
+
+        console.log(response);
 
         if (response.data.isSuccess) {
           const roomInfo = response.data.result;
@@ -103,33 +119,18 @@ function GameRoom(): JSX.Element {
 
     const playersList: Player[] = [];
 
-    // nickname으로 현재 플레이어를 찾습니다
-    let currentParticipant;
-    Object.entries(participants).forEach(([_, p]) => {
-      if (p.nickname === currentNickname) {
-        currentParticipant = p;
-      }
-    });
-
-    if (currentParticipant && participantNo === null) {
-      setParticipantNo((currentParticipant as Participant).participantNo);
-      setIsHost((currentParticipant as Participant).participantNo === 1);
-    }
-
     Object.entries(participants).forEach(([id, p]) => {
-      if (p && p.nickname) {
-        playersList.push({
-          id: Number(id),
-          nickname: p.nickname,
-          isHost: p.participantNo === 1,
-          isReady: p.ready || false,
-          participantNo: p.participantNo,
-        });
-      }
+      playersList.push({
+        id: Number(id),
+        nickname: p.nickname,
+        isHost: p.participantNo === 1,
+        isReady: p.ready || false,
+        participantNo: p.participantNo,
+      });
     });
 
     setPlayers(playersList);
-  }, [participants, currentNickname]);
+  }, [participants]);
 
   const handleMessage = (newMessage: ChatMessage) => {
     setMessages((prev) => [...prev, newMessage]);
@@ -139,7 +140,7 @@ function GameRoom(): JSX.Element {
     if (!webSocket.stompClient?.connected || !currentNickname) return;
 
     // 방 구독
-    webSocket.room.subscribeRoom(currentNickname, (message, gameStateChanged) => {
+    webSocket.room.subscribeRoom(participantNo, (message, gameStateChanged) => {
       if (gameStateChanged) {
         setGameState((prevState) => {
           if (!prevState) return null;
@@ -161,12 +162,11 @@ function GameRoom(): JSX.Element {
     // 시스템 채팅 구독
     webSocket.chatting.subscribeSystemChat((message) => {
       eventEmitter.current?.emit('SYSTEM_MESSAGE', message);
-      eventEmitter.current?.emit('TIME', message);
     });
 
     // 방 채팅 구독
     webSocket.chatting.subscribeRoomChat(handleMessage);
-  }, [webSocket.isConnected, currentNickname]);
+  }, [webSocket.isConnected, participantNo]);
 
   useEffect(() => {
     if (gameState?.roomStatus === 'PLAYING' && gameState.participant[currentNickname]) {
@@ -262,7 +262,7 @@ function GameRoom(): JSX.Element {
               <div className="w-full h-full bg-gray-900 bg-opacity-80 rounded-lg border border-gray-800">
                 <GameComponent
                   roomId={roomId}
-                  playerId={participantNo || 1}
+                  playerNo={participantNo}
                   stompClient={webSocket.stompClient}
                   eventEmitter={eventEmitter.current}
                   subscribeTopics={webSocket.chatting.subscribeTopics}

@@ -9,7 +9,8 @@ export default function showFixedRoleText(scene) {
     CITIZEN: '생존자',
   };
 
-  const role = roleMapping[playerInfo.role];
+  console.log(playerInfo);
+  const { role } = playerInfo;
 
   // 역할에 따라 문구 색상 설정
   let textColor;

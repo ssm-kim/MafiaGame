@@ -5,7 +5,7 @@ import GameOverScene from '@/game/scenes/GameOverScene';
 import MainScene from '@/game/scenes/MainScene';
 // import LoadingScene from '@/game/scenes/LoadingScene';
 import StartScene from '@/game/scenes/StartScene';
-import VotedScene from '@/game/scenes/VotedScene';
+import VoteScene from './scenes/VoteScene';
 import StatementScene from '@/game/scenes/StatementScene';
 import LastVoteScene from '@/game/scenes/LastVoteScene';
 import AfternoonScene from '@/game/scenes/AfternoonScene';
@@ -18,7 +18,7 @@ const scenes = [
   StartScene,
   MainScene,
   NightScene,
-  VotedScene,
+  VoteScene,
   StatementScene,
   LastVoteScene,
   GameOverScene,
@@ -29,11 +29,11 @@ interface GameConfigParams {
   parent?: HTMLDivElement;
   stompClient: CompatClient | null;
   roomId: string;
-  playerId: string;
+  playerNo: string;
   eventEmitter: Phaser.Events.EventEmitter;
 }
 
-const gameConfig = ({ parent, stompClient, roomId, playerId, eventEmitter }: GameConfigParams) => ({
+const gameConfig = ({ parent, stompClient, roomId, playerNo, eventEmitter }: GameConfigParams) => ({
   type: Phaser.WEBGL,
   parent,
   pixelArt: true,
@@ -54,7 +54,7 @@ const gameConfig = ({ parent, stompClient, roomId, playerId, eventEmitter }: Gam
       game.registry.set('stompClient', stompClient);
       game.registry.set('eventEmitter', eventEmitter);
       game.registry.set('roomId', roomId);
-      game.registry.set('playerId', playerId);
+      game.registry.set('playerNo', playerNo);
     },
   },
   scene: scenes,

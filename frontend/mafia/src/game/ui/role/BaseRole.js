@@ -1,4 +1,4 @@
-import axios from 'axios';
+import api from '@/api/axios';
 
 export default class BaseRole {
   constructor(scene) {
@@ -6,7 +6,6 @@ export default class BaseRole {
     this.hasVoted = false;
     this.selectedPlayer = null;
     this.gameObjects = {};
-    getGameData(this);
     // 리사이즈 이벤트 리스너 등록
     this.scene.scale.on('resize', this.handleResize, this);
   }
@@ -203,8 +202,10 @@ export default class BaseRole {
 
       // 서버에 투표 정보 전송
       try {
-        const response = await axios.post(
-          `http://localhost:8080/api/game/2/test/vote?playerNo=1&targetNo=${this.selectedPlayer}`,
+        const roomId = this.scene.registry.get('roomId');
+        const playerNo = this.scene.registry.get('playerNo');
+        const response = await api.post(
+          `/api/game/${roomId}/vote?playerNo=${playerNo}&targetNo=${this.selectedPlayer}`,
         );
         // 서버 응답 처리
         console.log('투표 전송 성공:', response.data);

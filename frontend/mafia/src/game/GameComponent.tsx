@@ -7,7 +7,7 @@ import gameConfig from '@/game/gameConfig';
 
 interface GameComponentProps {
   roomId: string;
-  playerId: string;
+  playerNo: string;
   stompClient: CompatClient | null;
   eventEmitter: Phaser.Events.EventEmitter;
   subscribeTopics: any;
@@ -15,7 +15,7 @@ interface GameComponentProps {
 
 function GameComponent({
   roomId,
-  playerId,
+  playerNo,
   stompClient,
   eventEmitter,
   subscribeTopics,
@@ -23,8 +23,6 @@ function GameComponent({
   const gameContainer = useRef(null);
   const gameInstance = useRef(null);
   const [positionSubscription, setPositionSubscription] = useState<StompSubscription | null>(null);
-
-  useEffect(() => {}, []);
 
   const preventClose = (e: BeforeUnloadEvent) => {
     e.preventDefault();
@@ -54,12 +52,12 @@ function GameComponent({
   }, []);
 
   useEffect(() => {
-    if (gameContainer.current && playerId) {
+    if (gameContainer.current && playerNo) {
       const config = gameConfig({
         parent: gameContainer.current,
         stompClient,
         roomId,
-        userId: playerId,
+        playerNo,
         eventEmitter,
       });
 
@@ -69,7 +67,7 @@ function GameComponent({
     return () => {
       gameInstance.current?.destroy(true);
     };
-  }, [gameContainer?.current, playerId]);
+  }, [gameContainer?.current, playerNo]);
 
   useEffect(() => {
     let resizeObserver;
@@ -96,7 +94,7 @@ function GameComponent({
   return (
     <>
       {' '}
-      {playerId ? (
+      {playerNo ? (
         <div
           id="game-container"
           ref={gameContainer}
