@@ -55,24 +55,34 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 
           // 다른 참가자의 스트림 구독 (죽은 사람도 들을 수 있음)
           session.on('streamCreated', (event) => {
-            const streamData = JSON.parse(event.stream.connection.data);
-            console.log(`${streamData.nickname} 음성 채팅 참여`);
+            try {
+              const streamData = JSON.parse(event.stream.connection.data);
+              console.log(`${streamData.nickname} 음성 채팅 참여`);
 
-            // 밤에는 좀비만 다른 좀비의 음성을 들을 수 있음
-            const shouldSubscribe = !(
-              gameState.isNight &&
-              !gameState.myInfo?.isDead &&
-              gameState.myInfo?.role !== 'ZOMBIE'
-            );
+              // 밤에는 좀비만 다른 좀비의 음성을 들을 수 있음
+              if (
+                gameState.isNight &&
+                !gameState.myInfo?.isDead &&
+                gameState.myInfo?.role !== 'ZOMBIE'
+              ) {
+                return;
+              }
 
-            if (shouldSubscribe) {
+              session.subscribe(event.stream, undefined);
+            } catch (error) {
+              console.error('Error parsing stream data:', error);
+              // JSON 파싱 실패해도 일단 구독
               session.subscribe(event.stream, undefined);
             }
           });
 
           session.on('streamDestroyed', (event) => {
-            const streamData = JSON.parse(event.stream.connection.data);
-            console.log(`${streamData.nickname} 음성 채팅 종료`);
+            try {
+              const streamData = JSON.parse(event.stream.connection.data);
+              console.log(`${streamData.nickname} 음성 채팅 종료`);
+            } catch (error) {
+              console.error('Error parsing stream destroy data:', error);
+            }
           });
 
           await session.connect(token, {
@@ -110,13 +120,17 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 
     return () => {
       if (session) {
-        if (publisher) {
-          session.unpublish(publisher);
+        try {
+          if (publisher) {
+            session.unpublish(publisher);
+          }
+          session.disconnect();
+          setConnectionStatus('disconnected');
+          setSession(null);
+          setPublisher(null);
+        } catch (error) {
+          console.error('Error during cleanup:', error);
         }
-        session.disconnect();
-        setConnectionStatus('disconnected');
-        setSession(null);
-        setPublisher(null);
       }
     };
   }, [
