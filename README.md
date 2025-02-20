@@ -7,21 +7,6 @@
 
 
 ------------------------------------------------------
-## 팀원 역할 및 담당
-
-| 김성민 | 배준영 | 양대원 | 전준표 | 김진우 | 이성욱 | 정해빈 |
-| ----- | ------ | ----- | ------ | ----- | ------ | ------ |
-| <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a>
-
-| Contributors | Role | Position |
-| ------------ | ---- | -------- |
-| 김성민 | 팀장, <br /> Backend | - 유저 플로우 작성 <br> |
-| 배준영 | 팀원, <br /> Backend | - 유저 플로우 작성 <br> |
-| 양대원 | 팀원, <br /> Backend Lead | - 유저 플로우 작성 <br> |
-| 전준표 | 팀원, <br /> Frontend Lead | - 유저 플로우 작성 <br> |
-| 김진우 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
-| 이성욱 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
-| 정해빈 | 팀원, <br /> Frontend, <br /> 서기 | 유저 플로우 작성 <br>
 
 
 
@@ -112,7 +97,7 @@
 
 (간편한 로그인 시스템)
 
-- 소셜 로그인 지원 (Kakao)
+- 소셜 로그인 지원
 - 게스트 로그인으로 빠른 게임 참여
 - 직관적인 로그인 UI/UX
 
@@ -137,7 +122,7 @@
 - 게임 시작 전 채팅으로 소통
 
 ## 3-4. 게임 시작 & 직업 배정
-![게임시작] -> gif 만들기
+![게임시작] -> webp 만들기
 
 (긴장감 넘치는 게임시작과 비밀스러운 직업 배정)
 
@@ -147,7 +132,7 @@
 - 밤/낮 사이클 시작
 
 ## 3-5. 게임 진행 & 상호작용
-![게임진행] -> gif 만들기
+![게임진행] -> webp 만들기
 
 (실시간으로 진행되는 생존과 추리의 현장)
 
@@ -156,7 +141,7 @@
 - 오브젝트와 상호작용
 
 ## 3-6. 투표 & 게임 종료
-![투표시스템] -> gif 만들기
+![투표시스템] -> webp 만들기
 
 (운명을 결정짓는 투표와 게임의 결말)
 
@@ -306,3 +291,18 @@
   ```
 
 --------------------------------------------
+## 팀원 역할 및 담당
+
+| 김성민 | 배준영 | 양대원 | 전준표 | 김진우 | 이성욱 | 정해빈 |
+| ----- | ------ | ----- | ------ | ----- | ------ | ------ |
+| <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a>
+
+| Contributors | Role | Position |
+| ------------ | ---- | -------- |
+| 김성민 | 팀장, <br /> Backend | - 유저 플로우 작성 <br> |
+| 배준영 | 팀원, <br /> Backend | - 유저 플로우 작성 <br> |
+| 양대원 | 팀원, <br /> Backend Lead | - 유저 플로우 작성 <br> |
+| 전준표 | 팀원, <br /> Frontend Lead | - 유저 플로우 작성 <br> |
+| 김진우 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
+| 이성욱 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
+| 정해빈 | 팀원, <br /> Frontend, <br /> 서기 | 유저 플로우 작성 <br>

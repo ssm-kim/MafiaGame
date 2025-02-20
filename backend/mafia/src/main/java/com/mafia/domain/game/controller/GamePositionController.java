@@ -5,7 +5,6 @@ import com.mafia.domain.game.model.pos.PlayerPosition;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -26,8 +25,7 @@ public class GamePositionController {
 
     @MessageMapping("/game/{roomId}/pos")
     @SendTo("/topic/game/{roomId}/positions")
-    public PlayerPosition updatePosition(@DestinationVariable Long roomId,
-        PlayerPosition position) {
+    public PlayerPosition updatePosition(PlayerPosition position) {
 
         return position;
     }

@@ -125,6 +125,9 @@ public class RoomWebSocketController {
         roomDbService.isActive(roomId);
 
         boolean isStart = gameService.startGame(roomId);
+        log.info("게임 종료 후 return 값: {} ", objectMapper.writeValueAsString(
+            Map.of("gameStart", String.valueOf(isStart))
+        ));
         return objectMapper.writeValueAsString(
             Map.of("gameStart", String.valueOf(isStart))
         );
