@@ -14,7 +14,8 @@ export default function showFixedClock(scene) {
 
   sceneEventEmitter.on('changedata-remainingTime', (parent, value) => {
     if (!timeText) return;
-    timeText.setText(`남은 시간: ${value}`);
+    const remainingTime = scene.scene.key === 'LastVoteScene' ? value - 5 : value;
+    timeText.setText(`남은 시간: ${remainingTime}`);
   });
 
   scene.events.on('shutdown', () => {

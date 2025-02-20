@@ -122,24 +122,6 @@ export default class SkillManager {
     }
   }
 
-  // showSkillResult(message) {
-  //   const resultText = this.scene.add
-  //     .text(this.scene.cameras.main.centerX, this.scene.cameras.main.centerY - 100, message, {
-  //       fontSize: '24px',
-  //       fill: '#00ff00',
-  //       backgroundColor: 'rgba(0, 0, 0, 0.7)',
-  //       padding: { x: 20, y: 10 },
-  //     })
-  //     .setOrigin(0.5)
-  //     .setScrollFactor(0)
-  //     .setDepth(1002);
-
-  //   this.scene.time.delayedCall(2000, () => {
-  //     resultText.destroy();
-  //   });
-  // }
-
-  // 직업별 이펙트 생성 메서드
   createSkillEffect(role, target) {
     switch (role) {
       case 'ZOMBIE':

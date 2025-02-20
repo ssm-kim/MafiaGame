@@ -37,8 +37,11 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
     }
 
     try {
+      if (playerData.nickname) {
+        this.createNicknameText(playerData.nickname);
+      }
+
       this.setTexture(this.character, Player.TEXTURE_MAPPING[this.lastDirection]);
-      this.createNicknameText(playerData.nickname);
       this.setupPhysics();
       this.createAnimations(); // 애니메이션 초기 생성
 

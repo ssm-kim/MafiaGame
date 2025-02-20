@@ -2,7 +2,6 @@ import Phaser from 'phaser';
 import UIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin';
 import GameOverScene from '@/game/scenes/GameOverScene';
 import MainScene from '@/game/scenes/MainScene';
-import StartScene from '@/game/scenes/StartScene';
 import VoteScene from './scenes/VoteScene';
 import StatementScene from '@/game/scenes/StatementScene';
 import LastVoteScene from '@/game/scenes/LastVoteScene';
@@ -12,7 +11,6 @@ import NightScene from '@/game/scenes/NightScene';
 
 const scenes = [
   SceneManager,
-  // StartScene,
   MainScene,
   NightScene,
   VoteScene,
@@ -33,6 +31,7 @@ const gameConfig = ({
 }) => ({
   type: Phaser.WEBGL,
   parent,
+  pauseOnBlur: false,
   pixelArt: true,
   scale: {
     mode: Phaser.Scale.RESIZE,

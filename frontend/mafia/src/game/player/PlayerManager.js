@@ -1,4 +1,3 @@
-import { CompatClient } from '@stomp/stompjs';
 import Player from '@/game/player/Player';
 
 export default class PlayerManager {
@@ -8,6 +7,12 @@ export default class PlayerManager {
 
     this.players = new Map();
     this.localPlayer = null;
+
+    this.setupPhaserEventListeners();
+
+    if (this.localPlayerInfo.dead) {
+      this.localPlayer = this.createGhostPlayer();
+    }
 
     const previousPlayers = this.scene.registry.get('players');
     if (previousPlayers) {
@@ -22,8 +27,30 @@ export default class PlayerManager {
     } else {
       this.createLocalPlayer();
     }
+  }
 
-    this.setupPhaserEventListeners();
+  createGhostPlayer() {
+    if (!this.localPlayerInfo.dead) return;
+
+    if (!this.localPlayerInfo.character) {
+      console.warn('Character not specified, using default');
+      this.localPlayerInfo.character = 'character1';
+    }
+
+    const data = {
+      ...this.localPlayerInfo,
+      nickname: null,
+      isLocal: true,
+      x: 466,
+      y: 400,
+      velocityX: 0,
+      velocityY: 0,
+      lastDirection: 'down',
+    };
+
+    const player = new Player(this.scene, data);
+    player.setAlpha(0);
+    // this.localPlayer = player;
   }
 
   reinitializePlayer(player) {

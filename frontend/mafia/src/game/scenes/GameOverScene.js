@@ -99,24 +99,26 @@ export default class GameOverScene extends Phaser.Scene {
     if (playersData.isSuccess) {
       this.players = players;
 
-      // playNo가 1인 플레이어가 있는 경우 DELETE 요청을 4초 뒤에 보냄
-      const playerWithPlayNoOne = this.players.find((player) => player.playerNo === 1);
-      console.log(playerWithPlayNoOne);
-      if (playerWithPlayNoOne) {
+      const playerInfo = this.registry.get('playerInfo');
+
+      if (playerInfo.playerNo === 1) {
         const roomId = this.registry.get('roomId');
 
         // 4초 뒤에 DELETE 요청을 보냄
         setTimeout(async () => {
           try {
             await axios.delete(`/api/game/${roomId}`);
-            const setShowGame = this.registry.get('setShowGame');
-            setShowGame();
             console.log('DELETE request sent successfully after 4 seconds');
           } catch (error) {
             console.error('DELETE API request failed:', error);
           }
         }, 5000); // 5000ms = 5초 후에 요청
       }
+
+      setTimeout(() => {
+        const setShowGame = this.registry.get('setShowGame');
+        setShowGame();
+      }, 4500);
 
       this.createGameOverScreen(); // 게임 종료 화면 생성
     }

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import Phaser, { Game } from 'phaser';
 // import SocketService from '@/game/socket/SocketService';
 
-import { CompatClient, StompSubscription } from '@stomp/stompjs';
 import gameConfig from '@/game/gameConfig';
 
 function GameComponent({

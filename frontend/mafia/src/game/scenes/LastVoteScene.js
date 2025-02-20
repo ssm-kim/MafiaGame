@@ -11,9 +11,9 @@ export default class LastVoteScene extends Phaser.Scene {
   }
 
   init() {
+    this.playerInfo = this.registry.get('playerInfo');
     this.hasVoted = false;
     this.voteResult = this.registry.get('voteResult');
-    console.log(this.voteResult);
   }
 
   create() {
@@ -25,9 +25,21 @@ export default class LastVoteScene extends Phaser.Scene {
 
     this.createMainContainer(width, height);
 
+    if (this.playerInfo.dead || this.playerInfo.role === '돌연변이') {
+      this.disableButtons();
+    }
+
     this.scale.on('resize', (gameSize) => {
       this.recreateScene(gameSize.width, gameSize.height);
     });
+  }
+
+  disableButtons() {
+    this.confirmButton.removeInteractive().setFillStyle(0x666666);
+    this.confirmButton.setStrokeStyle(0, 0x666666);
+    this.cancelButton.removeInteractive().setFillStyle(0x666666);
+    this.confirmText.setColor('#999999');
+    this.cancelText.setColor('#999999');
   }
 
   recreateScene(width, height) {

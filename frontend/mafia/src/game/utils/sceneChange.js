@@ -34,6 +34,10 @@ export default function sceneChanger(scene) {
     try {
       if (!data) return;
 
+      if (!data.phase) {
+        console.log(data);
+      }
+
       if (data.phase && data.time) {
         scene.registry.set('remainingTime', data.time);
         // phase가 이전과 다를 때만 scene 변경
@@ -59,15 +63,28 @@ export default function sceneChanger(scene) {
       if (data.death || data.heal) {
         const allDeath = data.death?.split(', ');
 
+        const localPlayerInfo = scene.registry.get('playerInfo');
+
+        if (allDeath.includes(String(localPlayerInfo.playerNo))) {
+          const newLocalPlayerInfo = {
+            ...localPlayerInfo,
+            dead: true,
+          };
+
+          scene.registry.set('playerInfo', newLocalPlayerInfo);
+
+          afternoonMessage = '당신이 사망하였습니다.';
+          scene.registry.set('afternoonMessage', afternoonMessage);
+
+          return;
+        }
+
         if (!allDeath?.length && data.heal) {
-          console.log('의사 살림');
           afternoonMessage = `${playersInfo[data.heal].nickname}님이 의문의 공격을 받았으나\n\n의사가 치료하여 살아남았습니다.`;
         } else if (allDeath?.length === 1) {
-          console.log('1명 사망');
           afternoonMessage = `${playersInfo[allDeath[0]].nickname}님은 의문의 공격을 받아\n\n사망하였습니다.`;
         } else if (allDeath?.length === 2) {
-          console.log('2명 사망');
-          afternoonMessage = `${playersInfo[allDeath[0]].nickname}님과 ${playersInfo[allDeath[1]].nickname}님은 의문의 공격을 받아\n사망하였습니다.`;
+          afternoonMessage = `${playersInfo[allDeath[0]].nickname}님과 ${playersInfo[allDeath[1]].nickname}님은\n\n의문의 공격을 받아 사망하였습니다.`;
         } else {
           afternoonMessage = '밤 사이에 아무 일도 일어나지 않았습니다.';
         }

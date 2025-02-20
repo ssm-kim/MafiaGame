@@ -20,9 +20,7 @@ export default class MainScene extends Phaser.Scene {
     getGameData(this);
 
     this.roomId = this.registry.get('roomId');
-
     this.socketService = this.registry.get('socketService');
-
     this.playerManager = new PlayerManager(this);
   }
 
@@ -32,6 +30,7 @@ export default class MainScene extends Phaser.Scene {
     showFixedClock(this);
     showFixedRoleText(this);
     sceneChanger(this);
+
     // bgm
     this.bgmController = new BGMController(this);
     this.bgmController.playBGM('afternoon_bgm');

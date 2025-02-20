@@ -59,7 +59,7 @@ export default class NightScene extends Phaser.Scene {
     Object.values(playersInfo).forEach((player) => {
       x += 125;
 
-      if (player.playerNo === localPlayerInfo.playerNo) return;
+      if (player.role !== '의사' && player.playerNo === localPlayerInfo.playerNo) return;
 
       const newPlayerData = {
         isLocal: false,
@@ -67,7 +67,6 @@ export default class NightScene extends Phaser.Scene {
         character: `character${(player.playerNo % 4) + 1}`,
         x,
         y: 0,
-        // y: player.playerNo > 4 ? 444 : 222,
       };
 
       const targetPlayer = new Player(this, newPlayerData);

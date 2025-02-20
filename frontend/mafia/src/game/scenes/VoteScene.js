@@ -6,7 +6,6 @@ import showFixedRoleText from '@/game/ui/role/UserRole';
 import CitizenRole from '@/game/ui/role/CitizenRole';
 import getGameData from '@/game/utils/gameData';
 import BGMController from '@/game/utils/BGMController';
-// import { sceneTimeout } from '@/game/utils/time';
 
 export default class VoteScene extends Phaser.Scene {
   constructor() {
