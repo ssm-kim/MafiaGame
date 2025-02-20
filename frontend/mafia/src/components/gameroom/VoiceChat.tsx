@@ -81,14 +81,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
       const devices = await navigator.mediaDevices.enumerateDevices();
       const audioDevices = devices.filter((device) => device.kind === 'audioinput');
       setAvailableMicrophones(audioDevices);
-      console.log(
-        'Available Microphones:',
-        audioDevices.map((device) => ({
-          deviceId: device.deviceId,
-          label: device.label,
-          groupId: device.groupId,
-        })),
-      );
+      console.log('Available Microphones:', audioDevices);
       return audioDevices;
     } catch (error) {
       console.error('Error getting audio devices:', error);
@@ -129,25 +122,26 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
   // 오디오 엘리먼트 생성
   const createAudioElement = (streamManager: StreamManager) => {
     try {
+      // 이미 존재하는 오디오 엘리먼트가 있다면 제거
+      const existingAudio = document.getElementById(`audio-${streamManager.stream.streamId}`);
+      if (existingAudio) {
+        existingAudio.remove();
+      }
+
       const audioElement = document.createElement('audio');
       const mediaStream = streamManager.stream.getMediaStream();
       audioElement.srcObject = mediaStream;
       audioElement.id = `audio-${streamManager.stream.streamId}`;
       audioElement.autoplay = true;
       audioElement.setAttribute('playsinline', 'true');
-
-      if (streamManager === publisher) {
-        audioElement.volume = 0;
-        audioElement.muted = true;
-      } else {
-        audioElement.volume = 1.0;
-      }
+      audioElement.volume = 1.0;
 
       document.body.appendChild(audioElement);
       audioElements.current[streamManager.stream.streamId] = audioElement;
 
-      console.log('Audio element created:', {
+      console.log('Audio element created for:', {
         streamId: streamManager.stream.streamId,
+        isPublisher: streamManager === publisher,
         audioTracks: mediaStream.getAudioTracks().length,
         trackInfo: mediaStream.getAudioTracks().map((track) => ({
           enabled: track.enabled,
@@ -157,10 +151,20 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
         })),
       });
 
+      // 오디오 상태 모니터링
       audioElement.onplay = () =>
         console.log('Audio started playing:', streamManager.stream.streamId);
       audioElement.onpause = () => console.log('Audio paused:', streamManager.stream.streamId);
       audioElement.onerror = (e) => console.error('Audio error:', e);
+
+      // 실제로 오디오가 재생되는지 확인
+      audioElement.oncanplay = () => {
+        console.log('Audio can play:', streamManager.stream.streamId);
+        audioElement
+          .play()
+          .then(() => console.log('Audio playback started'))
+          .catch((err) => console.error('Audio playback failed:', err));
+      };
     } catch (error) {
       console.error('Error creating audio element:', error);
     }
@@ -181,6 +185,8 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
               device.label.toLowerCase().includes('internal'),
           );
 
+          console.log('Selected microphone:', defaultMic);
+
           const mediaStream = await navigator.mediaDevices.getUserMedia({
             audio: defaultMic
               ? {
@@ -192,6 +198,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
               : true,
           });
 
+          console.log('MediaStream obtained:', mediaStream.getAudioTracks());
           startAudioLevelMonitoring(mediaStream);
 
           const OV = new OpenVidu();
@@ -214,7 +221,11 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
                 const [jsonPart] = connectionData.split('%/%');
                 try {
                   streamData = JSON.parse(jsonPart);
-                  console.log('Parsed stream data:', streamData);
+                  console.log('Parsed stream data:', {
+                    streamData,
+                    role: streamData.role,
+                    nickname: streamData.clientData,
+                  });
                 } catch (parseError) {
                   console.log('JSON parse failed, using fallback:', parseError);
                   streamData = { clientData: connectionData };
@@ -223,13 +234,15 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
                 streamData = { clientData: connectionData };
               }
 
+              // subscriber 생성 확인
               if (canSubscribeToStream(streamData.role)) {
+                console.log('Creating subscriber for:', streamData);
                 const subscriber = session.subscribe(event.stream, undefined);
+                console.log('Subscriber created:', subscriber);
                 setSubscribers((prev) => [...prev, subscriber]);
                 createAudioElement(subscriber);
-                console.log('Subscribed to stream from:', streamData.clientData);
               } else {
-                console.log('Stream subscription blocked due to game rules');
+                console.log('Stream subscription blocked. Stream data:', streamData);
               }
             } catch (error) {
               console.log('Stream handling error:', error);
@@ -240,6 +253,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
           });
 
           session.on('streamDestroyed', (event) => {
+            console.log('Stream destroyed:', event.stream.streamId);
             const audioElement = audioElements.current[event.stream.streamId];
             if (audioElement) {
               audioElement.remove();
@@ -258,7 +272,10 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
             }),
           });
 
+          console.log('Session connected');
+
           if (canSpeak()) {
+            console.log('Initializing publisher...');
             const publisherProperties: PublisherProperties = {
               audioSource: defaultMic?.deviceId || undefined,
               videoSource: false,
@@ -270,9 +287,13 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
             const publisher = await OV.initPublisher(undefined, publisherProperties);
             await session.publish(publisher);
 
+            console.log('Publisher created:', {
+              streamId: publisher.stream?.streamId,
+              audioActive: publisher.stream?.audioActive,
+            });
+
             setPublisher(publisher);
             setIsMuted(false);
-            // createAudioElement(publisher);
           }
 
           setSession(session);
@@ -285,6 +306,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
     }
 
     return () => {
+      console.log('Cleaning up voice chat...');
       if (audioAnalyserInterval.current) {
         clearInterval(audioAnalyserInterval.current);
       }
@@ -293,6 +315,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
       }
       if (session) {
         try {
+          console.log('Cleaning up audio elements:', Object.keys(audioElements.current));
           Object.values(audioElements.current).forEach((audio) => audio.remove());
           audioElements.current = {};
 
@@ -338,6 +361,11 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
       const newMuteState = !isMuted;
       publisher.publishAudio(!newMuteState);
       setIsMuted(newMuteState);
+
+      console.log('Mute toggled:', {
+        newState: newMuteState,
+        publisherAudio: publisher.stream?.audioActive,
+      });
     }
   };
 
@@ -348,14 +376,17 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
   return (
     <div className="absolute bottom-4 right-4 z-50">
       <div style={{ display: 'none' }}>
-        {subscribers.map((sub) => (
-          <audio
-            key={sub.stream.streamId}
-            id={`audio-${sub.stream.streamId}`}
-            autoPlay
-            playsInline
-          />
-        ))}
+        {subscribers.map((sub) => {
+          console.log('Rendering subscriber audio:', sub.stream.streamId);
+          return (
+            <audio
+              key={sub.stream.streamId}
+              id={`audio-${sub.stream.streamId}`}
+              autoPlay
+              playsInline
+            />
+          );
+        })}
       </div>
 
       <button
