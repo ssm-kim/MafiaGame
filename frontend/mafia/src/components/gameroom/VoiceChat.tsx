@@ -1,5 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { OpenVidu, Publisher, Session, StreamManager, Subscriber } from 'openvidu-browser';
+import {
+  OpenVidu,
+  Publisher,
+  Session,
+  StreamManager,
+  Subscriber,
+  PublisherProperties,
+} from 'openvidu-browser';
 
 interface VoiceChatProps {
   roomId: string | number;
@@ -32,7 +39,6 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
   const [session, setSession] = useState<Session | null>(null);
   const [publisher, setPublisher] = useState<Publisher | null>(null);
   const [isMuted, setIsMuted] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [availableMicrophones, setAvailableMicrophones] = useState<MediaDeviceInfo[]>([]);
   const audioElements = useRef<Record<string, HTMLAudioElement>>({});
@@ -43,13 +49,8 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
   const canSpeak = useCallback(() => {
     if (!gameState?.myInfo) return false;
 
-    // 죽은 사람은 말할 수 없음
     if (gameState.myInfo.isDead) return false;
-
-    // 밤에는 좀비만 말할 수 있음
     if (gameState.isNight && gameState.myInfo.role !== 'ZOMBIE') return false;
-
-    // 강제 음소거 상태면 말할 수 없음
     if (gameState.myInfo.muteMic) return false;
 
     return true;
@@ -60,21 +61,13 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
     (streamRole?: string) => {
       if (!gameState?.myInfo) return false;
 
-      // 1. 죽은 사람은 모든 음성을 들을 수 있음
       if (gameState.myInfo.isDead) return true;
-
-      // 2. 낮에는 모든 사람이 서로의 음성을 들을 수 있음
       if (!gameState.isNight) return true;
-
-      // 3. 밤에는 좀비들끼리만 대화 가능
-      if (gameState.isNight) {
-        if (gameState.myInfo.role === 'ZOMBIE' && streamRole === 'ZOMBIE') {
-          return true;
-        }
-        return false;
+      if (gameState.isNight && gameState.myInfo.role === 'ZOMBIE' && streamRole === 'ZOMBIE') {
+        return true;
       }
 
-      return true;
+      return false;
     },
     [gameState?.myInfo, gameState?.isNight],
   );
@@ -122,7 +115,6 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
         analyser.getByteFrequencyData(dataArray);
         const audioLevel = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
         if (audioLevel > 0) {
-          // 실제 소리가 감지될 때만 로그
           console.log('Current Audio Level:', audioLevel.toFixed(2));
         }
       }, 1000) as unknown as number;
@@ -141,7 +133,6 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
       audioElement.autoplay = true;
       audioElement.setAttribute('playsinline', 'true');
 
-      // 자신의 스트림인 경우 음소거 (피드백 방지)
       if (streamManager === publisher) {
         audioElement.volume = 0;
         audioElement.muted = true;
@@ -178,10 +169,8 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
         if (!gameState.myInfo) return;
 
         try {
-          // 사용 가능한 마이크 확인
           const audioDevices = await getAvailableMicrophones();
 
-          // 기본 마이크 또는 노트북 내장 마이크 선택
           const defaultMic = audioDevices.find(
             (device) =>
               device.label.toLowerCase().includes('default') ||
@@ -189,7 +178,6 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
               device.label.toLowerCase().includes('internal'),
           );
 
-          // 마이크 권한 및 작동 확인
           const mediaStream = await navigator.mediaDevices.getUserMedia({
             audio: defaultMic
               ? {
@@ -205,7 +193,6 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 
           const OV = new OpenVidu();
           OV.enableProdMode();
-          setConnectionStatus('connecting');
 
           const token = gameState.myInfo.openviduToken;
           if (!token) {
@@ -214,7 +201,6 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 
           const session = OV.initSession();
 
-          // 스트림 생성 이벤트 핸들러
           session.on('streamCreated', (event) => {
             try {
               const connectionData = event.stream.connection.data;
@@ -226,7 +212,6 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
                   ? JSON.parse(cleanConnectionData)
                   : { clientData: connectionData };
 
-              // 스트림 구독 여부 결정
               if (canSubscribeToStream(streamData.role)) {
                 const subscriber = session.subscribe(event.stream, undefined);
                 setSubscribers((prev) => [...prev, subscriber]);
@@ -259,23 +244,16 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
             }),
           });
 
-          setConnectionStatus('connected');
-
-          // Publisher 생성 (말할 수 있는 경우에만)
           if (canSpeak()) {
-            const publisher = await OV.initPublisher(undefined, {
+            const publisherProperties: PublisherProperties = {
               audioSource: defaultMic?.deviceId || undefined,
               videoSource: false,
               publishAudio: true,
               publishVideo: false,
               mirror: false,
-              audioProcessing: {
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: true,
-              },
-            });
+            };
 
+            const publisher = await OV.initPublisher(undefined, publisherProperties);
             await session.publish(publisher);
 
             setPublisher(publisher);
@@ -286,7 +264,6 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
           setSession(session);
         } catch (error) {
           console.error('Voice chat initialization error:', error);
-          setConnectionStatus('error');
         }
       };
 
@@ -309,7 +286,6 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
             session.unpublish(publisher);
           }
           session.disconnect();
-          setConnectionStatus('disconnected');
           setSession(null);
           setPublisher(null);
           setSubscribers([]);
@@ -331,7 +307,6 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 
   useEffect(() => {
     if (publisher && gameState?.myInfo) {
-      // 말하기 권한이 없어지면 Publisher 제거
       if (!canSpeak()) {
         session?.unpublish(publisher);
         setPublisher(null);
@@ -352,7 +327,6 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
     }
   };
 
-  // 죽었거나 말할 수 없는 상태라면 UI를 숨김
   if (!canSpeak()) {
     return null;
   }
