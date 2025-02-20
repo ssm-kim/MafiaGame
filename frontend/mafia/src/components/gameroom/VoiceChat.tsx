@@ -32,7 +32,41 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
   const [session, setSession] = useState<Session | null>(null);
   const [publisher, setPublisher] = useState<Publisher | null>(null);
   const [isMuted, setIsMuted] = useState(false);
-  const [, setConnectionStatus] = useState('disconnected');
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
+
+  const checkAudioTracks = (pub: Publisher) => {
+    try {
+      // OpenVidu의 Stream 객체인 경우
+      if (pub.stream?.audioActive !== undefined) {
+        console.log('OpenVidu Stream audio status:', {
+          audioActive: pub.stream.audioActive,
+          streamId: pub.stream.streamId,
+        });
+        return pub.stream.audioActive;
+      }
+
+      // MediaStream 타입으로 직접 접근 시도
+      if (pub.stream instanceof MediaStream) {
+        const audioTracks = pub.stream.getAudioTracks();
+        console.log('MediaStream Audio Tracks:', {
+          count: audioTracks?.length,
+          tracks: audioTracks?.map((track) => ({
+            enabled: track.enabled,
+            muted: track.muted,
+            readyState: track.readyState,
+            label: track.label,
+          })),
+        });
+        return audioTracks?.some((track) => track.enabled && track.readyState === 'live') ?? false;
+      }
+
+      console.log('Unknown stream type:', pub.stream);
+      return false;
+    } catch (error) {
+      console.error('Error checking audio tracks:', error);
+      return false;
+    }
+  };
 
   useEffect(() => {
     console.log('VoiceChat Init:', {
@@ -44,6 +78,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
         myInfo: gameState?.myInfo,
         hasToken: !!gameState?.myInfo?.openviduToken,
       },
+      connectionStatus,
     });
 
     if (gameState?.roomStatus === 'PLAYING' && participantNo !== null && gameState.myInfo) {
@@ -57,6 +92,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
           const OV = new OpenVidu();
           OV.enableProdMode();
           setConnectionStatus('connecting');
+          console.log('OpenVidu instance created');
 
           const token = gameState.myInfo.openviduToken;
           if (!token) {
@@ -66,15 +102,26 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
           const session = OV.initSession();
           console.log('Session initialized');
 
-          // 다른 참가자의 스트림 구독
+          // 스트림 생성 이벤트 핸들러
           session.on('streamCreated', (event) => {
-            console.log('Stream created event:', event.stream);
-            try {
-              // clientData 형식으로 연결 데이터 파싱 시도
-              const streamData = JSON.parse(event.stream.connection.data);
-              console.log('Stream connection data:', streamData);
+            console.log('Stream created event:', {
+              stream: event.stream,
+              connectionData: event.stream.connection.data,
+              connectionType: typeof event.stream.connection.data,
+            });
 
-              // 밤에는 좀비만 다른 좀비의 음성을 들을 수 있음
+            try {
+              const connectionData = event.stream.connection.data;
+
+              const closingBraceIndex = connectionData.indexOf('}');
+              const cleanConnectionData = connectionData.substring(0, closingBraceIndex + 1);
+              console.log(cleanConnectionData);
+
+              const streamData =
+                typeof connectionData === 'string' && connectionData.includes('clientData')
+                  ? JSON.parse(cleanConnectionData)
+                  : { clientData: connectionData };
+
               if (
                 !gameState.isNight ||
                 gameState.myInfo?.isDead ||
@@ -86,32 +133,36 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
                 console.log('Stream subscription blocked due to night time rules');
               }
             } catch (error) {
-              // 파싱 실패시 기본 구독
               console.log('Failed to parse stream data, subscribing anyway:', error);
               session.subscribe(event.stream, undefined);
             }
           });
 
           session.on('streamDestroyed', (event) => {
-            try {
-              const streamData = JSON.parse(event.stream.connection.data);
-              console.log('Stream destroyed:', streamData.clientData);
-            } catch (error) {
-              console.log('Stream destroyed (unknown user)');
-            }
+            console.log('Stream destroyed:', {
+              stream: event.stream,
+              connectionData: event.stream.connection.data,
+            });
           });
 
-          // 세션 연결 시 clientData 포함
+          session.on('connectionCreated', (event) => {
+            console.log('New connection created:', event.connection);
+          });
+
+          session.on('connectionDestroyed', (event) => {
+            console.log('Connection destroyed:', event.connection);
+          });
+
           await session.connect(token, {
             clientData: nickname,
             maxRetries: 3,
             requestTimeout: 8000,
           });
-          console.log('Session connected');
+          console.log('Session connected successfully');
           setConnectionStatus('connected');
 
-          // 음성 전송 설정
           if (!gameState.myInfo.muteMic) {
+            console.log('Initializing publisher...');
             const publisher = await OV.initPublisher(undefined, {
               audioSource: undefined,
               videoSource: false,
@@ -120,8 +171,18 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
               mirror: false,
             });
 
+            console.log('Publisher created, checking audio status:', {
+              hasAudioTrack: checkAudioTracks(publisher),
+              audioActive: publisher.stream?.audioActive,
+              streamId: publisher.stream?.streamId,
+            });
+
             await session.publish(publisher);
-            console.log('Publisher created and stream published');
+            console.log('Stream published successfully:', {
+              audioActive: publisher.stream?.audioActive,
+              streamId: publisher.stream?.streamId,
+            });
+
             setPublisher(publisher);
             setIsMuted(gameState.myInfo.muteMic);
           }
@@ -140,10 +201,10 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
       if (session) {
         try {
           if (publisher) {
-            console.log('Unpublishing stream');
+            console.log('Cleanup: Unpublishing stream');
             session.unpublish(publisher);
           }
-          console.log('Disconnecting session');
+          console.log('Cleanup: Disconnecting session');
           session.disconnect();
           setConnectionStatus('disconnected');
           setSession(null);
@@ -162,11 +223,16 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
     gameState?.isNight,
   ]);
 
-  // 플레이어 상태 변경 감지
   useEffect(() => {
     if (publisher && gameState?.myInfo) {
+      console.log('Player state changed:', {
+        muteMic: gameState.myInfo.muteMic,
+        isDead: gameState.myInfo.isDead,
+        audioActive: publisher.stream?.audioActive,
+      });
+
       if (gameState.myInfo.muteMic || gameState.myInfo.isDead) {
-        console.log('Player state changed, unpublishing stream');
+        console.log('Unpublishing stream due to state change');
         session?.unpublish(publisher);
         setPublisher(null);
       }
@@ -185,9 +251,19 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
   const toggleMute = () => {
     if (publisher && !gameState.myInfo?.muteMic && !gameState.myInfo?.isDead) {
       const newMuteState = !isMuted;
-      console.log('Toggling mute state:', newMuteState);
+      console.log('Toggling mute state:', {
+        newState: newMuteState,
+        currentAudioActive: publisher.stream?.audioActive,
+      });
+
       publisher.publishAudio(!newMuteState);
       setIsMuted(newMuteState);
+
+      setTimeout(() => {
+        console.log('Post-toggle audio state:', {
+          audioActive: publisher.stream?.audioActive,
+        });
+      }, 100);
     }
   };
 
@@ -210,6 +286,218 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 }
 
 export default VoiceChat;
+// import { useEffect, useState } from 'react';
+// import { OpenVidu, Publisher, Session } from 'openvidu-browser';
+
+// interface VoiceChatProps {
+//   roomId: string | number;
+//   participantNo: number | null;
+//   nickname: string;
+//   gameState: {
+//     roomStatus: string;
+//     isNight?: boolean;
+//     myInfo?: {
+//       playerNo: number;
+//       nickname: string;
+//       subscriptions: string[];
+//       isDead: boolean;
+//       role: string;
+//       muteAudio: boolean;
+//       muteMic: boolean;
+//       openviduToken: string;
+//     };
+//     participant: Record<
+//       string,
+//       {
+//         isDead?: boolean;
+//         role?: string;
+//       }
+//     >;
+//   } | null;
+// }
+
+// function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProps) {
+//   const [session, setSession] = useState<Session | null>(null);
+//   const [publisher, setPublisher] = useState<Publisher | null>(null);
+//   const [isMuted, setIsMuted] = useState(false);
+//   const [, setConnectionStatus] = useState('disconnected');
+
+//   useEffect(() => {
+//     console.log('VoiceChat Init:', {
+//       roomId,
+//       participantNo,
+//       nickname,
+//       gameState: {
+//         status: gameState?.roomStatus,
+//         myInfo: gameState?.myInfo,
+//         hasToken: !!gameState?.myInfo?.openviduToken,
+//       },
+//     });
+
+//     if (gameState?.roomStatus === 'PLAYING' && participantNo !== null && gameState.myInfo) {
+//       const initializeVoiceChat = async () => {
+//         if (!gameState.myInfo) {
+//           console.log('No myInfo available');
+//           return;
+//         }
+
+//         try {
+//           const OV = new OpenVidu();
+//           OV.enableProdMode();
+//           setConnectionStatus('connecting');
+
+//           const token = gameState.myInfo.openviduToken;
+//           if (!token) {
+//             throw new Error('OpenVidu token not found');
+//           }
+
+//           const session = OV.initSession();
+//           console.log('Session initialized');
+
+//           // 다른 참가자의 스트림 구독
+//           session.on('streamCreated', (event) => {
+//             console.log('Stream created event:', event.stream);
+//             try {
+//               // clientData 형식으로 연결 데이터 파싱 시도
+//               const streamData = JSON.parse(event.stream.connection.data);
+//               console.log('Stream connection data:', streamData);
+
+//               // 밤에는 좀비만 다른 좀비의 음성을 들을 수 있음
+//               if (
+//                 !gameState.isNight ||
+//                 gameState.myInfo?.isDead ||
+//                 gameState.myInfo?.role === 'ZOMBIE'
+//               ) {
+//                 session.subscribe(event.stream, undefined);
+//                 console.log('Subscribed to stream from:', streamData.clientData);
+//               } else {
+//                 console.log('Stream subscription blocked due to night time rules');
+//               }
+//             } catch (error) {
+//               // 파싱 실패시 기본 구독
+//               console.log('Failed to parse stream data, subscribing anyway:', error);
+//               session.subscribe(event.stream, undefined);
+//             }
+//           });
+
+//           session.on('streamDestroyed', (event) => {
+//             try {
+//               const streamData = JSON.parse(event.stream.connection.data);
+//               console.log('Stream destroyed:', streamData.clientData);
+//             } catch (error) {
+//               console.log('Stream destroyed (unknown user)');
+//             }
+//           });
+
+//           // 세션 연결 시 clientData 포함
+//           await session.connect(token, {
+//             clientData: nickname,
+//             maxRetries: 3,
+//             requestTimeout: 8000,
+//           });
+//           console.log('Session connected');
+//           setConnectionStatus('connected');
+
+//           // 음성 전송 설정
+//           if (!gameState.myInfo.muteMic) {
+//             const publisher = await OV.initPublisher(undefined, {
+//               audioSource: undefined,
+//               videoSource: false,
+//               publishAudio: !gameState.myInfo.muteMic,
+//               publishVideo: false,
+//               mirror: false,
+//             });
+
+//             await session.publish(publisher);
+//             console.log('Publisher created and stream published');
+//             setPublisher(publisher);
+//             setIsMuted(gameState.myInfo.muteMic);
+//           }
+
+//           setSession(session);
+//         } catch (error) {
+//           console.error('Voice chat initialization error:', error);
+//           setConnectionStatus('error');
+//         }
+//       };
+
+//       initializeVoiceChat();
+//     }
+
+//     return () => {
+//       if (session) {
+//         try {
+//           if (publisher) {
+//             console.log('Unpublishing stream');
+//             session.unpublish(publisher);
+//           }
+//           console.log('Disconnecting session');
+//           session.disconnect();
+//           setConnectionStatus('disconnected');
+//           setSession(null);
+//           setPublisher(null);
+//         } catch (error) {
+//           console.error('Cleanup error:', error);
+//         }
+//       }
+//     };
+//   }, [
+//     roomId,
+//     participantNo,
+//     nickname,
+//     gameState?.roomStatus,
+//     gameState?.myInfo,
+//     gameState?.isNight,
+//   ]);
+
+//   // 플레이어 상태 변경 감지
+//   useEffect(() => {
+//     if (publisher && gameState?.myInfo) {
+//       if (gameState.myInfo.muteMic || gameState.myInfo.isDead) {
+//         console.log('Player state changed, unpublishing stream');
+//         session?.unpublish(publisher);
+//         setPublisher(null);
+//       }
+//       setIsMuted(gameState.myInfo.muteMic || gameState.myInfo.isDead);
+//     }
+//   }, [gameState?.myInfo, publisher, session]);
+
+//   if (gameState?.roomStatus !== 'PLAYING' || !gameState.myInfo) {
+//     return null;
+//   }
+
+//   if (gameState.myInfo.muteMic || gameState.myInfo.isDead) {
+//     return null;
+//   }
+
+//   const toggleMute = () => {
+//     if (publisher && !gameState.myInfo?.muteMic && !gameState.myInfo?.isDead) {
+//       const newMuteState = !isMuted;
+//       console.log('Toggling mute state:', newMuteState);
+//       publisher.publishAudio(!newMuteState);
+//       setIsMuted(newMuteState);
+//     }
+//   };
+
+//   return (
+//     <div className="absolute bottom-4 right-4 z-50">
+//       <button
+//         type="button"
+//         onClick={toggleMute}
+//         className={`p-2 rounded-full ${
+//           isMuted
+//             ? 'bg-red-900 border-2 border-red-600'
+//             : 'bg-gray-800 border-2 border-gray-600 hover:bg-gray-700'
+//         } text-white transition-all duration-200 shadow-lg`}
+//         title={isMuted ? '음소거 해제' : '음소거'}
+//       >
+//         {isMuted ? '🔇' : '🎤'}
+//       </button>
+//     </div>
+//   );
+// }
+
+// export default VoiceChat;
 // import { useEffect, useState } from 'react';
 // import { OpenVidu, Publisher, Session } from 'openvidu-browser';
 
