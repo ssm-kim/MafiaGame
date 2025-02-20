@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { OpenVidu, Publisher, Session, Subscriber } from 'openvidu-browser';
-import UserVideoComponent from './UserVideoComponent';
+import { OpenVidu, Publisher, Session, StreamManager, Subscriber } from 'openvidu-browser';
+import OpenViduVideoComponent from './OvVideo';
 
 interface VoiceChatProps {
   nickname: string;
@@ -128,7 +128,7 @@ function VoiceChat({ nickname, gameState }: VoiceChatProps) {
       <div style={{ display: 'none' }}>
         {publisher !== undefined ? (
           <div className="stream-container col-md-6 col-xs-6">
-            <UserVideoComponent streamManager={publisher} />
+            <OpenViduVideoComponent streamManager={publisher as StreamManager} />
           </div>
         ) : null}
         {subscribers.map((sub) => (
@@ -137,7 +137,7 @@ function VoiceChat({ nickname, gameState }: VoiceChatProps) {
             className="stream-container col-md-6 col-xs-6"
           >
             <span>{sub.id}</span>
-            <UserVideoComponent streamManager={sub} />
+            <OpenViduVideoComponent streamManager={sub as StreamManager} />
           </div>
         ))}
       </div>
