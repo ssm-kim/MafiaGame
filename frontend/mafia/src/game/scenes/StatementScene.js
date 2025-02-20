@@ -11,7 +11,7 @@ export default class LastVoteScene extends Phaser.Scene {
 
   init() {
     this.voteResult = this.registry.get('voteResult');
-    //console.log(this.voteResult);
+    // console.log(this.voteResult);
   }
 
   create() {

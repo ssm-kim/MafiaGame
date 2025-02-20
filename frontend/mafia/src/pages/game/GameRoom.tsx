@@ -57,10 +57,10 @@ function GameRoom(): JSX.Element {
   }, []);
 
   const handleMessage = (type: string, message: string) => {
-    //console.log('Message type:', type);
-    //console.log('Raw message:', message);
+    // console.log('Message type:', type);
+    // console.log('Raw message:', message);
     const parsedMessage = JSON.parse(message);
-    //console.log('Parsed message:', parsedMessage);
+    // console.log('Parsed message:', parsedMessage);
 
     setMessages((prev) => [
       ...prev,
@@ -227,7 +227,7 @@ function GameRoom(): JSX.Element {
             setGameState(room);
             setRequiredPlayers(room.requiredPlayers);
             try {
-              //console.log('채팅 내역 요청 시작');
+              // console.log('채팅 내역 요청 시작');
               const chatResponse = await axios.get(`/api/chat`, {
                 params: {
                   gameId: roomId,
@@ -238,11 +238,11 @@ function GameRoom(): JSX.Element {
               console.log('채팅 API 응답:', chatResponse);
 
               if (chatResponse?.data?.isSuccess) {
-                //console.log('채팅 데이터:', chatResponse.data.result);
+                // console.log('채팅 데이터:', chatResponse.data.result);
                 if (Array.isArray(chatResponse.data.result)) {
                   setMessages(chatResponse.data.result);
                 } else {
-                  //console.log('채팅 데이터가 배열이 아님:', chatResponse.data.result);
+                  // console.log('채팅 데이터가 배열이 아님:', chatResponse.data.result);
                 }
               } else {
                 console.log('채팅 API 실패:', chatResponse?.data);
@@ -331,7 +331,7 @@ function GameRoom(): JSX.Element {
     e.preventDefault();
     if (!newMessage.trim() || !roomId || !stompClientRef.current) return;
 
-    //console.log(currentChatType);
+    // console.log(currentChatType);
 
     stompClientRef.current.send(
       '/app/chat/send',

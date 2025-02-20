@@ -81,7 +81,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
       const devices = await navigator.mediaDevices.enumerateDevices();
       const audioDevices = devices.filter((device) => device.kind === 'audioinput');
       setAvailableMicrophones(audioDevices);
-      //console.log('Available Microphones:', audioDevices);
+      // console.log('Available Microphones:', audioDevices);
       return audioDevices;
     } catch (error) {
       console.error('Error getting audio devices:', error);
@@ -111,7 +111,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
         analyser.getByteFrequencyData(dataArray);
         const audioLevel = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
         if (audioLevel > 0) {
-          //console.log('Current Audio Level:', audioLevel.toFixed(2));
+          // console.log('Current Audio Level:', audioLevel.toFixed(2));
         }
       }, 1000) as unknown as number;
     } catch (error) {
@@ -205,7 +205,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
               : true,
           });
 
-          //console.log('MediaStream obtained:', mediaStream.getAudioTracks());
+          // console.log('MediaStream obtained:', mediaStream.getAudioTracks());
           startAudioLevelMonitoring(mediaStream);
 
           const OV = new OpenVidu();
@@ -221,7 +221,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
           session.on('streamCreated', async (event) => {
             try {
               const connectionData = event.stream.connection.data;
-              //console.log('Raw connection data:', connectionData);
+              // console.log('Raw connection data:', connectionData);
 
               let streamData;
               if (typeof connectionData === 'string') {
@@ -243,17 +243,17 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 
               // subscriber 생성 확인
               if (canSubscribeToStream(streamData.role)) {
-                //console.log('Creating subscriber for:', streamData);
+                // console.log('Creating subscriber for:', streamData);
                 const subscriber = await session.subscribe(event.stream, undefined);
                 console.log('Subscriber created:', subscriber);
                 await new Promise((resolve) => setTimeout(resolve, 500)); // 오디오 트랙이 준비될 때까지 잠시 대기
                 setSubscribers((prev) => [...prev, subscriber]);
                 createAudioElement(subscriber);
               } else {
-                //console.log('Stream subscription blocked. Stream data:', streamData);
+                // console.log('Stream subscription blocked. Stream data:', streamData);
               }
             } catch (error) {
-              //console.log('Stream handling error:', error);
+              // console.log('Stream handling error:', error);
               const subscriber = await session.subscribe(event.stream, undefined);
               await new Promise((resolve) => setTimeout(resolve, 500));
               setSubscribers((prev) => [...prev, subscriber]);
@@ -287,7 +287,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
           console.log('Session connected');
 
           if (canSpeak()) {
-            //console.log('Initializing publisher...');
+            // console.log('Initializing publisher...');
             const publisherProperties: PublisherProperties = {
               audioSource: defaultMic?.deviceId || undefined,
               videoSource: false,
@@ -318,7 +318,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
     }
 
     return () => {
-      //console.log('Cleaning up voice chat...');
+      // console.log('Cleaning up voice chat...');
       if (audioAnalyserInterval.current) {
         clearInterval(audioAnalyserInterval.current);
       }
@@ -327,7 +327,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
       }
       if (session) {
         try {
-          //console.log('Cleaning up audio elements:', Object.keys(audioElements.current));
+          // console.log('Cleaning up audio elements:', Object.keys(audioElements.current));
           Object.values(audioElements.current).forEach((audio) => audio.remove());
           audioElements.current = {};
 
