@@ -2,16 +2,18 @@ package com.mafia.domain.login.controller;
 
 import com.mafia.domain.login.model.dto.ReissueDto;
 import com.mafia.domain.login.service.JWTService;
-import com.mafia.global.common.utils.CookieUtil;
 import com.mafia.global.common.model.dto.BaseResponse;
 import com.mafia.global.common.model.dto.BaseResponseStatus;
+import com.mafia.global.common.utils.CookieUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@RequestMapping("/api")
 @RestController
 @RequiredArgsConstructor
 public class ReissueController {

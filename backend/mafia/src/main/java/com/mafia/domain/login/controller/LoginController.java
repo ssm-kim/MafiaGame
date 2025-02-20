@@ -27,11 +27,10 @@ public class LoginController {
     private final LogoutService logoutService;
     private final MemberService memberService;
 
-    //TODO : 로그아웃 기준을 웹이 꺼질때도 포함 시켜야함.
-
     @PostMapping("/login/guest")
     public ResponseEntity<BaseResponse<MemberResponse>> guestLogin(HttpServletResponse response) {
         MemberResponse memberResponse = loginService.guestLogin(response);
+
         return ResponseEntity.ok(new BaseResponse<>(memberResponse));
     }
 
@@ -47,8 +46,8 @@ public class LoginController {
     public ResponseEntity<BaseResponse<Void>> logout(
         @AuthenticationPrincipal AuthenticatedUser detail,
         HttpServletResponse response) {
-
         logoutService.logout(detail, response);
+
         return ResponseEntity.ok(new BaseResponse<>());
     }
 }
