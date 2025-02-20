@@ -1,8 +1,5 @@
 package com.mafia.domain.game.model.game;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
-
 public enum GamePhase {
     DAY_DISCUSSION, // 낮 - 토론
     DAY_VOTE,       // 낮 - 투표
