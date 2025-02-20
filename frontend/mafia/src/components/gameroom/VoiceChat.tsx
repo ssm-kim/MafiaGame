@@ -67,7 +67,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
         return true;
       }
 
-      return false;
+      return true;
     },
     [gameState?.myInfo, gameState?.isNight],
   );
