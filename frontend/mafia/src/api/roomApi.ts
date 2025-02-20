@@ -73,7 +73,7 @@ const roomApi = {
 
   // 방 생성
   createRoom: async (roomData: CreateRoomRequest) => {
-    //console.log('요청 데이터:', JSON.stringify(roomData, null, 2));
+    // console.log('요청 데이터:', JSON.stringify(roomData, null, 2));
     const response = await api.post<ApiResponse<RoomIdResponse>>('/api/room', roomData);
     return response;
   },
@@ -83,7 +83,7 @@ const roomApi = {
     return stompClient.subscribe('/topic/lobby', (message: any) => {
       try {
         const rooms = JSON.parse(message.body);
-        //console.log('방 목록 웹소켓 데이터:', JSON.stringify(rooms, null, 2));
+        // console.log('방 목록 웹소켓 데이터:', JSON.stringify(rooms, null, 2));
         onRoomsUpdate(rooms);
       } catch (error) {
         console.error('Error processing room list:', error);
@@ -92,7 +92,7 @@ const roomApi = {
   },
 
   subscribeRoom: (roomId: number, onRoomUpdate: (roomInfo: ParticipantMap | GameStart) => void) => {
-    //console.log('방 구독');
+    // console.log('방 구독');
     if (!stompClient) return;
     const stompClientSubscription = stompClient.subscribe(
       `/topic/room/${roomId}`,
@@ -102,7 +102,7 @@ const roomApi = {
 
           // 강퇴 메시지인 경우
           if ('message' in roomInfo) {
-            //console.log('메시지 확인:', roomInfo.message);
+            // console.log('메시지 확인:', roomInfo.message);
             if (roomInfo.message && typeof roomInfo.message === 'string') {
               if (roomInfo.message.includes('강제퇴장') || roomInfo.message.includes('강퇴')) {
                 alert('강퇴되었습니다.');
@@ -127,7 +127,7 @@ const roomApi = {
       await roomApi.initializeWebSocket();
     }
 
-    //console.log('방 입장 시도:', { roomId, password });
+    // console.log('방 입장 시도:', { roomId, password });
 
     return new Promise((resolve, reject) => {
       try {

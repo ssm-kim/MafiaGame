@@ -117,7 +117,7 @@ export default class PlayerManager {
 
     if (this.localPlayer) return;
 
-    //console.log(this.localPlayerInfo);
+    // console.log(this.localPlayerInfo);
 
     const roomId = this.scene.registry.get('roomId');
     const userId = this.scene.registry.get('userId');
