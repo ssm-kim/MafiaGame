@@ -211,7 +211,8 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 
           const session = OV.initSession();
 
-          session.on('streamCreated', (event) => {
+          // await걸어놓고
+          session.on('streamCreated', async (event) => {
             try {
               const connectionData = event.stream.connection.data;
               console.log('Raw connection data:', connectionData);
@@ -237,8 +238,9 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
               // subscriber 생성 확인
               if (canSubscribeToStream(streamData.role)) {
                 console.log('Creating subscriber for:', streamData);
-                const subscriber = session.subscribe(event.stream, undefined);
+                const subscriber = await session.subscribe(event.stream, undefined);
                 console.log('Subscriber created:', subscriber);
+                await new Promise((resolve) => setTimeout(resolve, 500)); // 오디오 트랙이 준비될 때까지 잠시 대기
                 setSubscribers((prev) => [...prev, subscriber]);
                 createAudioElement(subscriber);
               } else {
@@ -246,7 +248,8 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
               }
             } catch (error) {
               console.log('Stream handling error:', error);
-              const subscriber = session.subscribe(event.stream, undefined);
+              const subscriber = await session.subscribe(event.stream, undefined);
+              await new Promise((resolve) => setTimeout(resolve, 500));
               setSubscribers((prev) => [...prev, subscriber]);
               createAudioElement(subscriber);
             }
