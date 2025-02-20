@@ -51,7 +51,7 @@ function VoiceChat({ nickname, gameState }: VoiceChatProps) {
 
   useEffect(() => {
     if (gameState && gameState.myInfo) {
-      const initializeVoiceChat = () => {
+      const initializeVoiceChat = async () => {
         if (!gameState.myInfo) return;
 
         try {
