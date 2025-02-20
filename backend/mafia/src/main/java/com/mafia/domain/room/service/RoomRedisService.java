@@ -246,7 +246,7 @@ public class RoomRedisService {
         Set<String> allRoomKeys = redisRepository.getAllRooms();
 
         for (String roomKey : allRoomKeys) {
-            RoomInfo roomInfo = redisRepository.findById(Long.valueOf(roomKey.split(":")[2]));
+            RoomInfo roomInfo = redisRepository.findById(Long.valueOf(roomKey.split(":")[1]));
             boolean duplication = roomInfo.getMemberMapping().containsValue(memberId);
 
             if (duplication) {
