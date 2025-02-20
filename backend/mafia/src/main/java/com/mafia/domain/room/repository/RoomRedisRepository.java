@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
 public class RoomRedisRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private static final String ROOM_KEY_PREFIX = "room:list:";
+    private static final String ROOM_KEY_PREFIX = "room:";
 
     /**
      * Redis key 생성
