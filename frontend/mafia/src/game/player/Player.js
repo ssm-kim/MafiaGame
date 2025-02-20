@@ -1,4 +1,3 @@
-import { CompatClient } from '@stomp/stompjs';
 import Phaser from 'phaser';
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {

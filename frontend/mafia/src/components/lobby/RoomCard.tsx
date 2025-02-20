@@ -10,8 +10,8 @@ interface RoomCardProps {
 }
 
 function RoomCard({ room, onJoin }: RoomCardProps): JSX.Element {
-  //console.log('Room hasPassword:', room.hasPassword);
-  //console.log('RoomCard received room:', room);
+  // console.log('Room hasPassword:', room.hasPassword);
+  // console.log('RoomCard received room:', room);
   return (
     <div
       className="p-4 bg-gray-800 bg-opacity-90 rounded-lg text-white hover:bg-gray-700 cursor-pointer border border-gray-700 transform hover:scale-102 transition-all duration-200"
@@ -54,5 +54,3 @@ function RoomCard({ room, onJoin }: RoomCardProps): JSX.Element {
 }
 
 export default RoomCard;
-
-

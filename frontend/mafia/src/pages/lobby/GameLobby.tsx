@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Info } from 'lucide-react';
-import api from '../../api/axios';
+import api from '@/api/axios';
 import { Room } from '@/types/room';
 import { Header } from '@/components/lobby/Header';
 import { SearchBar } from '@/components/lobby/SearchBar';
