@@ -1,8 +1,10 @@
 package com.mafia.domain.chat.model;
 
 import java.security.Principal;
+import lombok.Getter;
 
 // STOMP에서 사용할 단순한 Principal 구현체
+@Getter
 public class StompPrincipal implements Principal {
 
     private final Long memberId;
@@ -17,7 +19,4 @@ public class StompPrincipal implements Principal {
         return String.valueOf(memberId); // 또는 원한다면 nickname 등 다른 값을 반환할 수 있음
     }
 
-    public Long getMemberId() {
-        return memberId;
-    }
 }

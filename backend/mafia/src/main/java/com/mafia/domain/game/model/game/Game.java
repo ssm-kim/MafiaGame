@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 @Setter
 @NoArgsConstructor
 @Slf4j
-//@JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "게임의 상태와 관련된 정보를 포함하는 클래스")
 public class Game implements Serializable { // 필드정리
 
@@ -203,13 +202,13 @@ public class Game implements Serializable { // 필드정리
     }
 
     public List<Integer> killProcess() { // 밤중 킬
-        if (killTarget.size() == 0) {
+        if (killTarget.isEmpty()) {
             return null; // 죽일 대상이 없으면 바로 종료
         }
 
         // 치료된 플레이어 제외
         List<Integer> finalDeathList = new ArrayList<>(killTarget.values());
-        if (healTarget != null && finalDeathList.contains(healTarget)) {
+        if (healTarget != null) {
             finalDeathList.remove(healTarget);
         }
 
