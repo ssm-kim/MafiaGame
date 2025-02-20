@@ -12,14 +12,14 @@ import org.springframework.stereotype.Repository;
 public class GameSeqRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private static final String ACTIVE_GAMES_KEY = "activeGames";
+    private static final String ACTIVE_GAMES_KEY = "activegames";
 
     private String getPhaseKey(long roomId) {
-        return "game:room:" + roomId + ":phase";
+        return "game:" + roomId + ":phase";
     }
 
     private String getTimerKey(long roomId) {
-        return "game:room:" + roomId + ":timer";
+        return "game:" + roomId + ":timer";
     }
 
     // 게임 상태 조회
