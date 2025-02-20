@@ -34,10 +34,6 @@ export default function sceneChanger(scene) {
     try {
       if (!data) return;
 
-      if (!data.phase) {
-        console.log(data);
-      }
-
       if (data.phase && data.time) {
         scene.registry.set('remainingTime', data.time);
         // phase가 이전과 다를 때만 scene 변경
@@ -58,6 +54,10 @@ export default function sceneChanger(scene) {
       if (data.voteresult) {
         voteResult = data.voteresult;
         scene.registry.set('voteResult', data.voteresult);
+      }
+
+      if ('votekill' in data) {
+        scene.registry.set('voteKill', { result: data.votekill });
       }
 
       if (data.death || data.heal) {
