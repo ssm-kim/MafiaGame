@@ -97,10 +97,10 @@ function VoiceChat({ nickname, gameState }: VoiceChatProps) {
               try {
                 const newpublisher = await OV.initPublisherAsync(undefined, {
                   audioSource: undefined,
-                  videoSource: false,
+                  videoSource: undefined,
                   publishAudio: true,
                 });
-                await newsession.publish(newpublisher);
+                newsession.publish(newpublisher);
                 setPublisher(newpublisher);
               } catch (error) {
                 console.error('Error connecting to the session:', error);
@@ -128,7 +128,7 @@ function VoiceChat({ nickname, gameState }: VoiceChatProps) {
 
   return (
     <div className="absolute bottom-4 right-4 z-50">
-      <div style={{ display: 'none' }}>
+      <div>
         {publisher !== undefined ? (
           <div className="stream-container col-md-6 col-xs-6">
             <OpenViduVideoComponent streamManager={publisher as StreamManager} />
