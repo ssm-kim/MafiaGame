@@ -59,6 +59,7 @@ export const connectWebSocket = (
     const socket = new WebSocket('wss://i12d101.p.ssafy.io/ws-mafia');
     // const socket = new WebSocket('ws://localhost:8080/ws-mafia');
     stompClient = Stomp.over(socket);
+    stompClient.debug = () => {};
 
     const onConnect = () => {
       console.log('WebSocket Connected');
