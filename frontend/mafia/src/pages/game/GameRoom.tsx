@@ -74,17 +74,6 @@ function GameRoom(): JSX.Element {
     ]);
   };
 
-  const [voiceChatState, setVoiceChatState] = useState(false);
-
-  useEffect(() => {
-    if (gameState?.roomStatus === 'PLAYING') {
-      const timeout = setTimeout(() => {
-        setVoiceChatState(true);
-        clearTimeout(timeout);
-      }, 1500);
-    }
-  }, [gameState?.roomStatus]);
-
   useEffect(() => {
     if (!participants) return;
 
@@ -412,12 +401,10 @@ function GameRoom(): JSX.Element {
                     }));
                   }}
                 />
-                {voiceChatState && (
-                  <VoiceChat
-                    nickname={currentNickname}
-                    gameState={gameState}
-                  />
-                )}
+                <VoiceChat
+                  nickname={currentNickname}
+                  gameState={gameState}
+                />
               </div>
             )}
           </div>

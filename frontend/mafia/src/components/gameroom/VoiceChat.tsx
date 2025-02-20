@@ -51,7 +51,7 @@ function VoiceChat({ nickname, gameState }: VoiceChatProps) {
 
   useEffect(() => {
     if (gameState && gameState.myInfo) {
-      const initializeVoiceChat = async () => {
+      const initializeVoiceChat = () => {
         if (!gameState.myInfo) return;
 
         try {
@@ -98,9 +98,9 @@ function VoiceChat({ nickname, gameState }: VoiceChatProps) {
                 const newpublisher = await OV.initPublisherAsync(undefined, {
                   audioSource: undefined,
                   videoSource: false,
-                  publishAudio: false,
+                  publishAudio: gameState?.myInfo?.muteAudio,
                 });
-                newsession.publish(newpublisher);
+                await newsession.publish(newpublisher);
                 setPublisher(newpublisher);
               } catch (error) {
                 console.error('Error connecting to the session:', error);
@@ -117,9 +117,6 @@ function VoiceChat({ nickname, gameState }: VoiceChatProps) {
 
       initializeVoiceChat();
     }
-    return () => {
-      //
-    };
   }, [gameState?.myInfo]);
 
   if (gameState?.roomStatus !== 'PLAYING' || !gameState.myInfo) {
