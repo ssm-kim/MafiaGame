@@ -17,6 +17,12 @@ export default class LastVoteScene extends Phaser.Scene {
   }
 
   create() {
+    sceneChanger(this);
+
+    this.registry.events.on('changedata-voteKill', (parent, value) => {
+      this.showLastVoteResult(value.result);
+    });
+
     setBackground(this);
     showFixedClock(this);
     showFixedRoleText(this);
@@ -167,16 +173,38 @@ export default class LastVoteScene extends Phaser.Scene {
     this.cancelText.setAlpha(0.5);
   }
 
-  // gameEnd() {
-  //   const eventEmitter = this.registry.get('eventEmitter');
-  //   const currentSceneKey = this.scene.key;
-  //   eventEmitter.on('GAME_END', (data) => {
-  //     try {
-  //       this.scene.stop(currentSceneKey);
-  //       this.scene.start('GameOverScene', data);
-  //     } catch (error) {
-  //       console.error('Error:', error);
-  //     }
-  //   });
-  // }
+  showLastVoteResult(killed) {
+    const blackScreen = this.add.rectangle(
+      0,
+      0,
+      this.cameras.main.width,
+      this.cameras.main.height,
+      0x000000,
+    );
+    blackScreen.setOrigin(0);
+    blackScreen.setDepth(99999999);
+    blackScreen.setScrollFactor(0);
+
+    const lastVoteResult = this.add.text(
+      this.cameras.main.centerX,
+      this.cameras.main.centerY,
+      killed ? '처형 되었습니다.' : '처형이 무산되었습니다.',
+      {
+        font: '32px BMEuljiro10yearslater',
+        fill: killed ? '#ff0000' : '#ffffff',
+        align: 'center',
+      },
+    );
+    lastVoteResult.setOrigin(0.5);
+    lastVoteResult.setDepth(999999999);
+    lastVoteResult.setScrollFactor(0);
+
+    this.time.delayedCall(2000, () => {
+      this.cameras.main.fadeOut(2000);
+    });
+  }
+
+  shutdown() {
+    this.registry.events.removeAllListeners();
+  }
 }
