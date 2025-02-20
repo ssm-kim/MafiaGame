@@ -319,30 +319,29 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 
     return () => {
       // console.log('Cleaning up voice chat...');
-      if (audioAnalyserInterval.current) {
-        clearInterval(audioAnalyserInterval.current);
-      }
-      if (audioContext.current) {
-        audioContext.current.close();
-      }
-      if (session) {
-        try {
-          // console.log('Cleaning up audio elements:', Object.keys(audioElements.current));
-          Object.values(audioElements.current).forEach((audio) => audio.remove());
-          audioElements.current = {};
-
-          if (publisher) {
-            session.unpublish(publisher);
-          }
-          session.disconnect();
-          setSession(null);
-          setPublisher(null);
-          setSubscribers([]);
-          console.log('Clean up voice chat...');
-        } catch (error) {
-          console.error('Cleanup error:', error);
-        }
-      }
+      // if (audioAnalyserInterval.current) {
+      //   clearInterval(audioAnalyserInterval.current);
+      // }
+      // if (audioContext.current) {
+      //   audioContext.current.close();
+      // }
+      // if (session) {
+      //   try {
+      //     // console.log('Cleaning up audio elements:', Object.keys(audioElements.current));
+      //     Object.values(audioElements.current).forEach((audio) => audio.remove());
+      //     audioElements.current = {};
+      //     if (publisher) {
+      //       session.unpublish(publisher);
+      //     }
+      //     session.disconnect();
+      //     setSession(null);
+      //     setPublisher(null);
+      //     setSubscribers([]);
+      //     console.log('Clean up voice chat...');
+      //   } catch (error) {
+      //     console.error('Cleanup error:', error);
+      //   }
+      // }
     };
   }, [
     roomId,
