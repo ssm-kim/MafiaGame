@@ -98,7 +98,7 @@ function VoiceChat({ nickname, gameState }: VoiceChatProps) {
                 const newpublisher = await OV.initPublisherAsync(undefined, {
                   audioSource: undefined,
                   videoSource: false,
-                  publishAudio: gameState?.myInfo?.muteAudio,
+                  publishAudio: true,
                 });
                 await newsession.publish(newpublisher);
                 setPublisher(newpublisher);
