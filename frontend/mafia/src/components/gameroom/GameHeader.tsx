@@ -21,7 +21,7 @@ function GameHeader({
   // console.log('GameHeader rendered with onLeave:', onLeave); // prop 확인
 
   const handleClick = () => {
-    console.log('Leave button clicked'); // 버튼 클릭 확인
+    //console.log('Leave button clicked'); // 버튼 클릭 확인
     onLeave();
   };
 

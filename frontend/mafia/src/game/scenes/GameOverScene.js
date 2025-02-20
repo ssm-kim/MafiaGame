@@ -11,7 +11,7 @@ export default class GameOverScene extends Phaser.Scene {
 
   // Scene이 초기화될 때 호출되는 메서드
   init(data) {
-    console.log(data);
+    //console.log(data);
     this.gameResult = data; // 게임 결과를 'MUTANT_WIN'으로 설정 (테스트용)
   }
 
@@ -84,7 +84,7 @@ export default class GameOverScene extends Phaser.Scene {
     try {
       const roomId = this.registry.get('roomId');
       const response = await axios.get(`/api/game/${roomId}/ending`);
-      console.log(response.data);
+      //console.log(response.data);
       return response.data; // 서버에서 받은 데이터 반환
     } catch (error) {
       console.error('Final vote API request failed:', error);

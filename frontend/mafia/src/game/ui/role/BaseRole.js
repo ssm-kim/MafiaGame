@@ -212,7 +212,7 @@ export default class BaseRole {
       if (typeof this.selectedResult === 'function') {
         this.selectedResult(selectedPlayer);
       } else {
-        console.log('selectedResult is not implemented in this class');
+        //console.log('selectedResult is not implemented in this class');
       }
 
       // 서버에 투표 정보 전송

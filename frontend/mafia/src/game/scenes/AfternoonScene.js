@@ -6,7 +6,6 @@ export default class AfternoonScene extends Phaser.Scene {
   }
 
   create() {
-    console.log('??');
     // 어두운 반투명 배경 오버레이
     const overlay = this.add.rectangle(
       0,
