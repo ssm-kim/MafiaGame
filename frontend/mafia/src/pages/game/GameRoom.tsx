@@ -401,10 +401,10 @@ function GameRoom(): JSX.Element {
                     }));
                   }}
                 />
-                <VoiceChat
+                {/* <VoiceChat
                   nickname={currentNickname}
                   gameState={gameState}
-                />
+                /> */}
               </div>
             )}
           </div>
