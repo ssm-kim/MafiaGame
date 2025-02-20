@@ -8,7 +8,14 @@ spring:
       blue: blue, secret, prod
       green: green, secret, prod
 
-
+#server:
+#  ssl:
+#    enabled: true
+#    key-store: mykey.key
+#    # Password는 keystore파일을 생성할 때 입력한다.
+#    key-store-password: 172737
+#    key-store-type: PKCS12
+#    key-alias: bns-ssl
 
   jpa:
     generate-ddl: true
