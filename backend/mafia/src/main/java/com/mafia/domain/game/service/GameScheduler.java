@@ -1,7 +1,6 @@
 package com.mafia.domain.game.service;
 
-import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_NOT_FOUND;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.UNKNOWN_PHASE;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
