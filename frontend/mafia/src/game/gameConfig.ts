@@ -13,7 +13,7 @@ import NightScene from '@/game/scenes/NightScene';
 
 const scenes = [
   SceneManager,
-  StartScene,
+  // StartScene,
   MainScene,
   NightScene,
   VoteScene,

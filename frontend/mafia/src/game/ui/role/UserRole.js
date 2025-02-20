@@ -1,19 +1,10 @@
 export default function showFixedRoleText(scene) {
   const playerInfo = scene.registry.get('playerInfo');
-
-  const roleMapping = {
-    ZOMBIE: '감염자',
-    MUTANT: '돌연변이',
-    POLICE: '연구원',
-    PLAGUE_DOCTOR: '의사',
-    CITIZEN: '생존자',
-  };
-
-  const { role } = playerInfo;
+  const { role, dead } = playerInfo;
 
   // 역할에 따라 문구 색상 설정
   let textColor;
-  if (playerInfo.role === '감염자자') {
+  if (playerInfo.role === '감염자') {
     textColor = '#ff0000'; // 빨간색
   } else if (playerInfo.role === '돌연변이') {
     textColor = '#aeb404'; // 노란색
@@ -22,7 +13,7 @@ export default function showFixedRoleText(scene) {
   }
 
   // 좌측 상단에 역할 문구 표시
-  const fixedRoleText = scene.add.text(10, 10, role, {
+  const fixedRoleText = scene.add.text(10, 10, dead ? '사망' : role, {
     font: '22px BMEuljiro10yearslater',
     fill: textColor,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -30,7 +21,7 @@ export default function showFixedRoleText(scene) {
   });
 
   // 문구를 화면 좌측 상단에 고정
-  fixedRoleText.setScrollFactor(0);
+  fixedRoleText.setScrollFactor(0).setDepth(99999);
 
   return fixedRoleText;
 }

@@ -1,21 +1,27 @@
 import Phaser from 'phaser';
+import axios from 'axios';
 import PlayerRole from '@/types/role';
+import sceneChanger from '@/game/utils/sceneChange';
+import getGameData from '@/game/utils/gameData';
 
 export default class StartScene extends Phaser.Scene {
   constructor() {
     super({ key: 'StartScene' });
   }
 
-  init() {
-    this.gameData = this.registry.get('gameData');
-    this.gameStatus = this.registry.get('gameStatus');
-
-    const { role, character } = this.registry.get('playerInfo');
-    this.role = role;
-    this.character = character;
+  async init() {
+    getGameData(this);
   }
 
   create() {
+    this.time.delayedCall(50, () => {
+      this.showRole();
+    });
+  }
+
+  showRole() {
+    this.role = this.registry.get('playerInfo').role;
+
     const { width, height } = this.scale.gameSize;
     this.cameras.main.fadeIn(1000, 0, 0, 0);
 
@@ -34,9 +40,8 @@ export default class StartScene extends Phaser.Scene {
     });
 
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
-      this.scene.get('SceneManager').loadSceneData('MainScene');
-
-      this.scene.start('MainScene');
+      // sceneChanger(this);
+      this.scene.start('SceneManager');
     });
   }
 }

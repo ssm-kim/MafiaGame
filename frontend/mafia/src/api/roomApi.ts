@@ -52,6 +52,9 @@ const roomApi = {
       // const socket = new WebSocket('wss://i12d101.p.ssafy.io/ws-mafia');
       const socket = new WebSocket('ws://localhost:8080/ws-mafia');
       stompClient = Stomp.over(socket);
+      stompClient.reconnect_delay = 5000;
+
+      stompClient.debug = () => {};
 
       return await new Promise<any>((resolve, reject) => {
         const connectCallback = () => resolve(stompClient);
@@ -94,7 +97,6 @@ const roomApi = {
     const stompClientSubscription = stompClient.subscribe(
       `/topic/room/${roomId}`,
       (message: any) => {
-        console.log('받은 메시지:', JSON.parse(message.body));
         try {
           const roomInfo = JSON.parse(message.body);
 

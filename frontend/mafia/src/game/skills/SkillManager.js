@@ -42,9 +42,7 @@ export default class SkillManager {
         `/api/game/${this.roomId}/target/set?targetNo=${target.playerNo}`,
       );
 
-      if (response.data.isSuccess) {
-        this.showSkillResult(response.data.result.ex);
-      } else {
+      if (!response.data.isSuccess) {
         console.error('API 요청 실패:', response.data);
       }
     } catch (e) {
@@ -64,8 +62,6 @@ export default class SkillManager {
       );
 
       if (response.data.isSuccess) {
-        this.showSkillResult(response.data.result.ex);
-      } else {
         console.error('API 요청 실패:', response.data);
       }
     } catch (e) {
@@ -85,7 +81,20 @@ export default class SkillManager {
       );
 
       if (response.data.isSuccess) {
-        this.showSkillResult(response.data.result.ex);
+        const result = response.data.result.includes('ZOMBIE');
+        const resultText = result
+          ? `해당 타겟은 감염자가 맞습니다`
+          : `해당 타겟은 감염자가 아닙니다`;
+
+        this.scene.add
+          .text(target.x, target.y - 80, resultText, {
+            font: '20px BMEuljiro10yearslater',
+            fill: '#ff0000',
+            padding: 14,
+            backgroundColor: 'black',
+          })
+          .setDepth(1000)
+          .setOrigin(0.5, 0.5);
       } else {
         console.error('API 요청 실패:', response.data);
       }
@@ -105,9 +114,7 @@ export default class SkillManager {
         `/api/game/${this.roomId}/target/set?targetNo=${target.playerNo}`,
       );
 
-      if (response.data.isSuccess) {
-        this.showSkillResult(response.data.result.ex);
-      } else {
+      if (!response.data.isSuccess) {
         console.error('API 요청 실패:', response.data);
       }
     } catch (e) {
@@ -115,22 +122,22 @@ export default class SkillManager {
     }
   }
 
-  showSkillResult(message) {
-    const resultText = this.scene.add
-      .text(this.scene.cameras.main.centerX, this.scene.cameras.main.centerY - 100, message, {
-        fontSize: '24px',
-        fill: '#00ff00',
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        padding: { x: 20, y: 10 },
-      })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(1002);
+  // showSkillResult(message) {
+  //   const resultText = this.scene.add
+  //     .text(this.scene.cameras.main.centerX, this.scene.cameras.main.centerY - 100, message, {
+  //       fontSize: '24px',
+  //       fill: '#00ff00',
+  //       backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  //       padding: { x: 20, y: 10 },
+  //     })
+  //     .setOrigin(0.5)
+  //     .setScrollFactor(0)
+  //     .setDepth(1002);
 
-    this.scene.time.delayedCall(2000, () => {
-      resultText.destroy();
-    });
-  }
+  //   this.scene.time.delayedCall(2000, () => {
+  //     resultText.destroy();
+  //   });
+  // }
 
   // 직업별 이펙트 생성 메서드
   createSkillEffect(role, target) {

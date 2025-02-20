@@ -1,4 +1,3 @@
-import axios from 'axios';
 import Phaser from 'phaser';
 import setBackground from '@/game/utils/map';
 import PlayerManager from '@/game/player/PlayerManager';
@@ -15,10 +14,9 @@ export default class MainScene extends Phaser.Scene {
     });
 
     this.players = new Map();
-    // this.remainingTime = sceneTimeout.DAY_DISCUSSION;
   }
 
-  async init() {
+  init() {
     getGameData(this);
 
     this.roomId = this.registry.get('roomId');
@@ -68,12 +66,8 @@ export default class MainScene extends Phaser.Scene {
     super.destroy();
   }
 
-  destroy() {
-    console.log(this);
-    console.log('MAINSCENE DESTROIED');
-  }
-
   showRole() {
+    const message = this.registry.get('afternoonMessage');
     const { role } = this.registry.get('playerInfo');
     const mainCam = this.cameras.main;
 
@@ -88,9 +82,9 @@ export default class MainScene extends Phaser.Scene {
     );
 
     const roleText = this.add
-      .text(mainCam.width / 2, mainCam.height / 2, `당신은 ${role}입니다.`, {
+      .text(mainCam.width / 2, mainCam.height / 2, message || `당신은 ${role}입니다.`, {
         font: '28px Arial',
-        fill: role === '감염자' ? '#ff0000' : '#ffffff',
+        fill: role === '감염자' || message ? '#ff0000' : '#ffffff',
         align: 'center',
         padding: { left: 10, right: 10, top: 5, bottom: 5 },
       })
@@ -98,7 +92,7 @@ export default class MainScene extends Phaser.Scene {
 
     const container = this.add.container(0, 0, [overlay, roleText]).setDepth(1000);
 
-    this.time.delayedCall(1500, () => {
+    this.time.delayedCall(message ? 2500 : 1500, () => {
       this.tweens.add({
         targets: container,
         alpha: 0,

@@ -39,11 +39,26 @@ export default class NightScene extends Phaser.Scene {
   }
 
   create() {
+    sceneChanger(this);
+
+    // 시민인 경우 검은 화면만 표시
+    if (this.playerInfo.role === '생존자' || this.playerInfo.dead) {
+      this.createBlackScreen();
+      return; // 다른 설정들은 실행하지 않음
+    }
+
     const localPlayerInfo = this.registry.get('playerInfo');
     const playersInfo = this.registry.get('playersInfo');
-    let x = 125;
+
+    // Light2D 파이프라인 활성화 및 주변광 설정
+    this.lights.enable();
+    // this.lights.setAmbientColor(0x000000); // 완전한 어둠
+
+    let x = 0;
 
     Object.values(playersInfo).forEach((player) => {
+      x += 125;
+
       if (player.playerNo === localPlayerInfo.playerNo) return;
 
       const newPlayerData = {
@@ -55,30 +70,20 @@ export default class NightScene extends Phaser.Scene {
         // y: player.playerNo > 4 ? 444 : 222,
       };
 
-      x += 125;
-
       const targetPlayer = new Player(this, newPlayerData);
       targetPlayer.playerNo = player.playerNo;
+      targetPlayer.dead = player.dead;
 
       this.targetPlayers.push(targetPlayer);
     });
 
-    // Light2D 파이프라인 활성화 및 주변광 설정
-    this.lights.enable();
-    this.lights.setAmbientColor(0x000000); // 완전한 어둠
-
     setBackground(this);
-    showFixedClock(this);
-    sceneChanger(this);
     this.setupManagers();
     this.createNightTransition();
 
     // bgm
     this.bgmController = new BGMController(this);
     this.bgmController.playBGM('night_bgm');
-
-    // // 렌더링 최적화
-    // this.game.renderer.roundPixels = true;
 
     // Light2D 파이프라인 적용
     this.children.list.forEach((child) => {
@@ -92,13 +97,20 @@ export default class NightScene extends Phaser.Scene {
       this.setupInteraction();
       this.setupLighting();
     });
-    showFixedClock(this);
-    showFixedRoleText(this);
 
     this.children.list.forEach((child) => {
       if (child.type === 'Text' || child.type === 'Container') {
-        // child.resetPipeline();
-        child.setDepth(1000); // UI 요소들을 최상단에 표시
+        child.setDepth(10000); // UI 요소들을 최상단에 표시
+      }
+    });
+
+    const roleText = showFixedRoleText(this);
+    const clock = showFixedClock(this);
+
+    [roleText, clock].forEach((el) => {
+      if (el) {
+        el.setDepth(999999);
+        el.resetPipeline();
       }
     });
   }
@@ -108,7 +120,6 @@ export default class NightScene extends Phaser.Scene {
     this.playerLight = this.lights
       .addLight(this.playerManager.localPlayer.x, this.playerManager.localPlayer.y, lightRadius)
       .setIntensity(3) // 빛의 강도를 더 낮게 설정
-      // .setColor(0x333333)    // 더 어두운 회색 조명
       .setScrollFactor(1);
   }
 
@@ -287,7 +298,7 @@ export default class NightScene extends Phaser.Scene {
         player.y,
       );
 
-      if (distance < minDistance) {
+      if (distance < minDistance && !player.dead) {
         minDistance = distance;
         nearest = player;
       }
@@ -343,6 +354,35 @@ export default class NightScene extends Phaser.Scene {
         repeat: -1,
       });
     }
+  }
+
+  createBlackScreen() {
+    // 검은 화면 생성
+    const blackScreen = this.add.rectangle(
+      0,
+      0,
+      this.cameras.main.width,
+      this.cameras.main.height,
+      0x000000,
+    );
+    blackScreen.setOrigin(0);
+    blackScreen.setDepth(9999);
+    blackScreen.setScrollFactor(0);
+
+    // 시민용 메시지 표시
+    const citizenText = this.add.text(
+      this.cameras.main.centerX,
+      this.cameras.main.centerY,
+      '밤이 되었습니다...\n감염자 또는 돌연변이가 활동 중입니다.',
+      {
+        font: '32px BMEuljiro10yearslater',
+        fill: '#ff0000',
+        align: 'center',
+      },
+    );
+    citizenText.setOrigin(0.5);
+    citizenText.setDepth(10000);
+    citizenText.setScrollFactor(0);
   }
 
   // 씬이 종료될 때 정리

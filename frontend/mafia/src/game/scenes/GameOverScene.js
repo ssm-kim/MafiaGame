@@ -11,6 +11,7 @@ export default class GameOverScene extends Phaser.Scene {
 
   // Scene이 초기화될 때 호출되는 메서드
   init(data) {
+    console.log(data);
     this.gameResult = data; // 게임 결과를 'MUTANT_WIN'으로 설정 (테스트용)
   }
 
@@ -41,7 +42,7 @@ export default class GameOverScene extends Phaser.Scene {
     );
     this.overlay.setOrigin(0);
     this.overlay.setAlpha(0.6);
-    this.overlay.setDepth(0);
+    this.overlay.setDepth(1);
 
     this.checkGameStatus(); // 게임 상태 확인
     this.scale.on('resize', this.resize, this); // 화면 크기 변경 시 처리
@@ -92,7 +93,6 @@ export default class GameOverScene extends Phaser.Scene {
 
   // 게임 상태 확인 후 적절한 화면을 생성
   async checkGameStatus() {
-    const { playerNo } = this.registry.get('playerInfo');
     const playersData = await this.playersData();
     const players = playersData.result.endPlayers;
 
@@ -100,13 +100,17 @@ export default class GameOverScene extends Phaser.Scene {
       this.players = players;
 
       // playNo가 1인 플레이어가 있는 경우 DELETE 요청을 4초 뒤에 보냄
-      if (playerNo === 1) {
+      const playerWithPlayNoOne = this.players.find((player) => player.playerNo === 1);
+      console.log(playerWithPlayNoOne);
+      if (playerWithPlayNoOne) {
         const roomId = this.registry.get('roomId');
 
         // 4초 뒤에 DELETE 요청을 보냄
         setTimeout(async () => {
           try {
             await axios.delete(`/api/game/${roomId}`);
+            const setShowGame = this.registry.get('setShowGame');
+            setShowGame();
             console.log('DELETE request sent successfully after 4 seconds');
           } catch (error) {
             console.error('DELETE API request failed:', error);
@@ -152,8 +156,6 @@ export default class GameOverScene extends Phaser.Scene {
 
   // 플레이어 목록을 생성
   createPlayerList() {
-    this.clearZombieImages(); // 좀비 이미지 제거
-
     if (this.playerInfoGroup) {
       this.playerInfoGroup.clear(true, true); // 기존 플레이어 정보 그룹 제거
     }
@@ -232,32 +234,7 @@ export default class GameOverScene extends Phaser.Scene {
 
       this.playerInfoGroup.add(playerText);
       this.playerInfoGroup.add(roleText);
-
-      // 승리에 따른 이미지 추가
-      if (this.gameResult === 'ZOMBIE_WIN') {
-        this.addZombieImage(x, roleText.y + roleText.height + 50);
-      } else if (this.gameResult === 'MUTANT_WIN') {
-        this.addZombieImage(x, roleText.y + roleText.height + 50);
-      } else if (this.gameResult === 'CITIZEN_WIN') {
-        this.addZombieImage(x, roleText.y + roleText.height + 50);
-      }
     });
-  }
-
-  // 좀비 이미지 추가 (현재는 주석 처리됨)
-  addZombieImage(x, y) {
-    // const zombieImage = this.add.image(x, y, 'zombie');
-    // zombieImage.setOrigin(0.5);
-    // const scale = 0.4;
-    // zombieImage.setScale(scale);
-    // this.zombieImages.push(zombieImage);
-    // this.playerInfoGroup.add(zombieImage);
-  }
-
-  // 좀비 이미지 제거
-  clearZombieImages() {
-    // this.zombieImages.forEach((zombie) => zombie.destroy());
-    // this.zombieImages = [];
   }
 
   // 승리 조건 확인
@@ -308,7 +285,6 @@ export default class GameOverScene extends Phaser.Scene {
     if (this.overlay) {
       this.overlay.destroy();
     }
-    this.clearZombieImages(); // 좀비 이미지 삭제
     this.scale.off('resize', this.resize); // 화면 크기 변경 이벤트 해제
   }
 }

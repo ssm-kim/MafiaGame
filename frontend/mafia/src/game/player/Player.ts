@@ -16,7 +16,7 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
   };
 
   constructor(scene, playerData) {
-    super(scene, playerData.x || 36, playerData.y || 222, playerData.character);
+    super(scene, playerData.x || 36, playerData.y || 200, playerData.character);
 
     this.SPEED = 100;
     this.NICKNAME_OFFSET_Y = 30;

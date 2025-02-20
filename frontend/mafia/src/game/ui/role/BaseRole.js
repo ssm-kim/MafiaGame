@@ -41,6 +41,11 @@ export default class BaseRole {
 
     // 초기 위치 설정
     this.updatePositions();
+
+    const localPlayerInfo = this.scene.registry.get('playerInfo');
+    if (localPlayerInfo.dead || localPlayerInfo.role === '돌연변이') {
+      this.handleSkip();
+    }
   }
 
   createSkipButton() {
@@ -99,7 +104,7 @@ export default class BaseRole {
     const maxButtons = 9;
     const gameData = this.scene.registry.get('gameData');
 
-    for (let i = 0; i < maxButtons; i++) {
+    for (let i = 0; i < maxButtons; i += 1) {
       const playerNumber = i + 1;
       const player = gameData.result.playersInfo[playerNumber] || null;
 
@@ -235,6 +240,9 @@ export default class BaseRole {
     });
 
     this.gameObjects.actionButton.removeInteractive().setFillStyle(0x666666);
+    this.gameObjects.actionText.setColor('#999999');
+    this.gameObjects.skipButton.removeInteractive().setFillStyle(0x666666);
+    this.gameObjects.skipText.setColor('#999999');
   }
 
   showMessage(text) {

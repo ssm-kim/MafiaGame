@@ -10,7 +10,7 @@ export default function showFixedClock(scene) {
       padding: { left: 5, right: 5, top: 2, bottom: 2 },
     })
     .setScrollFactor(0)
-    .setDepth(100); // 다른 UI 요소보다 위에 표시
+    .setDepth(99999); // 다른 UI 요소보다 위에 표시
 
   sceneEventEmitter.on('changedata-remainingTime', (parent, value) => {
     if (!timeText) return;
