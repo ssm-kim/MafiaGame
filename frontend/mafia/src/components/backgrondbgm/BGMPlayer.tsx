@@ -7,9 +7,9 @@ function BGMPlayer(): JSX.Element {
 
   useEffect(() => {
     // 게임룸이 아닌 경우에만 BGM 재생
-    console.log('Current path:', location.pathname);
+    //console.log('Current path:', location.pathname);
     const shouldPlayBGM = !location.pathname.startsWith('/game/');
-    console.log('Should play BGM:', shouldPlayBGM);
+    //console.log('Should play BGM:', shouldPlayBGM);
     if (shouldPlayBGM) {
       if (audioRef.current) {
         audioRef.current.src = '/bgm/background-bgm.mp3';
@@ -19,7 +19,7 @@ function BGMPlayer(): JSX.Element {
         const playPromise = audioRef.current.play();
         if (playPromise !== undefined) {
           playPromise.catch((error) => {
-            console.log('Auto-play was prevented:', error);
+            console.error('Auto-play was prevented:', error);
           });
         }
       }
