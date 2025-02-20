@@ -316,7 +316,7 @@ export default class BaseRole {
     this.updatePositions();
   };
 
-  handlePlayerSelection(playerNumber, selectedButton, selectedTextContainer) {
+  handlePlayerSelection(playerNumber, selectedButton) {
     const prevSelected = this.selectedPlayer;
 
     // Handle new selection
