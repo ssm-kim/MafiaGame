@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { OpenVidu, Publisher, Session, Subscriber } from 'openvidu-browser';
-import AudioComponent from './AudioComponent';
+import UserVideoComponent from './UserVideoComponent';
 
 interface VoiceChatProps {
   nickname: string;
@@ -117,33 +117,6 @@ function VoiceChat({ nickname, gameState }: VoiceChatProps) {
 
       initializeVoiceChat();
     }
-
-    return () => {
-      // console.log('Cleaning up voice chat...');
-      // if (audioAnalyserInterval.current) {
-      //   clearInterval(audioAnalyserInterval.current);
-      // }
-      // if (audioContext.current) {
-      //   audioContext.current.close();
-      // }
-      // if (session) {
-      //   try {
-      //     // console.log('Cleaning up audio elements:', Object.keys(audioElements.current));
-      //     Object.values(audioElements.current).forEach((audio) => audio.remove());
-      //     audioElements.current = {};
-      //     if (publisher) {
-      //       session.unpublish(publisher);
-      //     }
-      //     session.disconnect();
-      //     setSession(null);
-      //     setPublisher(null);
-      //     setSubscribers([]);
-      //     console.log('Clean up voice chat...');
-      //   } catch (error) {
-      //     console.error('Cleanup error:', error);
-      //   }
-      // }
-    };
   }, [gameState?.myInfo]);
 
   if (gameState?.roomStatus !== 'PLAYING' || !gameState.myInfo) {
@@ -153,12 +126,19 @@ function VoiceChat({ nickname, gameState }: VoiceChatProps) {
   return (
     <div className="absolute bottom-4 right-4 z-50">
       <div style={{ display: 'none' }}>
-        {publisher && <AudioComponent streamManager={publisher} />}
-        {subscribers.map((sub, i) => (
-          <AudioComponent
-            key={i}
-            streamManager={sub}
-          />
+        {publisher !== undefined ? (
+          <div className="stream-container col-md-6 col-xs-6">
+            <UserVideoComponent streamManager={publisher} />
+          </div>
+        ) : null}
+        {subscribers.map((sub) => (
+          <div
+            key={sub.id}
+            className="stream-container col-md-6 col-xs-6"
+          >
+            <span>{sub.id}</span>
+            <UserVideoComponent streamManager={sub} />
+          </div>
         ))}
       </div>
     </div>
