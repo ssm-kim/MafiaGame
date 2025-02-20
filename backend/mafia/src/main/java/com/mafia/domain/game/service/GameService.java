@@ -1,12 +1,6 @@
 package com.mafia.domain.game.service;
 
-import static com.mafia.global.common.model.dto.BaseResponseStatus.DEAD_CANNOT_VOTE;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_ALREADY_START;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_NOT_FOUND;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.GAME_TIME_OVER;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.INVALID_PHASE;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.MUTANT_CANNOT_VOTE;
-import static com.mafia.global.common.model.dto.BaseResponseStatus.PHASE_NOT_FOUND;
+import static com.mafia.global.common.model.dto.BaseResponseStatus.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +12,7 @@ import com.mafia.domain.game.model.dto.GameStartEvent;
 import com.mafia.domain.game.model.entity.GameLog;
 import com.mafia.domain.game.model.game.Game;
 import com.mafia.domain.game.model.game.GamePhase;
+import com.mafia.domain.game.model.game.GameStatus;
 import com.mafia.domain.game.model.game.Player;
 import com.mafia.domain.game.model.game.Role;
 import com.mafia.domain.game.repository.GameLogRepository;
@@ -81,6 +76,9 @@ public class GameService {
      */
     public EndGameInfoDto getEndGamePlayers(long gameId) {
         Game game = findById(gameId);
+        if(game.getGameStatus() == GameStatus.PLAYING){
+            throw new BusinessException(GAME_IS_NOT_END);
+        }
         return new EndGameInfoDto(game);
     }
 
@@ -104,7 +102,7 @@ public class GameService {
      */
     public boolean startGame(long gameId) {
         gameRepository.findById(gameId).ifPresent(game -> {
-            new BusinessException(GAME_ALREADY_START);
+            throw new BusinessException(GAME_ALREADY_START);
         });
         Game game = makeGame(gameId);
 
