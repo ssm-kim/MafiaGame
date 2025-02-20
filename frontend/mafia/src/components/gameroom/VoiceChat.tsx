@@ -272,7 +272,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 
             setPublisher(publisher);
             setIsMuted(false);
-            createAudioElement(publisher);
+            // createAudioElement(publisher);
           }
 
           setSession(session);
