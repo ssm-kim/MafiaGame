@@ -7,21 +7,6 @@
 
 
 ------------------------------------------------------
-## 팀원 역할 및 담당
-
-| 김성민 | 배준영 | 양대원 | 전준표 | 김진우 | 이성욱 | 정해빈 |
-| ----- | ------ | ----- | ------ | ----- | ------ | ------ |
-| <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a>
-
-| Contributors | Role | Position |
-| ------------ | ---- | -------- |
-| 김성민 | 팀장, <br /> Backend | - 유저 플로우 작성 <br> |
-| 배준영 | 팀원, <br /> Backend | - 유저 플로우 작성 <br> |
-| 양대원 | 팀원, <br /> Backend Lead | - 유저 플로우 작성 <br> |
-| 전준표 | 팀원, <br /> Frontend Lead | - 유저 플로우 작성 <br> |
-| 김진우 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
-| 이성욱 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
-| 정해빈 | 팀원, <br /> Frontend, <br /> 서기 | 유저 플로우 작성 <br>
 
 
 
@@ -306,3 +291,18 @@
   ```
 
 --------------------------------------------
+## 팀원 역할 및 담당
+
+| 김성민 | 배준영 | 양대원 | 전준표 | 김진우 | 이성욱 | 정해빈 |
+| ----- | ------ | ----- | ------ | ----- | ------ | ------ |
+| <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a> | <a href="https://github.com/osy9536"><img src="https://avatars.githubusercontent.com/u/76714304?v=4" alt="osy9536" width="100" height="100"></a>
+
+| Contributors | Role | Position |
+| ------------ | ---- | -------- |
+| 김성민 | 팀장, <br /> Backend | - 유저 플로우 작성 <br> |
+| 배준영 | 팀원, <br /> Backend | - 유저 플로우 작성 <br> |
+| 양대원 | 팀원, <br /> Backend Lead | - 유저 플로우 작성 <br> |
+| 전준표 | 팀원, <br /> Frontend Lead | - 유저 플로우 작성 <br> |
+| 김진우 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
+| 이성욱 | 팀원, <br /> Frontend | - 유저 플로우 작성 <br> | 
+| 정해빈 | 팀원, <br /> Frontend, <br /> 서기 | 유저 플로우 작성 <br>
