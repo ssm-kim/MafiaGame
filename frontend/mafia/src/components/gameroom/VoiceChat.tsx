@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { OpenVidu, Publisher, Session, StreamManager, Subscriber } from 'openvidu-browser';
 
 interface VoiceChatProps {
@@ -34,54 +34,133 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
   const [isMuted, setIsMuted] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [availableMicrophones, setAvailableMicrophones] = useState<MediaDeviceInfo[]>([]);
   const audioElements = useRef<Record<string, HTMLAudioElement>>({});
+  const audioAnalyserInterval = useRef<number | null>(null);
+  const audioContext = useRef<AudioContext | null>(null);
 
-  const checkAudioTracks = (pub: Publisher) => {
+  // 게임 규칙에 따른 권한 체크
+  const canSpeak = useCallback(() => {
+    if (!gameState?.myInfo) return false;
+
+    // 죽은 사람은 말할 수 없음
+    if (gameState.myInfo.isDead) return false;
+
+    // 밤에는 좀비만 말할 수 있음
+    if (gameState.isNight && gameState.myInfo.role !== 'ZOMBIE') return false;
+
+    // 강제 음소거 상태면 말할 수 없음
+    if (gameState.myInfo.muteMic) return false;
+
+    return true;
+  }, [gameState?.myInfo, gameState?.isNight]);
+
+  // 특정 스트림을 구독할 수 있는지 체크
+  const canSubscribeToStream = useCallback(
+    (streamRole?: string) => {
+      if (!gameState?.myInfo) return false;
+
+      // 1. 죽은 사람은 모든 음성을 들을 수 있음
+      if (gameState.myInfo.isDead) return true;
+
+      // 2. 낮에는 모든 사람이 서로의 음성을 들을 수 있음
+      if (!gameState.isNight) return true;
+
+      // 3. 밤에는 좀비들끼리만 대화 가능
+      if (gameState.isNight) {
+        if (gameState.myInfo.role === 'ZOMBIE' && streamRole === 'ZOMBIE') {
+          return true;
+        }
+        return false;
+      }
+
+      return true;
+    },
+    [gameState?.myInfo, gameState?.isNight],
+  );
+
+  // 사용 가능한 마이크 목록 가져오기
+  const getAvailableMicrophones = async () => {
     try {
-      if (pub.stream?.audioActive !== undefined) {
-        console.log('OpenVidu Stream audio status:', {
-          audioActive: pub.stream.audioActive,
-          streamId: pub.stream.streamId,
-        });
-        return pub.stream.audioActive;
-      }
-
-      if (pub.stream instanceof MediaStream) {
-        const audioTracks = pub.stream.getAudioTracks();
-        console.log('MediaStream Audio Tracks:', {
-          count: audioTracks?.length,
-          tracks: audioTracks?.map((track) => ({
-            enabled: track.enabled,
-            muted: track.muted,
-            readyState: track.readyState,
-            label: track.label,
-          })),
-        });
-        return audioTracks?.some((track) => track.enabled && track.readyState === 'live') ?? false;
-      }
-
-      console.log('Unknown stream type:', pub.stream);
-      return false;
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const audioDevices = devices.filter((device) => device.kind === 'audioinput');
+      setAvailableMicrophones(audioDevices);
+      console.log(
+        'Available Microphones:',
+        audioDevices.map((device) => ({
+          deviceId: device.deviceId,
+          label: device.label,
+          groupId: device.groupId,
+        })),
+      );
+      return audioDevices;
     } catch (error) {
-      console.error('Error checking audio tracks:', error);
-      return false;
+      console.error('Error getting audio devices:', error);
+      return [];
     }
   };
 
+  // 오디오 레벨 모니터링 시작
+  const startAudioLevelMonitoring = (mediaStream: MediaStream) => {
+    try {
+      if (!audioContext.current) {
+        audioContext.current = new AudioContext();
+      }
+
+      const analyser = audioContext.current.createAnalyser();
+      const source = audioContext.current.createMediaStreamSource(mediaStream);
+      source.connect(analyser);
+      analyser.fftSize = 256;
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      if (audioAnalyserInterval.current) {
+        clearInterval(audioAnalyserInterval.current);
+      }
+
+      audioAnalyserInterval.current = window.setInterval(() => {
+        analyser.getByteFrequencyData(dataArray);
+        const audioLevel = dataArray.reduce((sum, value) => sum + value, 0) / dataArray.length;
+        if (audioLevel > 0) {
+          // 실제 소리가 감지될 때만 로그
+          console.log('Current Audio Level:', audioLevel.toFixed(2));
+        }
+      }, 1000) as unknown as number;
+    } catch (error) {
+      console.error('Error setting up audio monitoring:', error);
+    }
+  };
+
+  // 오디오 엘리먼트 생성
   const createAudioElement = (streamManager: StreamManager) => {
     try {
       const audioElement = document.createElement('audio');
-      audioElement.srcObject = streamManager.stream.getMediaStream();
+      const mediaStream = streamManager.stream.getMediaStream();
+      audioElement.srcObject = mediaStream;
       audioElement.id = `audio-${streamManager.stream.streamId}`;
       audioElement.autoplay = true;
       audioElement.setAttribute('playsinline', 'true');
-      audioElement.style.display = 'none';
+
+      // 자신의 스트림인 경우 음소거 (피드백 방지)
+      if (streamManager === publisher) {
+        audioElement.volume = 0;
+        audioElement.muted = true;
+      } else {
+        audioElement.volume = 1.0;
+      }
+
       document.body.appendChild(audioElement);
       audioElements.current[streamManager.stream.streamId] = audioElement;
 
       console.log('Audio element created:', {
         streamId: streamManager.stream.streamId,
-        audioTracks: (streamManager.stream.getMediaStream() as MediaStream).getAudioTracks().length,
+        audioTracks: mediaStream.getAudioTracks().length,
+        trackInfo: mediaStream.getAudioTracks().map((track) => ({
+          enabled: track.enabled,
+          muted: track.muted,
+          readyState: track.readyState,
+          label: track.label,
+        })),
       });
 
       audioElement.onplay = () =>
@@ -94,40 +173,39 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
   };
 
   useEffect(() => {
-    console.log('VoiceChat Init:', {
-      roomId,
-      participantNo,
-      nickname,
-      gameState: {
-        status: gameState?.roomStatus,
-        myInfo: gameState?.myInfo,
-        hasToken: !!gameState?.myInfo?.openviduToken,
-      },
-      connectionStatus,
-    });
-
     if (gameState?.roomStatus === 'PLAYING' && participantNo !== null && gameState.myInfo) {
       const initializeVoiceChat = async () => {
-        if (!gameState.myInfo) {
-          console.log('No myInfo available');
-          return;
-        }
+        if (!gameState.myInfo) return;
 
         try {
-          // 먼저 오디오 권한 확인
+          // 사용 가능한 마이크 확인
+          const audioDevices = await getAvailableMicrophones();
+
+          // 기본 마이크 또는 노트북 내장 마이크 선택
+          const defaultMic = audioDevices.find(
+            (device) =>
+              device.label.toLowerCase().includes('default') ||
+              device.label.toLowerCase().includes('built-in') ||
+              device.label.toLowerCase().includes('internal'),
+          );
+
+          // 마이크 권한 및 작동 확인
           const mediaStream = await navigator.mediaDevices.getUserMedia({
-            audio: {
-              echoCancellation: true,
-              noiseSuppression: true,
-              autoGainControl: true,
-            },
+            audio: defaultMic
+              ? {
+                  deviceId: { exact: defaultMic.deviceId },
+                  echoCancellation: true,
+                  noiseSuppression: true,
+                  autoGainControl: true,
+                }
+              : true,
           });
-          console.log('Audio permission granted:', mediaStream.getAudioTracks());
+
+          startAudioLevelMonitoring(mediaStream);
 
           const OV = new OpenVidu();
           OV.enableProdMode();
           setConnectionStatus('connecting');
-          console.log('OpenVidu instance created');
 
           const token = gameState.myInfo.openviduToken;
           if (!token) {
@@ -135,15 +213,9 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
           }
 
           const session = OV.initSession();
-          console.log('Session initialized');
 
+          // 스트림 생성 이벤트 핸들러
           session.on('streamCreated', (event) => {
-            console.log('Stream created event:', {
-              stream: event.stream,
-              connectionData: event.stream.connection.data,
-              connectionType: typeof event.stream.connection.data,
-            });
-
             try {
               const connectionData = event.stream.connection.data;
               const closingBraceIndex = connectionData.indexOf('}');
@@ -154,80 +226,61 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
                   ? JSON.parse(cleanConnectionData)
                   : { clientData: connectionData };
 
-              if (
-                !gameState.isNight ||
-                gameState.myInfo?.isDead ||
-                gameState.myInfo?.role === 'ZOMBIE'
-              ) {
+              // 스트림 구독 여부 결정
+              if (canSubscribeToStream(streamData.role)) {
                 const subscriber = session.subscribe(event.stream, undefined);
                 setSubscribers((prev) => [...prev, subscriber]);
                 createAudioElement(subscriber);
-
                 console.log('Subscribed to stream from:', streamData.clientData);
               } else {
-                console.log('Stream subscription blocked due to night time rules');
+                console.log('Stream subscription blocked due to game rules');
               }
             } catch (error) {
-              console.log('Failed to parse stream data, subscribing anyway:', error);
-              const subscriber = session.subscribe(event.stream, undefined);
-              setSubscribers((prev) => [...prev, subscriber]);
-              createAudioElement(subscriber);
+              console.log('Stream handling error:', error);
             }
           });
 
           session.on('streamDestroyed', (event) => {
-            console.log('Stream destroyed:', {
-              stream: event.stream,
-              connectionData: event.stream.connection.data,
-            });
-
             const audioElement = audioElements.current[event.stream.streamId];
             if (audioElement) {
               audioElement.remove();
               delete audioElements.current[event.stream.streamId];
             }
-
             setSubscribers((prev) =>
               prev.filter((sub) => sub.stream.streamId !== event.stream.streamId),
             );
           });
 
-          session.on('connectionCreated', (event) => {
-            console.log('New connection created:', event.connection);
+          await session.connect(token, {
+            clientData: JSON.stringify({
+              nickname,
+              role: gameState.myInfo.role,
+              isDead: gameState.myInfo.isDead,
+            }),
           });
 
-          session.on('connectionDestroyed', (event) => {
-            console.log('Connection destroyed:', event.connection);
-          });
-
-          await session.connect(token, { clientData: nickname });
-          console.log('Session connected successfully');
           setConnectionStatus('connected');
 
-          if (!gameState.myInfo.muteMic) {
-            console.log('Initializing publisher...');
+          // Publisher 생성 (말할 수 있는 경우에만)
+          if (canSpeak()) {
             const publisher = await OV.initPublisher(undefined, {
-              audioSource: true,
+              audioSource: defaultMic?.deviceId || undefined,
               videoSource: false,
-              publishAudio: !gameState.myInfo.muteMic,
+              publishAudio: true,
               publishVideo: false,
               mirror: false,
-            });
-
-            console.log('Publisher created, checking audio status:', {
-              hasAudioTrack: checkAudioTracks(publisher),
-              audioActive: publisher.stream?.audioActive,
-              streamId: publisher.stream?.streamId,
+              audioProcessing: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+              },
             });
 
             await session.publish(publisher);
-            console.log('Stream published successfully:', {
-              audioActive: publisher.stream?.audioActive,
-              streamId: publisher.stream?.streamId,
-            });
 
             setPublisher(publisher);
-            setIsMuted(gameState.myInfo.muteMic);
+            setIsMuted(false);
+            createAudioElement(publisher);
           }
 
           setSession(session);
@@ -241,16 +294,20 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
     }
 
     return () => {
+      if (audioAnalyserInterval.current) {
+        clearInterval(audioAnalyserInterval.current);
+      }
+      if (audioContext.current) {
+        audioContext.current.close();
+      }
       if (session) {
         try {
           Object.values(audioElements.current).forEach((audio) => audio.remove());
           audioElements.current = {};
 
           if (publisher) {
-            console.log('Cleanup: Unpublishing stream');
             session.unpublish(publisher);
           }
-          console.log('Cleanup: Disconnecting session');
           session.disconnect();
           setConnectionStatus('disconnected');
           setSession(null);
@@ -268,51 +325,37 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
     gameState?.roomStatus,
     gameState?.myInfo,
     gameState?.isNight,
+    canSpeak,
+    canSubscribeToStream,
   ]);
 
   useEffect(() => {
     if (publisher && gameState?.myInfo) {
-      console.log('Player state changed:', {
-        muteMic: gameState.myInfo.muteMic,
-        isDead: gameState.myInfo.isDead,
-        audioActive: publisher.stream?.audioActive,
-      });
-
-      if (gameState.myInfo.muteMic || gameState.myInfo.isDead) {
-        console.log('Unpublishing stream due to state change');
+      // 말하기 권한이 없어지면 Publisher 제거
+      if (!canSpeak()) {
         session?.unpublish(publisher);
         setPublisher(null);
+        setIsMuted(true);
       }
-      setIsMuted(gameState.myInfo.muteMic || gameState.myInfo.isDead);
     }
-  }, [gameState?.myInfo, publisher, session]);
+  }, [gameState?.myInfo, publisher, session, canSpeak]);
 
   if (gameState?.roomStatus !== 'PLAYING' || !gameState.myInfo) {
     return null;
   }
 
-  if (gameState.myInfo.muteMic || gameState.myInfo.isDead) {
-    return null;
-  }
-
   const toggleMute = () => {
-    if (publisher && !gameState.myInfo?.muteMic && !gameState.myInfo?.isDead) {
+    if (publisher && canSpeak()) {
       const newMuteState = !isMuted;
-      console.log('Toggling mute state:', {
-        newState: newMuteState,
-        currentAudioActive: publisher.stream?.audioActive,
-      });
-
       publisher.publishAudio(!newMuteState);
       setIsMuted(newMuteState);
-
-      setTimeout(() => {
-        console.log('Post-toggle audio state:', {
-          audioActive: publisher.stream?.audioActive,
-        });
-      }, 100);
     }
   };
+
+  // 죽었거나 말할 수 없는 상태라면 UI를 숨김
+  if (!canSpeak()) {
+    return null;
+  }
 
   return (
     <div className="absolute bottom-4 right-4 z-50">
@@ -339,12 +382,46 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
       >
         {isMuted ? '🔇' : '🎤'}
       </button>
+
+      {availableMicrophones.length > 0 && (
+        <div className="absolute bottom-full mb-2 right-0 p-2 bg-gray-800 rounded-lg border border-gray-600">
+          <select
+            className="bg-gray-700 text-white rounded px-2 py-1 text-sm"
+            onChange={async (e) => {
+              if (publisher) {
+                try {
+                  const newStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                      deviceId: { exact: e.target.value },
+                      echoCancellation: true,
+                      noiseSuppression: true,
+                      autoGainControl: true,
+                    },
+                  });
+                  publisher.replaceTrack(newStream.getAudioTracks()[0]);
+                  startAudioLevelMonitoring(newStream);
+                } catch (error) {
+                  console.error('Error switching microphone:', error);
+                }
+              }
+            }}
+          >
+            {availableMicrophones.map((device) => (
+              <option
+                key={device.deviceId}
+                value={device.deviceId}
+              >
+                {device.label || `Microphone ${device.deviceId}`}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
     </div>
   );
 }
 
 export default VoiceChat;
-
 // import { useEffect, useState } from 'react';
 // import { OpenVidu, Publisher, Session } from 'openvidu-browser';
 
