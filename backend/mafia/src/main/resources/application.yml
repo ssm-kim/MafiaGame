@@ -2,12 +2,13 @@ spring:
   application:
     name: mafia
   profiles:
-    active: secret
-  devtools:
-    restart:
-      enabled: true  # 서버 코드 변경 시 재시작
-    livereload:
-      enabled: true  # 프론트엔드 수정 시 새로고침
+    active: local
+    group:
+      local: local, secret
+      blue: blue, secret, prod
+      green: green, secret, prod
+
+
 
   jpa:
     generate-ddl: true
@@ -16,4 +17,57 @@ spring:
     properties:
       hibernate:
         format_sql: true
+    show-sql: true
 
+  data:
+    redis:
+      repositories:
+        enabled: true
+
+notification:
+  mattermost:
+    mmEnabled: true
+    channel: "#alerts"
+    pretext: "🚨 서버 에러 발생!"
+    color: "#ff5d52"
+    authorName: "Mafia Server"
+    title: "백엔드 에러 로그"
+    text: ""
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+application:
+  version: 1.0.0
+
+---
+spring:
+  config:
+    activate:
+      on-profile: blue
+deploy:
+  env: blue
+server:
+  port: 8081
+
+---
+spring:
+  config:
+    activate:
+      on-profile: green
+deploy:
+  env: green
+server:
+  port: 8082

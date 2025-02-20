@@ -31,11 +31,12 @@ public class HeaderInfo {
 
     public static HeaderInfo of(HttpServletRequest request) {
         return HeaderInfo.builder()
-                .host(request.getHeader("host"))
-                .cookie(request.getHeader("cookie"))
-                .method(request.getMethod())
-                .uri(request.getRequestURI())
-                .queryString(request.getQueryString() == null ? null : QUERY_PREFIX + request.getQueryString())
-                .build();
+            .host(request.getHeader("host"))
+            .cookie(request.getHeader("cookie"))
+            .method(request.getMethod())
+            .uri(request.getRequestURI())
+            .queryString(
+                request.getQueryString() == null ? null : QUERY_PREFIX + request.getQueryString())
+            .build();
     }
 }
