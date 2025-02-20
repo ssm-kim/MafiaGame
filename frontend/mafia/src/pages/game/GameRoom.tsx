@@ -113,7 +113,7 @@ function GameRoom(): JSX.Element {
     });
 
     if (gameState?.roomStatus === 'PLAYING') {
-      const newActiveSubs = [];
+      const newActiveSubs: StompSubscription[] = [];
 
       subscriptions.forEach((subscription) => {
         const newActiveSub = stompClientRef.current.subscribe(
@@ -346,33 +346,6 @@ function GameRoom(): JSX.Element {
     setNewMessage('');
   };
 
-  /**
-   * GameComponent와 합치며 추가된 부분
-   */
-
-  const [rejoin, setRejoin] = useState(false);
-
-  useEffect(() => {
-    if (!rejoin) return;
-
-    const fetchGameData = async () => {
-      try {
-        const response = await axios.get(`/api/game/${roomId}`);
-
-        setGameState((prevState) => ({
-          ...prevState,
-          roomStatus: response.data.result.gamestatus,
-        }));
-
-        setSubscriptions(response.data.result.myInfo.subscriptions);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    fetchGameData();
-  }, [rejoin]);
-
   return (
     <div
       role="button"
@@ -411,8 +384,20 @@ function GameRoom(): JSX.Element {
                   setSubscriptions={setSubscriptions}
                   setShowGame={() => {
                     setGameState((prevState) => ({
-                      ...prevState,
-                      roomStatus: null,
+                      roomId: prevState?.roomId ?? 0,
+                      roomTitle: prevState?.roomTitle ?? '',
+                      initParticipantNo: prevState?.initParticipantNo ?? 0,
+                      roomStatus: null as any,
+                      roomOption: prevState?.roomOption ?? '',
+                      requiredPlayers: prevState?.requiredPlayers ?? 0,
+                      isVoice: prevState?.isVoice ?? false,
+                      createdAt: prevState?.createdAt ?? '',
+                      peopleCnt: prevState?.peopleCnt ?? 0,
+                      hostId: prevState?.hostId ?? 0,
+                      hasPassword: prevState?.hasPassword ?? false,
+                      participant: prevState?.participant ?? {},
+                      isNight: prevState?.isNight,
+                      myInfo: prevState?.myInfo,
                     }));
                   }}
                 />

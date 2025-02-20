@@ -6,7 +6,7 @@ interface VoiceChatProps {
   participantNo: number | null;
   nickname: string;
   gameState: {
-    roomStatus: string;
+    roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED' | null;
     isNight?: boolean;
     myInfo?: {
       playerNo: number;

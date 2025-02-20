@@ -1,18 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
-import Phaser from 'phaser';
+import { useEffect, useRef, useState } from 'react';
+import Phaser, { Game } from 'phaser';
 // import SocketService from '@/game/socket/SocketService';
 
 import { CompatClient, StompSubscription } from '@stomp/stompjs';
 import gameConfig from '@/game/gameConfig';
-
-interface GameComponentProps {
-  roomId: string;
-  playerNo: string;
-  stompClient: CompatClient | null;
-  eventEmitter: Phaser.Events.EventEmitter;
-  setSubscriptions: any;
-  setShowGame: any;
-}
 
 function GameComponent({
   roomId,
@@ -21,12 +12,12 @@ function GameComponent({
   eventEmitter,
   setSubscriptions,
   setShowGame,
-}: GameComponentProps) {
+}) {
   const gameContainer = useRef(null);
   const gameInstance = useRef(null);
-  const [positionSubscription, setPositionSubscription] = useState<StompSubscription | null>(null);
+  const [positionSubscription, setPositionSubscription] = useState(null);
 
-  const preventClose = (e: BeforeUnloadEvent) => {
+  const preventClose = (e) => {
     e.preventDefault();
     e.returnValue = '';
   };
@@ -80,7 +71,7 @@ function GameComponent({
       // ResizeObserver를 생성하여 크기 변경 감지
       resizeObserver = new ResizeObserver(() => {
         const { width, height } = gameContainer.current.getBoundingClientRect();
-        gameInstance.current.scale.resize(width, height);
+        gameInstance.current?.scale.resize(width, height);
       });
 
       // ResizeObserver로 컨테이너 관찰 시작

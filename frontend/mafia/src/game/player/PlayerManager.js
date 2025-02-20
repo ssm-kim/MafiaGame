@@ -107,13 +107,13 @@ export default class PlayerManager {
     const player = new Player(this.scene, data);
     this.localPlayer = player;
 
-    const stompClient: CompatClient = this.scene.registry.get('stompClient');
+    const stompClient = this.scene.registry.get('stompClient');
     stompClient.send(`/app/game/${roomId}/pos`, {}, JSON.stringify(data));
 
     this.players.set(userId, player);
   }
 
-  createPlayer(playerId: number, playerData: PlayerData) {
+  createPlayer(playerId, playerData) {
     const playersData = this.scene.registry.get('playersInfo');
     const userData = playersData[playerId];
 

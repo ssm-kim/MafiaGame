@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import UIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin';
-import { CompatClient } from '@stomp/stompjs';
 import GameOverScene from '@/game/scenes/GameOverScene';
 import MainScene from '@/game/scenes/MainScene';
 import StartScene from '@/game/scenes/StartScene';
@@ -23,16 +22,6 @@ const scenes = [
   AfternoonScene,
 ];
 
-interface GameConfigParams {
-  parent?: HTMLDivElement;
-  stompClient: CompatClient | null;
-  roomId: string;
-  playerNo: string;
-  eventEmitter: Phaser.Events.EventEmitter;
-  setSubscriptions: any;
-  setShowGame: any;
-}
-
 const gameConfig = ({
   parent,
   stompClient,
@@ -41,7 +30,7 @@ const gameConfig = ({
   eventEmitter,
   setSubscriptions,
   setShowGame,
-}: GameConfigParams) => ({
+}) => ({
   type: Phaser.WEBGL,
   parent,
   pixelArt: true,
