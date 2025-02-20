@@ -1,6 +1,7 @@
 #infra/docker/frontend/docker-compose.yml
 services:
   react:
+    image: react
     build:
       context: ../../../frontend/mafia
       dockerfile: Dockerfile
