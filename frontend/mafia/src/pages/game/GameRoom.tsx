@@ -9,7 +9,7 @@ import GameHeader from '@/components/gameroom/GameHeader';
 import ChatWindow from '@/components/gameroom/ChatWindow';
 import WaitingRoom from '@/components/gameroom/WaitingRoom';
 import { Player } from '@/types/player';
-// import VoiceChat from '@/components/gameroom/VoiceChat';
+import VoiceChat from '@/components/gameroom/VoiceChat';
 import GameComponent from '@/game/GameComponent';
 
 export interface Participant {
@@ -401,12 +401,12 @@ function GameRoom(): JSX.Element {
                     }));
                   }}
                 />
-                {/* <VoiceChat
+                <VoiceChat
                   roomId={roomId ?? ''}
                   participantNo={participantNo}
                   nickname={currentNickname}
                   gameState={gameState}
-                /> */}
+                />
               </div>
             )}
           </div>
