@@ -117,6 +117,9 @@ function VoiceChat({ nickname, gameState }: VoiceChatProps) {
 
       initializeVoiceChat();
     }
+    return () => {
+      //
+    };
   }, [gameState?.myInfo]);
 
   if (gameState?.roomStatus !== 'PLAYING' || !gameState.myInfo) {
