@@ -402,8 +402,6 @@ function GameRoom(): JSX.Element {
                   }}
                 />
                 <VoiceChat
-                  roomId={roomId ?? ''}
-                  participantNo={participantNo}
                   nickname={currentNickname}
                   gameState={gameState}
                 />

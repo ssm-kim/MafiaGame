@@ -1,17 +1,8 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
-import {
-  OpenVidu,
-  Publisher,
-  Session,
-  StreamManager,
-  Subscriber,
-  PublisherProperties,
-} from 'openvidu-browser';
+import { useEffect, useState } from 'react';
+import { OpenVidu, Publisher, Session, Subscriber } from 'openvidu-browser';
 import AudioComponent from './AudioComponent';
 
 interface VoiceChatProps {
-  roomId: string | number;
-  participantNo: number | null;
   nickname: string;
   gameState: {
     roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED' | null;
@@ -36,7 +27,7 @@ interface VoiceChatProps {
   } | null;
 }
 
-function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProps) {
+function VoiceChat({ nickname, gameState }: VoiceChatProps) {
   const [session, setSession] = useState<Session | null>(null);
   const [publisher, setPublisher] = useState<Publisher | null>(null);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -49,17 +40,17 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
   };
 
   useEffect(() => {
-    function onbeforeunload(event) {
+    function onbeforeunload() {
       leaveSession();
     }
-    window.addEventListener('beforeunload', onbeforeunload);
+    window.addEventListener('beforeunload', () => onbeforeunload());
     return () => {
-      window.removeEventListener('beforeunload', onbeforeunload);
+      window.removeEventListener('beforeunload', () => onbeforeunload());
     };
   }, []);
 
   useEffect(() => {
-    if (gameState.myInfo) {
+    if (gameState && gameState.myInfo) {
       const initializeVoiceChat = () => {
         if (!gameState.myInfo) return;
 
@@ -82,7 +73,7 @@ function VoiceChat({ roomId, participantNo, nickname, gameState }: VoiceChatProp
 
           newsession.on('streamDestroyed', (event) => {
             const prevsubscribers = subscribers;
-            const index = prevsubscribers.indexOf(event.stream.streamManager, 0);
+            const index = prevsubscribers.indexOf(event.stream.streamManager as Subscriber, 0);
             if (index > -1) {
               prevsubscribers.splice(index, 1);
               setSubscribers(prevsubscribers);
