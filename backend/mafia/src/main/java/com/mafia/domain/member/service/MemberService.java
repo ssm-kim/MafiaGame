@@ -3,10 +3,9 @@ package com.mafia.domain.member.service;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.MEMBER_NOT_FOUND;
 import static com.mafia.global.common.model.dto.BaseResponseStatus.NOT_GUEST_ACCOUNT;
 
+import com.mafia.domain.game.model.game.GameStatus;
 import com.mafia.domain.game.model.game.Player;
 import com.mafia.domain.game.model.game.Role;
-import com.mafia.domain.game.model.game.GameStatus;
-import com.mafia.domain.member.model.dto.MemberDTO;
 import com.mafia.domain.member.model.dto.response.MemberResponse;
 import com.mafia.domain.member.model.dto.response.NicknameResponse;
 import com.mafia.domain.member.model.entity.Member;
@@ -32,6 +31,7 @@ public class MemberService {
         return MemberResponse.from(member);
     }
 
+    //닉네임 변경
     @Transactional
     public NicknameResponse updateNickname(Long memberId, String nickname) {
         Member member = memberRepository.findById(memberId)
@@ -39,14 +39,6 @@ public class MemberService {
         member.changeNickname(nickname);
 
         return new NicknameResponse(nickname);
-    }
-
-    // 전체 회원 조회
-    public List<MemberDTO> getAllMembers() {
-        return memberRepository.findAll()
-            .stream()
-            .map(MemberDTO::from)
-            .collect(Collectors.toList());
     }
 
     // 회원 삭제
@@ -66,7 +58,6 @@ public class MemberService {
         if (!member.getProviderId().startsWith("guest_")) {
             throw new BusinessException(NOT_GUEST_ACCOUNT);
         }
-
         memberRepository.delete(member);
     }
 
@@ -76,7 +67,8 @@ public class MemberService {
             .filter(player -> (
                 (player.getRole() == Role.ZOMBIE && gameStatus == GameStatus.ZOMBIE_WIN) ||
                     (player.getRole() == Role.MUTANT && gameStatus == GameStatus.MUTANT_WIN) ||
-                    (player.getRole() != Role.ZOMBIE && player.getRole() != Role.MUTANT && gameStatus == GameStatus.CITIZEN_WIN)
+                    (player.getRole() != Role.ZOMBIE && player.getRole() != Role.MUTANT
+                        && gameStatus == GameStatus.CITIZEN_WIN)
             ))
             .map(Player::getMemberId)
             .collect(Collectors.toList());
