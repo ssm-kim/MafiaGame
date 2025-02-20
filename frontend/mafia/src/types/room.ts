@@ -13,7 +13,7 @@ export interface Room {
   roomId: number;
   roomTitle: string;
   initParticipantNo: number;
-  roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
+  roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED' | null;
   roomOption: string;
   requiredPlayers: number;
   isVoice: boolean;

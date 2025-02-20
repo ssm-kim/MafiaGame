@@ -1,11 +1,11 @@
 import PlayerRole from '@/types/role';
-import { GamePhases } from '@/types/game';
+import GamePhases from '@/types/game';
 
-interface BaseResponse {
+interface BaseResponse<T = string> {
   isSuccess: boolean;
   code: number;
   message: string;
-  result: string;
+  result: T;
 }
 
 interface PlayerInfo {
@@ -16,7 +16,10 @@ interface PlayerInfo {
   dead: boolean;
 }
 
-interface GameData extends BaseResponse {
+interface GameData
+  extends BaseResponse<{
+    players: Map<string, PlayerInfo>;
+  }> {
   result: {
     players: Map<string, PlayerInfo>;
   };
@@ -28,14 +31,21 @@ interface GameData extends BaseResponse {
 // DAY_FINAL_VOTE, 낮 - 최종 투표
 // NIGHT_ACTION    밤 - 행동 선택
 
-interface GameStatus extends BaseResponse {
+interface GameStatus
+  extends BaseResponse<{
+    currentphase: GamePhases;
+    remainingtime: number;
+  }> {
   result: {
     currentphase: GamePhases;
     remainingtime: number;
   };
 }
 
-interface GameEndState extends BaseResponse {
+interface GameEndState
+  extends BaseResponse<{
+    ex: 'PLAYING' | 'CITIZEN_WIN' | 'ZOMBIE_WIN' | 'MUTANT_WIN';
+  }> {
   result: {
     ex: 'PLAYING' | 'CITIZEN_WIN' | 'ZOMBIE_WIN' | 'MUTANT_WIN';
   };

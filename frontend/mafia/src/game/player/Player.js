@@ -2,11 +2,11 @@ import { CompatClient } from '@stomp/stompjs';
 import Phaser from 'phaser';
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
-  scene: Phaser.Scene;
+  // scene: Phaser.Scene;
 
-  playerData: PlayerData;
+  // playerData: PlayerData;
 
-  isStop: boolean = true;
+  // isStop: boolean = true;
 
   static TEXTURE_MAPPING = {
     left: 3,
@@ -246,12 +246,12 @@ export default class Player extends Phaser.Physics.Arcade.Sprite {
         lastDirection: this.lastDirection,
       };
 
-      const stompClient: CompatClient = this.scene.registry.get('stompClient');
+      const stompClient = this.scene.registry.get('stompClient');
       stompClient.send(`/app/game/${roomId}/pos`, {}, JSON.stringify(updatedPlayerData));
     }
   }
 
-  destroy(fromScene?: boolean) {
+  destroy(fromScene) {
     try {
       // 닉네임 텍스트 정리
       if (this.nicknameText && this.nicknameText.scene) {
