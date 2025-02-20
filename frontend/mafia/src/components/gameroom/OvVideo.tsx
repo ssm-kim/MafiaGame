@@ -7,7 +7,6 @@ interface Props {
 
 function OpenviduVideoComponent({ streamManager }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const autoplay = true;
 
   useEffect(() => {
     if (streamManager && videoRef.current) {
@@ -16,10 +15,7 @@ function OpenviduVideoComponent({ streamManager }: Props) {
   }, [streamManager]);
 
   return (
-    <video
-      autoPlay={autoplay}
-      ref={videoRef}
-    >
+    <video ref={videoRef}>
       <track kind="captions" />
     </video>
   );

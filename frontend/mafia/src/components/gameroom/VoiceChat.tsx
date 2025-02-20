@@ -128,7 +128,7 @@ function VoiceChat({ nickname, gameState }: VoiceChatProps) {
 
   return (
     <div className="absolute bottom-4 right-4 z-50">
-      <div>
+      <div style={{ display: 'none' }}>
         {publisher !== undefined ? (
           <div className="stream-container col-md-6 col-xs-6">
             <OpenViduVideoComponent streamManager={publisher as StreamManager} />
