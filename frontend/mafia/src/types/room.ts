@@ -1,20 +1,42 @@
+export interface MyInfo {
+  playerNo: number;
+  nickname: string;
+  subscriptions: string[];
+  isDead: boolean;
+  role: string;
+  muteAudio: boolean;
+  muteMic: boolean;
+  openviduToken: string;
+}
+
 export interface Room {
   roomId: number;
   roomTitle: string;
-  // roomStatus: boolean; // false(대기방), true(게임 진행 중)
-  roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
+  initParticipantNo: number;
+  roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED' | null;
   roomOption: string;
-  maxPlayer: number;
+  requiredPlayers: number;
   isVoice: boolean;
+  password?: string;
   createdAt: string;
   peopleCnt: number;
   hostId: number;
+  hasPassword: boolean;
   participant: Record<string, Participant>;
   isNight?: boolean;
+  myInfo?: MyInfo;
+}
+
+export interface GameStart {
+  gameStart: string;
+}
+
+export interface ParticipantMap {
+  [key: number]: Participant;
 }
 
 export interface Participant {
-  memberId: number;
+  participantNo: number;
   nickName: string;
   ready: boolean;
   subscriptions?: string[];
@@ -25,7 +47,7 @@ export interface GameStartResponse {
   roomId: number;
   hostId: number;
   readyCnt: number;
-  roomStatus: boolean;
+  roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
   participant: Record<string, Participant>;
   gameOption: {
     maxPlayer: number;
@@ -39,54 +61,46 @@ export interface GameStartResponse {
 }
 
 // export interface Room {
-//     id: string;
-//     name: string;
-//     maxPlayers: number;
-//     currentPlayers: number;
-//     password?: string;
-//     gameStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
-//     timePhase?: 'DAY' | 'NIGHT' | 'VOTE';
-//     mafia: number;
-//     police: number;
-//     doctor: number;
-//     dayTime: number;
-//     nightTime: number;
-//     voteTime: number;
-//   }
-
-// export interface Room {
 //   roomId: number;
 //   roomTitle: string;
-//   roomStatus: boolean; // false(대기방), true(게임 진행 중)
+//   initParticipantNo: number;
+//   roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED';
 //   roomOption: string;
-//   maxPlayers: number;
+//   requiredPlayers: number;
 //   isVoice: boolean;
+//   password?: string;
 //   createdAt: string;
-//   curPlayers: number;
+//   peopleCnt: number;
 //   hostId: number;
+//   hasPassword: boolean;
 //   participant: Record<string, Participant>;
-//   maxPlayer?: number;
+//   isNight?: boolean;
 // }
 
-// interface Participant {
-//   memberId: number;
+// export interface GameStart {
+//   gameStart: string;
+// }
+
+// export interface ParticipantMap {
+//   [key: number]: Participant;
+// }
+
+// export interface Participant {
+//   participantNo: number;
 //   nickName: string;
 //   ready: boolean;
+//   subscriptions?: string[];
+//   isDead?: boolean;
 // }
 
 // export interface GameStartResponse {
 //   roomId: number;
 //   hostId: number;
 //   readyCnt: number;
-//   roomStatus: boolean;
-//   participant: {
-//     [key: string]: {
-//       memberId: number;
-//       nickName: string;
-//       ready: boolean;
-//     };
-//   };
+//   roomStatus: 'WAITING' | 'PLAYING' | 'FINISHED'; // Room 인터페이스와 같은 타입으로 변경
+//   participant: Record<string, Participant>;
 //   gameOption: {
+//     maxPlayer: number;
 //     zombie: number;
 //     mutant: number;
 //     doctorSkillUsage: number;
@@ -94,13 +108,4 @@ export interface GameStartResponse {
 //     dayDisTimeSec: number;
 //     requiredPlayers: number;
 //   };
-// }
-
-// interface TestGameHeaderProps {
-//   roomId: string;
-//   gameState: Room | null;
-//   onLeave: () => Promise<void>;
-//   onReady: () => Promise<void>; // 추가
-//   onStart: () => Promise<void>;
-//   isHost: boolean;
 // }

@@ -1,91 +1,285 @@
 import Phaser from 'phaser';
 
 export default class Player extends Phaser.Physics.Arcade.Sprite {
-  constructor(scene, x, y, key) {
-    super(scene, x, y, key);
+  // scene: Phaser.Scene;
 
-    // Scene과 입력 객체 저장
+  // playerData: PlayerData;
+
+  // isStop: boolean = true;
+
+  static TEXTURE_MAPPING = {
+    left: 3,
+    right: 9,
+    up: 6,
+    down: 0,
+  };
+
+  constructor(scene, playerData) {
+    super(scene, playerData.x || 36, playerData.y || 200, playerData.character);
+
+    this.SPEED = 100;
+    this.NICKNAME_OFFSET_Y = 30;
+
     this.scene = scene;
-    this.cursors = scene.input.keyboard.createCursorKeys();
+    this.playerData = playerData;
+    this.isLocal = playerData.isLocal;
+    this.character = playerData.character;
     this.lastDirection = 'down';
-    this.character = key;
 
-    // Scene에 추가 및 물리 엔진에 등록
+    this.initializePlayer(playerData);
+  }
+
+  initializePlayer(playerData) {
+    if (!this.character) {
+      console.error('No character specified');
+      this.character = 'character1';
+    }
+
+    try {
+      if (playerData.nickname) {
+        this.createNicknameText(playerData.nickname);
+      }
+
+      this.setTexture(this.character, Player.TEXTURE_MAPPING[this.lastDirection]);
+      this.setupPhysics();
+      this.createAnimations(); // 애니메이션 초기 생성
+
+      if (playerData.isLocal) {
+        this.setupCamera();
+        this.cursors = this.scene.input.keyboard.createCursorKeys();
+        this.shift = this.scene.input.keyboard.addKey('SHIFT');
+      }
+    } catch (error) {
+      console.error('Texture error:', error);
+      this.setTexture('character1', Player.TEXTURE_MAPPING[this.lastDirection]);
+    }
+  }
+
+  createAnimations() {
+    if (!this.scene || !this.scene.anims) return;
+
+    const directions = ['left', 'right', 'up', 'down'];
+    const frames = {
+      left: [3, 4, 5],
+      right: [9, 10, 11],
+      up: [6, 7, 8],
+      down: [0, 1, 2],
+    };
+
+    directions.forEach((direction) => {
+      const animKey = `${this.character}_${direction}`;
+      if (!this.scene.anims.exists(animKey)) {
+        this.scene.anims.create({
+          key: animKey,
+          frames: this.scene.anims.generateFrameNumbers(this.character, {
+            frames: frames[direction],
+          }),
+          frameRate: 10,
+          repeat: -1,
+        });
+      }
+    });
+  }
+
+  setupPhysics() {
+    if (!this.scene) return;
+
+    // 기존 physics body가 있다면 제거
+    if (this.body) {
+      this.scene.physics.world.remove(this.body);
+    }
+
     this.scene.add.existing(this);
     this.scene.physics.add.existing(this);
 
-    // 플레이어 속성 설정
-    this.setCollideWorldBounds(true); // 월드 경계 충돌
-    this.setBodySize(20, 35);
-    this.setOffset(6, 25);
-
-    // Socket 서비스 설정
-    this.lastEmitTime = 0;
-    this.emitInterval = 1;
+    this.scale = 1.5;
+    this.setPushable(false);
+    this.setCollideWorldBounds(true);
+    this.setCollideObject('locker');
+    this.setBodySize(16, 15);
+    this.setOffset(8, 45);
+    this.setGroupDepth();
   }
 
-  // 업데이트 메서드 (Scene에서 호출)
-  move() {
-    const speed = 100;
-    this.velocityX = 0;
-    this.velocityY = 0;
+  setGroupDepth() {
+    this.setDepth(this.y);
+    this.nicknameText.setDepth(this.y);
+  }
 
-    if (this.cursors.left.isDown) {
-      this.velocityX = -speed;
-      this.anims.play(`${this.character}_left`, true);
-      this.lastDirection = 'left';
-    } else if (this.cursors.right.isDown) {
-      this.velocityX = speed;
-      this.anims.play(`${this.character}_right`, true);
-      this.lastDirection = 'right';
-    } else if (this.cursors.up.isDown) {
-      this.velocityY = -speed;
-      this.anims.play(`${this.character}_up`, true);
-      this.lastDirection = 'up';
-    } else if (this.cursors.down.isDown) {
-      this.velocityY = speed;
-      this.anims.play(`${this.character}_down`, true);
-      this.lastDirection = 'down';
-    } else {
-      this.stop(this.lastDirection);
-    }
+  setCollideObject(objectKey) {
+    const objectList = this.scene.children.list.filter((item) => item.name === objectKey);
 
-    // 속도 적용
-    this.setVelocity(this.velocityX, this.velocityY);
-
-    // 이동 정보 전송
-    const currentTime = Date.now();
-
-    if (currentTime - this.lastEmitTime > this.emitInterval) {
-      this.scene.socketService.emitMovement({
-        room: this.scene.registry.get('roomId'),
-        socketId: this.scene.socketService.socket.id,
-        x: this.x,
-        y: this.y,
-        velocityX: this.velocityX,
-        velocityY: this.velocityY,
-        character: this.character || null,
-        lastDirection: this.lastDirection,
+    if (objectList) {
+      objectList.forEach((object) => {
+        this.scene.physics.add.collider(this, object);
       });
     }
-
-    this.lastEmitTime = currentTime;
   }
 
-  stop(lastDirection) {
-    const textureMapping = {
-      left: 3,
-      right: 9,
-      up: 6,
-      down: 0,
-    };
+  createNicknameText(nickname) {
+    this.nicknameText = this.scene.add.text(this.x, this.y - this.NICKNAME_OFFSET_Y, nickname, {
+      padding: { x: 6, y: 4 },
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    });
+    this.nicknameText.setOrigin(0.5);
+  }
 
-    if (textureMapping[lastDirection] !== undefined) {
-      this.setTexture(this.texture.key, textureMapping[lastDirection]);
+  setupCamera() {
+    const camera = this.scene.cameras.main;
+    camera.startFollow(this, true);
+    camera.setBounds(0, 0, 932, 610);
+    camera.setZoom(1);
+  }
+
+  move() {
+    if (!this.scene || !this.body) return; // 추가된 안전 검사
+
+    const movement = this.calculateMovement();
+
+    if (movement.velocityX || movement.velocityY) {
+      this.isStop = false;
+    }
+
+    this.sendPosition(movement);
+
+    if (movement.velocityX === 0 && movement.velocityY === 0) {
+      this.isStop = true;
+    }
+
+    this.nonLocalMove(movement);
+  }
+
+  nonLocalMove(movement) {
+    this.updatePosition(movement);
+    this.updateAnimation();
+    this.nicknameText.setPosition(this.x, this.y - this.NICKNAME_OFFSET_Y);
+    this.setGroupDepth();
+  }
+
+  calculateMovement() {
+    const { left, right, up, down } = this.cursors;
+    const { shift } = this;
+
+    return {
+      velocityX: this.calculateVelocityX(left.isDown, right.isDown, shift.isDown),
+      velocityY: this.calculateVelocityY(up.isDown, down.isDown, shift.isDown),
+    };
+  }
+
+  calculateVelocityX(isLeftCursorDown, isRightCursorDown, isShiftDown) {
+    let velocityX = 0;
+
+    if (isLeftCursorDown) {
+      velocityX = -this.SPEED;
+    }
+    if (isRightCursorDown) {
+      velocityX = this.SPEED;
+    }
+    if (isShiftDown) {
+      velocityX *= 2;
+    }
+
+    return velocityX;
+  }
+
+  calculateVelocityY(isUpCursorDown, isDownCursorDown, isShiftDown) {
+    let velocityY = 0;
+
+    if (isUpCursorDown) {
+      velocityY = -this.SPEED;
+    }
+    if (isDownCursorDown) {
+      velocityY = this.SPEED;
+    }
+    if (isShiftDown) {
+      velocityY *= 2;
+    }
+
+    return velocityY;
+  }
+
+  updatePosition(movement) {
+    this.setVelocity(movement.velocityX, movement.velocityY);
+    this.setLastDirection(movement);
+    if (this.isMoving()) {
+      this.nicknameText.setPosition(this.x, this.y - this.NICKNAME_OFFSET_Y);
     }
   }
 
-  die() {
-    this.destroy();
+  setLastDirection(movement) {
+    if (movement.velocityX < 0) this.lastDirection = 'left';
+    if (movement.velocityX > 0) this.lastDirection = 'right';
+    if (movement.velocityY < 0) this.lastDirection = 'up';
+    if (movement.velocityY > 0) this.lastDirection = 'down';
+  }
+
+  isMoving() {
+    return this.body.velocity.x !== 0 || this.body.velocity.y !== 0;
+  }
+
+  updateAnimation() {
+    if (!this.scene || !this.scene.anims) return;
+
+    if (this.isMoving()) {
+      const animKey = `${this.character}_${this.lastDirection}`;
+
+      // 현재 재생 중인 애니메이션과 다른 경우에만 새로운 애니메이션 시작
+      if (!this.anims.isPlaying || this.anims.currentAnim?.key !== animKey) {
+        this.play(animKey, true);
+      }
+    } else {
+      // 움직임이 없을 때는 정적 프레임으로 설정
+      this.stop();
+      this.setFrame(Player.TEXTURE_MAPPING[this.lastDirection]);
+    }
+  }
+
+  sendPosition(movement) {
+    if (!this.isStop) {
+      const roomId = this.scene.registry.get('roomId');
+
+      const updatedPlayerData = {
+        playerNo: this.playerData.playerNo,
+        character: this.playerData.character,
+        x: this.x,
+        y: this.y,
+        velocityX: movement.velocityX,
+        velocityY: movement.velocityY,
+        lastDirection: this.lastDirection,
+      };
+
+      const stompClient = this.scene.registry.get('stompClient');
+      stompClient.send(`/app/game/${roomId}/pos`, {}, JSON.stringify(updatedPlayerData));
+    }
+  }
+
+  destroy(fromScene) {
+    try {
+      // 닉네임 텍스트 정리
+      if (this.nicknameText && this.nicknameText.scene) {
+        this.nicknameText.destroy();
+        this.nicknameText = null;
+      }
+
+      // physics body 정리
+      if (this.body && this.scene) {
+        this.scene.physics.world.remove(this.body);
+      }
+
+      // 이벤트 리스너 정리
+      if (this.cursors) {
+        this.cursors = null;
+      }
+      if (this.shift) {
+        this.shift = null;
+      }
+
+      // 부모 클래스의 destroy 호출
+      if (this.scene) {
+        super.destroy(fromScene);
+      }
+    } catch (error) {
+      console.error('Player destroy error:', error);
+    }
   }
 }
