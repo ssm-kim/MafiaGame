@@ -3,5 +3,6 @@ export interface Player {
   nickname: string;
   isHost: boolean;
   isReady: boolean;
-  hostId: number;
+  hostId?: number;
+  participantNo: number;
 }

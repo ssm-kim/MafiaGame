@@ -1,0 +1,121 @@
+{
+    "createGame": {
+        "isSuccess": true,
+        "code": 200,
+        "message": "요청에 성공하였습니다.",
+        "result": "Game started in Room 1."
+    },
+    "gameStatus": {
+        "isSuccess": true,
+        "code": 200,
+        "message": "요청에 성공하였습니다.",
+        "result": {
+            "currentphase": "DAY_DISCUSSION",
+            "remainingtime": 40
+        }
+    },
+    "gameData": {
+        "isSuccess": true,
+        "code": 200,
+        "message": "요청에 성공하였습니다.",
+        "result": {
+            "players": {
+                "1": {
+                    "userId": 1,
+                    "nickname": "user1",
+                    "role": "PLAGUE_DOCTOR",
+                    "enableVote": true,
+                    "dead": false
+                },
+                "2": {
+                    "userId": 2,
+                    "nickname": "user2",
+                    "role": "CITIZEN",
+                    "enableVote": true,
+                    "dead": false
+                },
+                "3": {
+                    "userId": 3,
+                    "nickname": "user3",
+                    "role": "ZOMBIE",
+                    "enableVote": true,
+                    "dead": false
+                },
+                "4": {
+                    "userId": 4,
+                    "nickname": "user4",
+                    "role": "CITIZEN",
+                    "enableVote": true,
+                    "dead": false
+                },
+                "5": {
+                    "userId": 5,
+                    "nickname": "user5",
+                    "role": "ZOMBIE",
+                    "enableVote": true,
+                    "dead": false
+                },
+                "6": {
+                    "userId": 6,
+                    "nickname": "user6",
+                    "role": "POLICE",
+                    "enableVote": true,
+                    "dead": false
+                },
+                "7": {
+                    "userId": 7,
+                    "nickname": "user7",
+                    "role": "CITIZEN",
+                    "enableVote": true,
+                    "dead": false
+                },
+                "8": {
+                    "userId": 8,
+                    "nickname": "user8",
+                    "role": "CITIZEN",
+                    "enableVote": true,
+                    "dead": false
+                }
+            },
+            "votes": {},
+            "ready": [],
+            "deadplayers": [],
+            "status": "PLAYING",
+            "alive": 8,
+            "dead": 0,
+            "citizen": 6,
+            "zombie": 2,
+            "mutant": 0,
+            "doctorCount": 2,
+            "healTarget": 0,
+            "option": {
+                "zombie": 2,
+                "mutant": 1,
+                "doctorCount": 2,
+                "nightTimeSec": 30,
+                "disTimeSec": 60
+            },
+            "room_id": 1
+        }
+    },
+    "gameDelete": {
+        "isSuccess": true,
+        "code": 200,
+        "message": "요청에 성공하였습니다.",
+        "result": "Room 1 deleted."
+    },
+    "vote": {
+        "isSuccess": true,
+        "code": 200,
+        "message": "요청에 성공하였습니다.",
+        "result": "User 1 voted for 2 in Room 1."
+    },
+    "gameEndState": {
+        "isSuccess": true,
+        "code": 200,
+        "message": "요청에 성공하였습니다.",
+        "result": {
+            "ex": "PLAYING"
+        }
+    }
+}
